@@ -25,9 +25,10 @@ class RawLine {
   RawLine copyWithAlt(bool value) =>
       RawLine(id: id, prop: prop, attributes: attributes, alt: value);
 
-  /// Build from a decoded JSON map, stamping in the list index as `id`.
-  factory RawLine.fromJson(Map<String, dynamic> json, int id) => RawLine(
-        id: id,
+  /// Build from a decoded JSON map. Uses the item's own `id` when present
+  /// (story JSON carries one per line); otherwise falls back to [index].
+  factory RawLine.fromJson(Map<String, dynamic> json, int index) => RawLine(
+        id: json['id'] is num ? (json['id'] as num).toInt() : index,
         prop: (json['prop'] ?? '').toString(),
         attributes: (json['attributes'] as Map?)?.cast<String, dynamic>(),
       );
