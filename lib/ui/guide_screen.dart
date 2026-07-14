@@ -13,8 +13,10 @@ import '../data/chapter_images.dart';
 import '../data/guide.dart';
 import '../data/menu.dart';
 import '../stores/progress_store.dart';
+import '../stores/settings_store.dart';
 import 'ash_fx.dart';
 import 'guide_controller.dart';
+import 'settings_screen.dart';
 
 Color _statusColor(ReadStatus s) => switch (s) {
       ReadStatus.read => const Color(0xFF5AA469),
@@ -35,6 +37,8 @@ class GuideScreen extends StatefulWidget {
 class _GuideScreenState extends State<GuideScreen> {
   final _page = PageController(viewportFraction: 0.6);
   EpisodeNode? _openEpisode; // chapter drill-down target (null = closed)
+  bool _notesVisible = false;
+  bool _lightbox = false;
 
   @override
   void dispose() {
@@ -55,36 +59,78 @@ class _GuideScreenState extends State<GuideScreen> {
     if (_openEpisode != null) setState(() => _openEpisode = null);
   }
 
+  /// Handle Android back: close the topmost overlay. Returns whether one closed.
+  bool _handleBack() {
+    if (_lightbox) {
+      setState(() => _lightbox = false);
+      return true;
+    }
+    if (_openEpisode != null) {
+      setState(() => _openEpisode = null);
+      return true;
+    }
+    if (_notesVisible) {
+      setState(() => _notesVisible = false);
+      return true;
+    }
+    return false;
+  }
+
+  static bool _hasNote(EpisodeNode? n) =>
+      n != null &&
+      ((n.note?.isNotEmpty ?? false) ||
+          (n.lead?.isNotEmpty ?? false) ||
+          (n.subStories?.isNotEmpty ?? false));
+
+  void _openSettings() => Navigator.of(context)
+      .push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+
+  void _openStoryList() => Navigator.of(context)
+      .push(MaterialPageRoute(builder: (_) => const StoryListScreen()));
+
   @override
   Widget build(BuildContext context) {
+    final overlayUp = _lightbox || _openEpisode != null;
     return PopScope(
-      canPop: _openEpisode == null,
+      canPop: !overlayUp && !_notesVisible,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _close();
+        if (!didPop) _handleBack();
       },
       child: Scaffold(
         body: Consumer<GuideController>(
           builder: (context, gc, _) {
             final nodes = gc.currentNodes;
+            final focused = gc.focusedNode;
+            final bgPath = focused == null ? null : episodeBackground(focused);
             return Stack(
               fit: StackFit.expand,
               children: [
                 const ColoredBox(color: Color(0xFF0D0D0F)),
-                _Backdrop(node: gc.focusedNode),
-                const Positioned.fill(child: AshFx()),
+                _Backdrop(node: focused),
+                Positioned.fill(child: AshFx(paused: overlayUp)),
                 if (gc.loading)
                   const Center(child: CircularProgressIndicator())
                 else if (gc.error != null)
-                  _ErrorView(onRetry: () => gc.load('en_US'))
+                  _ErrorView(
+                      onRetry: () =>
+                          gc.load(context.read<SettingsStore>().state.server))
                 else
                   SafeArea(
                     child: Column(
                       children: [
+                        _topBar(gc, focused, bgPath),
                         if (gc.isMainStory && gc.arcCount > 1) _arcRail(gc),
                         Expanded(child: _scroller(gc, nodes)),
                         _selector(gc),
                       ],
                     ),
+                  ),
+
+                // Floating notes panel for the focused node.
+                if (_notesVisible && focused != null)
+                  _NotesPanel(
+                    node: focused,
+                    onClose: () => setState(() => _notesVisible = false),
                   ),
 
                 // Chapter drill-down (slides/fades in over the same backdrop).
@@ -110,10 +156,45 @@ class _GuideScreenState extends State<GuideScreen> {
                           ),
                   ),
                 ),
+
+                // Full-screen background lightbox (topmost).
+                if (_lightbox && bgPath != null)
+                  _Lightbox(
+                    path: bgPath,
+                    onClose: () => setState(() => _lightbox = false),
+                  ),
               ],
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _topBar(GuideController gc, EpisodeNode? focused, String? bgPath) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+      child: Row(
+        children: [
+          _IconBtn(
+              icon: Icons.settings_outlined,
+              tooltip: 'Settings',
+              onTap: _openSettings),
+          _IconBtn(
+            icon: Icons.sticky_note_2_outlined,
+            tooltip: 'Notes',
+            active: _notesVisible,
+            badge: _hasNote(focused) && !_notesVisible,
+            onTap: () => setState(() => _notesVisible = !_notesVisible),
+          ),
+          const Spacer(),
+          if (bgPath != null)
+            _TextBtn(
+                label: 'Background',
+                onTap: () => setState(() => _lightbox = true)),
+          const SizedBox(width: 8),
+          _TextBtn(label: '☰ Story List', onTap: _openStoryList),
+        ],
       ),
     );
   }
@@ -507,6 +588,178 @@ class _ChapterRow extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IconBtn extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool active;
+  final bool badge;
+  const _IconBtn({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.active = false,
+    this.badge = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          tooltip: tooltip,
+          onPressed: onTap,
+          icon: Icon(icon, color: active ? _gold : Colors.white70),
+        ),
+        if (badge)
+          const Positioned(
+            right: 8,
+            top: 8,
+            child: IgnorePointer(
+              child: Icon(Icons.circle, size: 8, color: _gold),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _TextBtn extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _TextBtn({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) =>
+      _Pill(label: label, active: false, onTap: onTap);
+}
+
+/// Floating notes panel for the focused guide node (lead / note / sub-stories).
+class _NotesPanel extends StatelessWidget {
+  final EpisodeNode node;
+  final VoidCallback onClose;
+  const _NotesPanel({required this.node, required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    final lead = node.lead;
+    final note = node.note;
+    final subs = node.subStories ?? const <SubStory>[];
+    final hasAny = (lead?.isNotEmpty ?? false) ||
+        (note?.isNotEmpty ?? false) ||
+        subs.isNotEmpty;
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 56,
+      left: 24,
+      right: 24,
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          constraints: const BoxConstraints(maxHeight: 320),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xF01A1A1E),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white12),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (lead != null && lead.isNotEmpty) ...[
+                  Text(lead,
+                      style: const TextStyle(
+                          color: Color(0xFFD8B878),
+                          fontSize: 13,
+                          fontStyle: FontStyle.italic)),
+                  const SizedBox(height: 10),
+                ],
+                if (note != null && note.isNotEmpty)
+                  Text(note,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 14, height: 1.4)),
+                if (subs.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final ss in subs)
+                        Chip(
+                          label: Text('▸ ${ss.name}',
+                              style: const TextStyle(fontSize: 12)),
+                          backgroundColor: Colors.white10,
+                          side: BorderSide.none,
+                        ),
+                    ],
+                  ),
+                ],
+                if (!hasAny)
+                  const Text('No notes for this entry.',
+                      style: TextStyle(color: Colors.white54)),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(onPressed: onClose, child: const Text('Close')),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-screen, tap-to-dismiss view of the uncropped scene background.
+class _Lightbox extends StatelessWidget {
+  final String path;
+  final VoidCallback onClose;
+  const _Lightbox({required this.path, required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onClose,
+      child: Container(
+        color: Colors.black,
+        alignment: Alignment.center,
+        child: InteractiveViewer(
+          child: Image.asset(
+            path,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Placeholder for the full story browser (the "☰ Story List" destination).
+class StoryListScreen extends StatelessWidget {
+  const StoryListScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Story List')),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'The full story browser is coming soon.\n\n'
+            'For now, tap an episode on the guide to open its chapter list.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white54, height: 1.5),
+          ),
         ),
       ),
     );

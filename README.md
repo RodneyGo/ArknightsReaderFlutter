@@ -46,8 +46,9 @@ clean, all 19 tests pass (Flutter 3.44.6 / Dart 3.12.2).
 |---|---|
 | `lib/main.dart` | App shell: `MultiProvider` wiring the stores + dark theme + `MenuScreen` |
 | `lib/ui/ash_fx.dart` | Ambient ember layer — native reimplementation of `AshFX.vue` (the FPS bottleneck): one `Ticker` → `CustomPainter` in a `RepaintBoundary` |
-| `lib/ui/guide_screen.dart` | The guide hub / landing: backdrop + embers + arc rail + vertical `PageView` episode scroller (snap + focus-scale) + storyline selector + chapter drill-down (`ChaptersPanel`, animated, back-dismiss) |
+| `lib/ui/guide_screen.dart` | The guide hub / landing: top control bar (settings / notes / background lightbox / story list) + backdrop + embers + arc rail + vertical `PageView` episode scroller + storyline selector + chapter drill-down (`ChaptersPanel`) + notes panel + `InteractiveViewer` lightbox |
 | `lib/ui/guide_controller.dart` | `ChangeNotifier`: fetches menu → `buildGuide`; tracks storyline/arc/focused episode (injectable fetch for tests) |
+| `lib/ui/settings_screen.dart` | Minimal settings (doctor name / story language→reloads guide / VN mode / font size) over `SettingsStore` |
 | `lib/data/chapter_images.dart` | `chapterImages.ts` | banner lookup by normalized event name + aliases |
 | `lib/data/backgrounds.dart` | `backgrounds.ts` | episode/story backdrop lookup + banner fallback |
 | `lib/data/image_assets.dart` | (glob replacement) | loads bundled asset paths from `AssetManifest` → the two lookups |

@@ -61,6 +61,10 @@ void main() {
     expect(find.byType(EpisodeCard), findsWidgets);
     expect(find.text('Evil Time'), findsWidgets);
     expect(find.text('Main Story'), findsOneWidget);
+    // top control bar
+    expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.sticky_note_2_outlined), findsOneWidget);
+    expect(find.text('☰ Story List'), findsOneWidget);
   });
 
   testWidgets('tapping a card opens the chapter drill-down; back closes it',
