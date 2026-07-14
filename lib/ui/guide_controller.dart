@@ -1,0 +1,99 @@
+// Guide screen state: fetches the chapter menu, builds the reading guide, and
+// tracks the selected storyline / arc / focused episode. A ChangeNotifier so the
+// screen rebuilds on change; the menu fetch is injectable so tests don't hit the
+// network.
+
+import 'package:flutter/foundation.dart';
+
+import '../data/guide.dart';
+import '../data/menu.dart';
+
+class GuideController extends ChangeNotifier {
+  final Future<Menu> Function(String server) _fetchMenu;
+
+  GuideController({Future<Menu> Function(String server)? fetchMenu})
+      : _fetchMenu = fetchMenu ?? getMenu;
+
+  Guide? _guide;
+  Object? _error;
+  bool _loading = false;
+  int _storyline = 0; // 0 = Main Story; else sideStorylines[_storyline - 1]
+  int _arc = 0; // active main-story arc (only when Main Story is selected)
+  int _focused = 0; // focused episode within the current node list
+
+  Guide? get guide => _guide;
+  Object? get error => _error;
+  bool get loading => _loading;
+  int get storylineIndex => _storyline;
+  int get arcIndex => _arc;
+  int get focusedIndex => _focused;
+  bool get isMainStory => _storyline == 0;
+  int get arcCount => _guide?.mainArcs.length ?? 0;
+
+  Future<void> load(String server) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final menu = await _fetchMenu(server);
+      _guide = buildGuide(menu.categories);
+    } catch (e) {
+      _error = e;
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
+  @visibleForTesting
+  void setGuide(Guide g) {
+    _guide = g;
+    _error = null;
+    _loading = false;
+    notifyListeners();
+  }
+
+  /// Bottom-selector labels: one "Main Story" item + each side storyline.
+  List<String> get selectorLabels {
+    final g = _guide;
+    if (g == null) return const [];
+    return ['Main Story', for (final s in g.sideStorylines) s.name];
+  }
+
+  List<EpisodeNode> get currentNodes {
+    final g = _guide;
+    if (g == null) return const [];
+    if (_storyline == 0) {
+      if (g.mainArcs.isEmpty) return const [];
+      return g.mainArcs[_arc.clamp(0, g.mainArcs.length - 1)].nodes;
+    }
+    return g.sideStorylines[_storyline - 1].nodes;
+  }
+
+  EpisodeNode? get focusedNode {
+    final nodes = currentNodes;
+    if (nodes.isEmpty) return null;
+    return nodes[_focused.clamp(0, nodes.length - 1)];
+  }
+
+  void selectStoryline(int i) {
+    if (i == _storyline) return;
+    _storyline = i;
+    _arc = 0;
+    _focused = 0;
+    notifyListeners();
+  }
+
+  void selectArc(int i) {
+    if (i == _arc) return;
+    _arc = i;
+    _focused = 0;
+    notifyListeners();
+  }
+
+  void setFocused(int i) {
+    if (i == _focused) return;
+    _focused = i;
+    notifyListeners();
+  }
+}

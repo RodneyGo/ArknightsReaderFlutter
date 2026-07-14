@@ -46,7 +46,8 @@ clean, all 19 tests pass (Flutter 3.44.6 / Dart 3.12.2).
 |---|---|
 | `lib/main.dart` | App shell: `MultiProvider` wiring the stores + dark theme + `MenuScreen` |
 | `lib/ui/ash_fx.dart` | Ambient ember layer — native reimplementation of `AshFX.vue` (the FPS bottleneck): one `Ticker` → `CustomPainter` in a `RepaintBoundary` |
-| `lib/ui/menu_screen.dart` | Main-menu scaffold: real scene-background image (random) + embers + title (guide content lands next) |
+| `lib/ui/guide_screen.dart` | The guide hub / landing: backdrop + embers + arc rail + vertical `PageView` episode scroller (snap + focus-scale) + storyline selector |
+| `lib/ui/guide_controller.dart` | `ChangeNotifier`: fetches menu → `buildGuide`; tracks storyline/arc/focused episode (injectable fetch for tests) |
 | `lib/data/chapter_images.dart` | `chapterImages.ts` | banner lookup by normalized event name + aliases |
 | `lib/data/backgrounds.dart` | `backgrounds.ts` | episode/story backdrop lookup + banner fallback |
 | `lib/data/image_assets.dart` | (glob replacement) | loads bundled asset paths from `AssetManifest` → the two lookups |
@@ -56,8 +57,8 @@ State management = **`provider`** over the existing `ChangeNotifier` stores.
 
 **Not yet ported:** `offline.ts`
 (`downloadStory`/`preloadStory` — the download orchestrator that drives
-`localstore` + the download queue), i18n, and the rest of the **UI** (guide
-content, Story / VN reader, Home, Settings).
+`localstore` + the download queue), i18n, and the rest of the **UI** (chapter
+drill-down + notes + downloads on the guide; Story / VN reader; Home; Settings).
 
 **Deferred TODOs (now unblocked — `localstore` exists, just need wiring):**
 `menu.fetchMenu` offline fallback → `localStore.readMeta`; `audio.loadSoundMap`
