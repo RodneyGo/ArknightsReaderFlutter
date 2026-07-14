@@ -62,4 +62,32 @@ void main() {
     expect(find.text('Evil Time'), findsWidgets);
     expect(find.text('Main Story'), findsOneWidget);
   });
+
+  testWidgets('tapping a card opens the chapter drill-down; back closes it',
+      (tester) async {
+    final gc = GuideController()..setGuide(_fakeGuide());
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<ProgressStore>(
+              create: (_) => ProgressStore(MemoryKeyValueStore())),
+          ChangeNotifierProvider<GuideController>.value(value: gc),
+        ],
+        child: const MaterialApp(home: GuideScreen()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+
+    expect(find.byType(ChaptersPanel), findsNothing);
+    await tester.tap(find.byType(EpisodeCard).first);
+    await tester.pump(); // start transition
+    await tester.pump(const Duration(milliseconds: 300)); // finish it
+    expect(find.byType(ChaptersPanel), findsOneWidget);
+
+    // back button closes it
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(ChaptersPanel), findsNothing);
+  });
 }

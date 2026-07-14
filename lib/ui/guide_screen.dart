@@ -11,9 +11,16 @@ import 'package:provider/provider.dart';
 import '../data/backgrounds.dart';
 import '../data/chapter_images.dart';
 import '../data/guide.dart';
+import '../data/menu.dart';
 import '../stores/progress_store.dart';
 import 'ash_fx.dart';
 import 'guide_controller.dart';
+
+Color _statusColor(ReadStatus s) => switch (s) {
+      ReadStatus.read => const Color(0xFF5AA469),
+      ReadStatus.reading => _gold,
+      ReadStatus.unread => Colors.white24,
+    };
 
 const _roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 const _gold = Color(0xFFE8C987);
@@ -27,6 +34,7 @@ class GuideScreen extends StatefulWidget {
 
 class _GuideScreenState extends State<GuideScreen> {
   final _page = PageController(viewportFraction: 0.6);
+  EpisodeNode? _openEpisode; // chapter drill-down target (null = closed)
 
   @override
   void dispose() {
@@ -38,35 +46,74 @@ class _GuideScreenState extends State<GuideScreen> {
     if (_page.hasClients) _page.jumpToPage(0);
   }
 
+  void _open(EpisodeNode n) {
+    if (n.event == null) return; // IS nodes have no chapters
+    setState(() => _openEpisode = n);
+  }
+
+  void _close() {
+    if (_openEpisode != null) setState(() => _openEpisode = null);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Consumer<GuideController>(
-        builder: (context, gc, _) {
-          final nodes = gc.currentNodes;
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              const ColoredBox(color: Color(0xFF0D0D0F)),
-              _Backdrop(node: gc.focusedNode),
-              const Positioned.fill(child: AshFx()),
-              if (gc.loading)
-                const Center(child: CircularProgressIndicator())
-              else if (gc.error != null)
-                _ErrorView(onRetry: () => gc.load('en_US'))
-              else
-                SafeArea(
-                  child: Column(
-                    children: [
-                      if (gc.isMainStory && gc.arcCount > 1) _arcRail(gc),
-                      Expanded(child: _scroller(gc, nodes)),
-                      _selector(gc),
-                    ],
+    return PopScope(
+      canPop: _openEpisode == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _close();
+      },
+      child: Scaffold(
+        body: Consumer<GuideController>(
+          builder: (context, gc, _) {
+            final nodes = gc.currentNodes;
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                const ColoredBox(color: Color(0xFF0D0D0F)),
+                _Backdrop(node: gc.focusedNode),
+                const Positioned.fill(child: AshFx()),
+                if (gc.loading)
+                  const Center(child: CircularProgressIndicator())
+                else if (gc.error != null)
+                  _ErrorView(onRetry: () => gc.load('en_US'))
+                else
+                  SafeArea(
+                    child: Column(
+                      children: [
+                        if (gc.isMainStory && gc.arcCount > 1) _arcRail(gc),
+                        Expanded(child: _scroller(gc, nodes)),
+                        _selector(gc),
+                      ],
+                    ),
+                  ),
+
+                // Chapter drill-down (slides/fades in over the same backdrop).
+                Positioned.fill(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    transitionBuilder: (child, anim) => FadeTransition(
+                      opacity: anim,
+                      child: SlideTransition(
+                        position: Tween(
+                                begin: const Offset(0, 0.03), end: Offset.zero)
+                            .animate(anim),
+                        child: child,
+                      ),
+                    ),
+                    child: _openEpisode == null
+                        ? const SizedBox.shrink()
+                        : ChaptersPanel(
+                            key: ValueKey(
+                                _openEpisode!.event?.id ?? _openEpisode!.title),
+                            node: _openEpisode!,
+                            onBack: _close,
+                          ),
                   ),
                 ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -109,7 +156,7 @@ class _GuideScreenState extends State<GuideScreen> {
         final node = nodes[i];
         return AnimatedBuilder(
           animation: _page,
-          child: EpisodeCard(node: node),
+          child: EpisodeCard(node: node, onTap: () => _open(node)),
           builder: (context, child) {
             var pageVal = gc.focusedIndex.toDouble();
             if (_page.hasClients && _page.position.haveDimensions) {
@@ -236,7 +283,8 @@ class _ErrorView extends StatelessWidget {
 
 class EpisodeCard extends StatelessWidget {
   final EpisodeNode node;
-  const EpisodeCard({super.key, required this.node});
+  final VoidCallback? onTap;
+  const EpisodeCard({super.key, required this.node, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +294,10 @@ class EpisodeCard extends StatelessWidget {
         ? null
         : progress.summarize([for (final s in node.event!.stories) s.txt]);
 
-    return Padding(
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -302,6 +353,7 @@ class EpisodeCard extends StatelessWidget {
           ],
         ],
       ),
+      ),
     );
   }
 
@@ -349,6 +401,110 @@ class _ProgressBar extends StatelessWidget {
               widthFactor: pct.clamp(0.0, 1.0),
               child: ColoredBox(
                   color: full ? const Color(0xFF5AA469) : _gold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Chapter drill-down: the tapped event's stories over the guide backdrop.
+class ChaptersPanel extends StatelessWidget {
+  final EpisodeNode node;
+  final VoidCallback onBack;
+  const ChaptersPanel({super.key, required this.node, required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    final stories = node.event?.stories ?? const <Story>[];
+    return DecoratedBox(
+      decoration: const BoxDecoration(color: Color(0xF20D0D0F)),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  onPressed: onBack,
+                  icon: const Icon(Icons.chevron_left),
+                  tooltip: 'Back',
+                ),
+                Expanded(
+                  child: Text(
+                    node.event?.name ?? node.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _gold,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: 24),
+                itemCount: stories.length,
+                itemBuilder: (context, i) => _ChapterRow(story: stories[i]),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChapterRow extends StatelessWidget {
+  final Story story;
+  const _ChapterRow({required this.story});
+
+  @override
+  Widget build(BuildContext context) {
+    final status = context.watch<ProgressStore>().statusOf(story.txt);
+    return InkWell(
+      onTap: () {}, // TODO: open the reader once StoryView is built
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 4,
+              height: 28,
+              decoration: BoxDecoration(
+                color: _statusColor(status),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 12),
+            if (story.code.isNotEmpty) ...[
+              Text(story.code,
+                  style: const TextStyle(
+                      color: Colors.white54,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600)),
+              const SizedBox(width: 10),
+            ],
+            Expanded(
+              child: Text.rich(
+                TextSpan(children: [
+                  TextSpan(
+                      text: story.name.isNotEmpty ? story.name : story.txt),
+                  if (story.tag.isNotEmpty)
+                    TextSpan(
+                      text: '  ·  ${story.tag}',
+                      style: const TextStyle(color: Colors.white38, fontSize: 12),
+                    ),
+                ]),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
             ),
           ],
         ),
