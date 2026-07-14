@@ -17,7 +17,7 @@ data layer matches the TS output do we start rebuilding screens.
 | Ported | From (TS) | Notes |
 |---|---|---|
 | `lib/data/models.dart` | `parse.ts` types | Discriminated union → Dart 3 `sealed` classes |
-| `lib/data/parse.dart` | `parse.ts` | `parseContent`, `mergeAltStory`, `normalizeStory` — line-for-line |
+| `lib/data/parse.dart` | `parse.ts` | `mergeAltStory`, `normalizeStory` — line-for-line; `parseContent` returns structured `TextRun`s (not HTML) for direct `TextSpan` rendering |
 | `lib/data/source.dart` | `source.ts` | URL builders (pure) + `getData`/`getJson` via `package:http` |
 | `lib/data/servers.dart` | `settings.ts` | `servers` list + `baseServer` (server constants only) |
 | `lib/data/audio.dart` | `audio.ts` | `resolveSound` (pure) + `loadSoundMap` via `http` (offline fallback TODO) |

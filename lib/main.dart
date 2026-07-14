@@ -65,10 +65,13 @@ class _SmokeScreen extends StatelessWidget {
     );
   }
 
+  static String _plain(List<TextRun> runs) => runs.map((r) => r.text).join();
+
   String _describe(StoryItem it) => switch (it) {
-        DialogItem d => '${d.name}: ${d.html}   (portrait: ${d.portrait ?? "none"})',
-        NarrationItem n => n.html,
-        SubtitleItem s => s.text,
+        DialogItem d =>
+          '${d.name}: ${_plain(d.runs)}   (portrait: ${d.portrait ?? "none"})',
+        NarrationItem n => _plain(n.runs),
+        SubtitleItem s => _plain(s.runs),
         DecisionItem d => 'CHOICE: ${d.options.join(" / ")}',
         SoundItem s => '${s.music ? "music" : "sfx"}: ${s.key}',
         SceneBreakItem _ => '— scene break —',

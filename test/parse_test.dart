@@ -17,26 +17,49 @@ RawLine line(int id, String prop, [Map<String, dynamic>? attrs]) =>
     RawLine(id: id, prop: prop, attributes: attrs);
 
 void main() {
-  group('parseContent', () {
+  group('parseContent (structured runs)', () {
+    String plain(List<TextRun> runs) => runs.map((r) => r.text).join();
+
     test('substitutes the doctor nickname (both cases)', () {
-      expect(parseContent('Hi {@nickname} and {@Nickname}', 'Kal'),
-          'Hi Kal and Kal');
+      final runs = parseContent('Hi {@nickname} and {@Nickname}', 'Kal');
+      expect(runs, [const TextRun('Hi Kal and Kal')]);
     });
 
-    test('converts every newline form to <br>', () {
-      expect(parseContent('a\nb\r\nc\\nd', 'D'), 'a<br>b<br>c<br>d');
+    test('converts every newline form to a line break', () {
+      expect(plain(parseContent('a\nb\r\nc\\nd', 'D')), 'a\nb\nc\nd');
     });
 
-    test('drops near-black color tags but keeps visible ones', () {
-      expect(parseContent('<color=#000000>hi</color>', 'D'), 'hi');
-      expect(parseContent('<color=black>hi</color>', 'D'), 'hi');
+    test('drops near-black color tags but keeps visible ones as colored runs', () {
+      expect(parseContent('<color=#000000>hi</color>', 'D'),
+          [const TextRun('hi')]);
+      expect(parseContent('<color=black>hi</color>', 'D'), [const TextRun('hi')]);
       expect(parseContent('<color=#ff0000>hi</color>', 'D'),
-          '<span style="color:#ff0000">hi</span>');
+          [const TextRun('hi', '#ff0000')]);
     });
 
-    test('returns empty for null/empty content', () {
-      expect(parseContent(null, 'D'), '');
-      expect(parseContent('', 'D'), '');
+    test('splits a colored span out of surrounding plain text', () {
+      expect(
+        parseContent('a<color=#ff0000>b</color>c', 'D'),
+        const [TextRun('a'), TextRun('b', '#ff0000'), TextRun('c')],
+      );
+    });
+
+    test('{@nbs} becomes a non-breaking space', () {
+      expect(parseContent('a{@nbs}b', 'D'), const [TextRun('a b')]);
+    });
+
+    test('returns empty runs for null/empty content', () {
+      expect(parseContent(null, 'D'), isEmpty);
+      expect(parseContent('', 'D'), isEmpty);
+    });
+
+    test('htmlToRuns round-trips the controlled subset', () {
+      expect(htmlToRuns('x<br>y'), const [TextRun('x\ny')]);
+      expect(htmlToRuns('a&nbsp;b'), const [TextRun('a b')]);
+      expect(htmlToRuns('<span style="color:red">z</span>'),
+          const [TextRun('z', 'red')]);
+      // stray '<' / '&' that aren't our tokens stay literal
+      expect(htmlToRuns('2<3 & 4'), const [TextRun('2<3 & 4')]);
     });
   });
 

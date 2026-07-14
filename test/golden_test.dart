@@ -22,8 +22,23 @@ const _fixtures = [
   'level_act10d5_st05',
 ];
 
-/// Canonical map for one item — identical in shape to `canon()` in gen_golden.ts.
-Map<String, dynamic> canon(StoryItem it) => {
+// The generated goldens store the text field as the controlled-HTML string the
+// TS produced (`html`/`text`). Since `parseContent` now returns structured runs,
+// we compare runs on BOTH sides by parsing the golden's HTML with the SAME
+// `htmlToRuns` the Dart parser uses — so parity holds without regenerating the
+// fixtures, and stays robust to representation-only details (e.g. nbsp).
+
+List<Map<String, dynamic>> _runsJson(List<TextRun> runs) =>
+    [for (final r in runs) {'text': r.text, 'color': r.color}];
+
+List<TextRun>? _itemRuns(StoryItem it) => switch (it) {
+      DialogItem d => d.runs,
+      NarrationItem n => n.runs,
+      SubtitleItem s => s.runs,
+      _ => null,
+    };
+
+Map<String, dynamic> canonActual(StoryItem it) => {
       'kind': it.kind,
       'id': it.id,
       'bg': it.bg,
@@ -33,17 +48,34 @@ Map<String, dynamic> canon(StoryItem it) => {
           ? null
           : {'group': it.branch!.group, 'refs': it.branch!.refs},
       'name': it is DialogItem ? it.name : null,
-      'html': it is DialogItem
-          ? it.html
-          : (it is NarrationItem ? it.html : null),
+      'runs': _itemRuns(it) == null ? null : _runsJson(_itemRuns(it)!),
       'portrait': it is DialogItem ? it.portrait : null,
-      'text': it is SubtitleItem ? it.text : null,
       'options': it is DecisionItem ? it.options : null,
       'values': it is DecisionItem ? it.values : null,
       'group': it is DecisionItem ? it.group : null,
       'key': it is SoundItem ? it.key : null,
       'music': it is SoundItem ? it.music : null,
     };
+
+Map<String, dynamic> canonGolden(Map<String, dynamic> g) {
+  final htmlOrText = g['html'] ?? g['text'];
+  return {
+    'kind': g['kind'],
+    'id': g['id'],
+    'bg': g['bg'],
+    'bgImage': g['bgImage'],
+    'alt': g['alt'],
+    'branch': g['branch'],
+    'name': g['name'],
+    'runs': htmlOrText == null ? null : _runsJson(htmlToRuns(htmlOrText as String)),
+    'portrait': g['portrait'],
+    'options': g['options'],
+    'values': g['values'],
+    'group': g['group'],
+    'key': g['key'],
+    'music': g['music'],
+  };
+}
 
 List<RawLine> loadInput(String name) {
   final raw =
@@ -63,14 +95,18 @@ void main() {
                 File('test/fixtures/$name.golden.json').readAsStringSync())
             as List);
         final actual =
-            normalizeStory(loadInput(name), _doctor).map(canon).toList();
+            normalizeStory(loadInput(name), _doctor).map(canonActual).toList();
+        final expected = [
+          for (final g in golden)
+            canonGolden((g as Map).cast<String, dynamic>()),
+        ];
 
         // Fail fast with a precise location if lengths differ.
-        expect(actual.length, golden.length,
+        expect(actual.length, expected.length,
             reason: 'item count differs for $name');
 
         for (var i = 0; i < actual.length; i++) {
-          expect(actual[i], equals(golden[i]),
+          expect(actual[i], equals(expected[i]),
               reason: 'item $i differs for $name '
                   '(kind=${actual[i]['kind']}, id=${actual[i]['id']})');
         }
