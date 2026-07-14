@@ -1,20 +1,19 @@
-// Smoke test for the temporary data-layer screen (PortSmokeApp). Replaced the
-// default `flutter create` counter test, which referenced a non-existent MyApp.
+// Smoke test for the app shell + main menu. The ember layer animates forever, so
+// we pump fixed frames (never pumpAndSettle).
 
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:ak_reader/main.dart';
+import 'package:ak_reader/stores/kv_store.dart';
+import 'package:ak_reader/ui/ash_fx.dart';
 
 void main() {
-  testWidgets('smoke screen renders parsed story items', (tester) async {
-    await tester.pumpWidget(const PortSmokeApp());
-    await tester.pumpAndSettle();
+  testWidgets('main menu renders the ambient layer and title', (tester) async {
+    await tester.pumpWidget(AkReaderApp(kv: MemoryKeyValueStore()));
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.pump(const Duration(milliseconds: 16));
 
-    // The sample runs through normalizeStory and renders as a list.
-    expect(find.text('Data-layer smoke test'), findsOneWidget);
-    // Amiya's first line survives nickname substitution and speaker resolution.
-    expect(find.textContaining('Amiya:'), findsWidgets);
-    // The decision line renders as a CHOICE row.
-    expect(find.textContaining('CHOICE:'), findsOneWidget);
+    expect(find.byType(AshFx), findsOneWidget);
+    expect(find.text('Story Reader'), findsOneWidget);
+    expect(find.text('Reading Guide'), findsOneWidget);
   });
 }

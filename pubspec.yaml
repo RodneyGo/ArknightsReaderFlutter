@@ -18,6 +18,8 @@ dependencies:
   # Filesystem offline store (Capacitor Filesystem stand-in).
   path_provider: ^2.1.4
   path: ^1.9.0
+  # State management / DI for the stores (composes with the ChangeNotifiers).
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:

@@ -40,12 +40,22 @@ Golden fixtures live in `test/fixtures/` (`*.input.json` = real story data,
 original TS project; see paths in that script). Verified: `flutter analyze`
 clean, all 19 tests pass (Flutter 3.44.6 / Dart 3.12.2).
 
+## UI (started — main menu)
+
+| File | What |
+|---|---|
+| `lib/main.dart` | App shell: `MultiProvider` wiring the stores + dark theme + `MenuScreen` |
+| `lib/ui/ash_fx.dart` | Ambient ember layer — native reimplementation of `AshFX.vue` (the FPS bottleneck): one `Ticker` → `CustomPainter` in a `RepaintBoundary` |
+| `lib/ui/menu_screen.dart` | Main-menu scaffold: scene-gradient backdrop + embers + title (guide content lands next) |
+
+State management = **`provider`** over the existing `ChangeNotifier` stores.
+
 **Not yet ported:** `chapterImages.ts`, `backgrounds.ts` (both need the Flutter
 asset pipeline — `import.meta.glob` has no Dart equivalent; `backgrounds` now only
 needs the banner assets, since `EpisodeNode` is ported), `offline.ts`
 (`downloadStory`/`preloadStory` — the download orchestrator that drives
-`localstore` + the download queue), i18n, and **all UI** (Guide / Story / VN
-reader / Home / Settings).
+`localstore` + the download queue), i18n, and the rest of the **UI** (guide
+content, Story / VN reader, Home, Settings).
 
 **Deferred TODOs (now unblocked — `localstore` exists, just need wiring):**
 `menu.fetchMenu` offline fallback → `localStore.readMeta`; `audio.loadSoundMap`
