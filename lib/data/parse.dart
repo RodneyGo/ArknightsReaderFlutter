@@ -4,21 +4,21 @@
 // speaker model mirrors the akgcc reader (js/story.js). Kept deliberately close
 // to the TS so behaviour can be diffed against the original.
 //
-// NOTE: `parseContent` still emits an HTML fragment (the same string the web app
-// fed to `v-html`). In Flutter this will be rendered by a small HTML-subset ->
-// TextSpan converter rather than a WebView; keeping the intermediate HTML means
-// the parsing rules (nickname/color/nbsp/line-break handling) port unchanged and
-// stay independently testable.
+// Text representation: `parseContent` returns a `List<TextRun>` (structured,
+// render-ready styled segments) rather than an HTML string. Internally it still
+// runs the original, golden-proven transformation to a small controlled HTML
+// subset (`_parseHtml`) and then tokenizes that into runs (`htmlToRuns`) — so the
+// nickname/color/nbsp/line-break rules port unchanged, while the rest of the app
+// consumes structured runs (the reader UI maps them straight to TextSpans, no
+// WebView / HTML rendering needed).
 
 import 'models.dart';
 
 String _s(dynamic v) => v == null ? '' : v.toString();
 
-/// Expand tokens, normalize line breaks, and sanitize `<color>` tags in a raw
-/// content string. Returns an HTML fragment (or '' when empty).
-String parseContent(String? content, String doctorName) {
-  if (content == null || content.isEmpty) return '';
-
+/// Expand tokens, normalize line breaks, and sanitize `<color>` tags into the
+/// controlled HTML subset (`<br>`, `<span style="color:X">…</span>`, `&nbsp;`).
+String _parseHtml(String content, String doctorName) {
   final colorRe = RegExp(r'<color=([\w#]+)>(.+?)</color>',
       multiLine: true, dotAll: true);
   final nbspBefore = RegExp(r'(\s+)(</?\w+>)', multiLine: true);
@@ -40,6 +40,60 @@ String parseContent(String? content, String doctorName) {
   out = out.replaceAllMapped(nbspBefore, (m) => '&nbsp;${m[2]}');
   out = out.replaceAllMapped(nbspAfter, (m) => '${m[1]}&nbsp;');
   return out;
+}
+
+const _spanOpen = '<span style="color:';
+
+/// Tokenize the controlled HTML subset produced by [_parseHtml] into styled
+/// runs. `<br>` -> `\n`, `&nbsp;` -> non-breaking space, `<span style="color:X">…
+/// </span>` -> a run tagged with X; any other `<`/`&` is treated as literal text.
+List<TextRun> htmlToRuns(String html) {
+  final runs = <TextRun>[];
+  final buf = StringBuffer();
+  String? color;
+  void flush() {
+    if (buf.isNotEmpty) {
+      runs.add(TextRun(buf.toString(), color));
+      buf.clear();
+    }
+  }
+
+  var i = 0;
+  while (i < html.length) {
+    if (html.startsWith('<br>', i)) {
+      buf.write('\n');
+      i += 4;
+    } else if (html.startsWith('&nbsp;', i)) {
+      buf.write(' ');
+      i += 6;
+    } else if (html.startsWith(_spanOpen, i)) {
+      final end = html.indexOf('">', i);
+      if (end == -1) {
+        buf.write(html[i]);
+        i++;
+        continue;
+      }
+      flush();
+      color = html.substring(i + _spanOpen.length, end);
+      i = end + 2;
+    } else if (html.startsWith('</span>', i)) {
+      flush();
+      color = null;
+      i += 7;
+    } else {
+      buf.write(html[i]);
+      i++;
+    }
+  }
+  flush();
+  return runs;
+}
+
+/// Expand tokens and parse a raw content string into styled runs (empty when
+/// there's nothing to show).
+List<TextRun> parseContent(String? content, String doctorName) {
+  if (content == null || content.isEmpty) return const [];
+  return htmlToRuns(_parseHtml(content, doctorName));
 }
 
 bool _eq(String a, String b) => a.toLowerCase() == b.toLowerCase();
@@ -200,14 +254,14 @@ List<StoryItem> normalizeStory(List<RawLine> list, String doctorName) {
     // --- visible props ---
     if (_eq(p, 'name') || _eq(p, 'multiline')) {
       final name = _s(a['name']).trim();
-      final html = parseContent(a['content'] as String?, doctorName);
-      if (html.isEmpty) continue;
+      final runs = parseContent(a['content'] as String?, doctorName);
+      if (runs.isEmpty) continue;
       flushBreak();
       if (name.isNotEmpty) {
         items.add(DialogItem(
           id: line.id,
           name: name,
-          html: html,
+          runs: runs,
           portrait: activePortrait(),
           bg: sceneId(),
           bgImage: sceneImg(),
@@ -217,7 +271,7 @@ List<StoryItem> normalizeStory(List<RawLine> list, String doctorName) {
       } else {
         items.add(NarrationItem(
           id: line.id,
-          html: html,
+          runs: runs,
           bg: sceneId(),
           bgImage: sceneImg(),
           alt: line.alt,
@@ -225,14 +279,14 @@ List<StoryItem> normalizeStory(List<RawLine> list, String doctorName) {
         ));
       }
     } else if (_eq(p, 'subtitle') || _eq(p, 'sticker')) {
-      final text = parseContent(
+      final runs = parseContent(
           _s(a['text']).isNotEmpty ? _s(a['text']) : _s(a['content']),
           doctorName);
-      if (text.isNotEmpty) {
+      if (runs.isNotEmpty) {
         flushBreak();
         items.add(SubtitleItem(
           id: line.id,
-          text: text,
+          runs: runs,
           bg: sceneId(),
           bgImage: sceneImg(),
           alt: line.alt,

@@ -88,6 +88,27 @@ bool _listEq(List<String> a, List<String> b) {
   return true;
 }
 
+/// A styled run of text within a dialogue/narration/subtitle line — the
+/// structured replacement for the old HTML string. [text] may contain `\n`
+/// (line breaks) and ` ` (non-breaking spaces); [color] is a CSS-ish color
+/// string (e.g. "#ff0000") or null for the default text color.
+class TextRun {
+  final String text;
+  final String? color;
+
+  const TextRun(this.text, [this.color]);
+
+  @override
+  bool operator ==(Object other) =>
+      other is TextRun && other.text == text && other.color == color;
+
+  @override
+  int get hashCode => Object.hash(text, color);
+
+  @override
+  String toString() => 'TextRun("$text", $color)';
+}
+
 /// A normalized, render-ready story item.
 ///
 /// [bg]/[bgImage] are mutable because [normalizeStory] backfills the opening
@@ -113,13 +134,13 @@ sealed class StoryItem {
 
 class DialogItem extends StoryItem {
   final String name;
-  final String html;
+  final List<TextRun> runs;
   final String? portrait;
 
   DialogItem({
     required super.id,
     required this.name,
-    required this.html,
+    required this.runs,
     this.portrait,
     super.bg,
     super.bgImage,
@@ -132,11 +153,11 @@ class DialogItem extends StoryItem {
 }
 
 class NarrationItem extends StoryItem {
-  final String html;
+  final List<TextRun> runs;
 
   NarrationItem({
     required super.id,
-    required this.html,
+    required this.runs,
     super.bg,
     super.bgImage,
     super.alt,
@@ -148,11 +169,11 @@ class NarrationItem extends StoryItem {
 }
 
 class SubtitleItem extends StoryItem {
-  final String text;
+  final List<TextRun> runs;
 
   SubtitleItem({
     required super.id,
-    required this.text,
+    required this.runs,
     super.bg,
     super.bgImage,
     super.alt,

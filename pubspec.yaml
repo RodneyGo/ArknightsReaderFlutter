@@ -13,6 +13,8 @@ dependencies:
   # Unicode diacritic stripping — replicates the TS norm()'s NFD-decompose +
   # combining-mark strip (Dart core has no Unicode normalization).
   diacritic: ^0.1.5
+  # Key-value persistence for the stores (the localStorage stand-in).
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
