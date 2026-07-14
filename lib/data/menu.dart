@@ -48,6 +48,13 @@ class Story {
         name: (s['storyName'] ?? '').toString(),
         tag: (s['avgTag'] ?? '').toString(),
       );
+
+  factory Story.fromJson(Map<String, dynamic> j) => Story(
+        txt: (j['txt'] ?? '').toString(),
+        code: (j['code'] ?? '').toString(),
+        name: (j['name'] ?? '').toString(),
+        tag: (j['tag'] ?? '').toString(),
+      );
 }
 
 class EventGroup {
@@ -62,6 +69,16 @@ class EventGroup {
     required this.startTime,
     required this.stories,
   });
+
+  factory EventGroup.fromJson(Map<String, dynamic> j) => EventGroup(
+        id: j['id'] as String,
+        name: j['name'] as String,
+        startTime: (j['startTime'] as num?) ?? 0,
+        stories: [
+          for (final s in (j['stories'] as List? ?? const []))
+            Story.fromJson((s as Map).cast<String, dynamic>()),
+        ],
+      );
 }
 
 class Category {
@@ -70,6 +87,15 @@ class Category {
   final List<EventGroup> events;
 
   const Category({required this.key, required this.label, required this.events});
+
+  factory Category.fromJson(Map<String, dynamic> j) => Category(
+        key: j['key'] as String,
+        label: j['label'] as String,
+        events: [
+          for (final e in (j['events'] as List? ?? const []))
+            EventGroup.fromJson((e as Map).cast<String, dynamic>()),
+        ],
+      );
 }
 
 /// A flattened story carrying its owning event's display name (TS `Story & {event}`).
