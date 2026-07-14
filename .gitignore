@@ -11,10 +11,9 @@ pubspec.lock
 *.iml
 .vscode/
 
-# Generated platform scaffolding is created locally via `flutter create .`
-# (kept out of source control until we decide to commit it).
-/android/
-/ios/
+# android/ and ios/ ARE tracked (they hold the manifest, build.gradle, signing,
+# etc.); their own .gitignore files + the build/ rule above exclude generated
+# bits. Desktop/web targets aren't used, so keep them out.
 /linux/
 /macos/
 /windows/
