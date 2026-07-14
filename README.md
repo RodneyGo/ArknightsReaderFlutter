@@ -19,7 +19,11 @@ data layer matches the TS output do we start rebuilding screens.
 | `lib/data/models.dart` | `parse.ts` types | Discriminated union → Dart 3 `sealed` classes |
 | `lib/data/parse.dart` | `parse.ts` | `parseContent`, `mergeAltStory`, `normalizeStory` — line-for-line |
 | `lib/data/source.dart` | `source.ts` | URL builders (pure) + `getData`/`getJson` via `package:http` |
+| `lib/data/servers.dart` | `settings.ts` | `servers` list + `baseServer` (server constants only) |
+| `lib/data/audio.dart` | `audio.ts` | `resolveSound` (pure) + `loadSoundMap` via `http` (offline fallback TODO) |
+| `lib/data/menu.dart` | `menu.ts` | `buildMenu`/`classify`/`mainOrder`/`neighborsIn` + fetch (persistent cache TODO) |
 | `test/parse_test.dart` | — | Unit harness (speaker model, branching, scene breaks, URL builders) |
+| `test/menu_test.dart`, `test/audio_test.dart` | — | Unit tests for the menu transform + sound resolution |
 | `test/golden_test.dart` | — | **Parity tests** — Dart output vs the real TS parser on 3 real chapters (962 items) |
 
 Golden fixtures live in `test/fixtures/` (`*.input.json` = real story data,
@@ -28,10 +32,15 @@ Golden fixtures live in `test/fixtures/` (`*.input.json` = real story data,
 original TS project; see paths in that script). Verified: `flutter analyze`
 clean, all 19 tests pass (Flutter 3.44.6 / Dart 3.12.2).
 
-**Not yet ported:** `menu.ts`, `guide.ts` (+ data), `audio.ts`, `backgrounds.ts`,
-`chapterImages.ts`, stores (`progress`/`settings`/`offline`), `downloads.ts`,
+**Not yet ported:** `guide.ts` (+ data), `chapterImages.ts`, `backgrounds.ts`
+(blocked on `guide.ts` + the Flutter asset pipeline — `import.meta.glob` has no
+Dart equivalent), full `settings`/`progress`/`offline` stores, `downloads.ts`,
 offline/filesystem (`localstore.ts`/`offline.ts`), i18n, and **all UI** (Guide /
 Story / VN reader / Home / Settings).
+
+**Deferred TODOs in ported code:** `menu.fetchMenu` persistent cache +
+revalidate + offline fallback; `audio.loadSoundMap` offline fallback. Both wait
+on the state/offline layers.
 
 ## Toolchain
 
