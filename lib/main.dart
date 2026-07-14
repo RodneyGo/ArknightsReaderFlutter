@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'data/image_assets.dart';
 import 'stores/kv_store.dart';
 import 'stores/offline_store.dart';
 import 'stores/progress_store.dart';
@@ -13,6 +14,7 @@ import 'ui/menu_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final kv = await SharedPrefsStore.create();
+  await loadImageAssets(); // populate chapter-image + background lookups
   runApp(AkReaderApp(kv: kv));
 }
 

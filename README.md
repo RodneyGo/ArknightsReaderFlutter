@@ -46,13 +46,15 @@ clean, all 19 tests pass (Flutter 3.44.6 / Dart 3.12.2).
 |---|---|
 | `lib/main.dart` | App shell: `MultiProvider` wiring the stores + dark theme + `MenuScreen` |
 | `lib/ui/ash_fx.dart` | Ambient ember layer — native reimplementation of `AshFX.vue` (the FPS bottleneck): one `Ticker` → `CustomPainter` in a `RepaintBoundary` |
-| `lib/ui/menu_screen.dart` | Main-menu scaffold: scene-gradient backdrop + embers + title (guide content lands next) |
+| `lib/ui/menu_screen.dart` | Main-menu scaffold: real scene-background image (random) + embers + title (guide content lands next) |
+| `lib/data/chapter_images.dart` | `chapterImages.ts` | banner lookup by normalized event name + aliases |
+| `lib/data/backgrounds.dart` | `backgrounds.ts` | episode/story backdrop lookup + banner fallback |
+| `lib/data/image_assets.dart` | (glob replacement) | loads bundled asset paths from `AssetManifest` → the two lookups |
+| `assets/{ChapterImages,EpisodeBackgrounds,StoryBackgrounds}/` | — | menu art, **converted PNG→WebP** (112 MB → 19 MB) |
 
 State management = **`provider`** over the existing `ChangeNotifier` stores.
 
-**Not yet ported:** `chapterImages.ts`, `backgrounds.ts` (both need the Flutter
-asset pipeline — `import.meta.glob` has no Dart equivalent; `backgrounds` now only
-needs the banner assets, since `EpisodeNode` is ported), `offline.ts`
+**Not yet ported:** `offline.ts`
 (`downloadStory`/`preloadStory` — the download orchestrator that drives
 `localstore` + the download queue), i18n, and the rest of the **UI** (guide
 content, Story / VN reader, Home, Settings).
