@@ -27,9 +27,10 @@ data layer matches the TS output do we start rebuilding screens.
 | `lib/stores/kv_store.dart` | — | `KeyValueStore` abstraction (localStorage stand-in) + shared_preferences/in-memory impls |
 | `lib/stores/settings_store.dart` | `settings.ts` | `SettingsState` (immutable + copyWith) + `ChangeNotifier` store |
 | `lib/stores/progress_store.dart` | `progress.ts` | read status / scroll / last-read; `summarize` aggregation |
-| `lib/stores/offline_store.dart` | `offline.ts` | downloaded-chapter index (`reconcile`'s filesystem source deferred) |
+| `lib/stores/offline_store.dart` | `offline.ts` | downloaded-chapter index (`reconcile` = `rebuildFrom(localStore.getDownloadedTxts())`) |
+| `lib/data/localstore.dart` | `localstore.ts` | filesystem offline store, **rebuilt** on `dart:io`+`path_provider` (no `convertFileSrc`) |
 | `test/parse_test.dart` | — | Unit harness (speaker model, branching, scene breaks, URL builders) |
-| `test/stores_test.dart` | — | Unit tests for all three stores (behavior + persistence round-trips) |
+| `test/stores_test.dart`, `test/localstore_test.dart` | — | Unit tests for the stores + the filesystem store (temp dir + fake fetcher) |
 | `test/menu_test.dart`, `test/audio_test.dart` | — | Unit tests for the menu transform + sound resolution |
 | `test/golden_test.dart`, `test/guide_test.dart` | — | **Parity tests** — Dart output vs the real TS on real data (parser: 962 items; guide: all 16 arcs) |
 
@@ -41,13 +42,16 @@ clean, all 19 tests pass (Flutter 3.44.6 / Dart 3.12.2).
 
 **Not yet ported:** `chapterImages.ts`, `backgrounds.ts` (both need the Flutter
 asset pipeline — `import.meta.glob` has no Dart equivalent; `backgrounds` now only
-needs the banner assets, since `EpisodeNode` is ported), `downloads.ts`,
-offline/filesystem (`localstore.ts`/`offline.ts` → rebuild on `path_provider` +
-`dart:io`), i18n, and **all UI** (Guide / Story / VN reader / Home / Settings).
+needs the banner assets, since `EpisodeNode` is ported), `offline.ts`
+(`downloadStory`/`preloadStory` — the download orchestrator that drives
+`localstore` + the download queue), i18n, and **all UI** (Guide / Story / VN
+reader / Home / Settings).
 
-**Deferred TODOs in ported code:** `menu.fetchMenu` persistent cache +
-revalidate + offline fallback; `audio.loadSoundMap` offline fallback;
-`OfflineStore.reconcile` (filesystem source). All wait on the localstore port.
+**Deferred TODOs (now unblocked — `localstore` exists, just need wiring):**
+`menu.fetchMenu` offline fallback → `localStore.readMeta`; `audio.loadSoundMap`
+offline fallback → `localStore.readMeta`; `OfflineStore.reconcile` →
+`rebuildFrom(localStore.getDownloadedTxts())`. These wire up when `offline.ts` is
+ported (its natural home).
 
 ## Toolchain
 

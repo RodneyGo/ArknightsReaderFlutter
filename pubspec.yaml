@@ -15,6 +15,9 @@ dependencies:
   diacritic: ^0.1.5
   # Key-value persistence for the stores (the localStorage stand-in).
   shared_preferences: ^2.3.2
+  # Filesystem offline store (Capacitor Filesystem stand-in).
+  path_provider: ^2.1.4
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:
