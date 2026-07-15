@@ -36,6 +36,26 @@ const _topBarHeight = 54.0;
 const _arcRailHeight = 46.0;
 const _headerBottomPad = 20.0;
 
+// Progressive blur. BackdropFilter can only apply ONE uniform sigma, so a
+// gradient is faked by stacking bands: each covers less of the header than the
+// last, so the blur accumulates toward the top (strongest) and stays lightest at
+// the bottom. Effective sigma ~= sqrt(sum of squares) of the bands covering a
+// point: bottom ~2, top ~7. (Each band is an extra blur pass — keep the list
+// short.)
+const _blurBands = <({double coverage, double sigma})>[
+  (coverage: 1.00, sigma: 2),
+  (coverage: 0.72, sigma: 3),
+  (coverage: 0.48, sigma: 4),
+  (coverage: 0.24, sigma: 5),
+];
+
+/// Header height — the header is pinned to this and the scroller reserves it, so
+/// the two can't drift apart.
+double _headerHeight(GuideController gc) =>
+    _topBarHeight +
+    (gc.isMainStory && gc.arcCount > 1 ? _arcRailHeight : 0) +
+    _headerBottomPad;
+
 /// Snap-to-item physics that preserves fling momentum: a fling carries across
 /// several items (using the parent's friction) and then settles on the nearest
 /// item — unlike PageView, which advances only one page per swipe.
@@ -231,30 +251,55 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
-  /// Frosted, translucent header behind the top controls + arc rail, with a
-  /// gradient that dissolves into the content below (no hard edge under the arcs).
+  /// Frosted header over the episode list: a progressive blur (strongest at the
+  /// top, lightest at the bottom) plus a tint that dissolves into the content, so
+  /// episodes scrolling up behind it fade into frosted glass rather than a hard
+  /// edge. Its height is pinned to [_headerHeight] so the scroller's reservation
+  /// matches exactly.
   Widget _blurHeader(GuideController gc, EpisodeNode? focused, String? bgPath) {
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0x730D0D0F), Color(0x3D0D0D0F), Color(0x000D0D0F)],
-              stops: [0.0, 0.55, 1.0],
+    final headerH = _headerHeight(gc);
+    return SizedBox(
+      height: headerH,
+      child: Stack(
+        children: [
+          for (final band in _blurBands)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: headerH * band.coverage,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                      sigmaX: band.sigma, sigmaY: band.sigma),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ),
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x730D0D0F),
+                    Color(0x3D0D0D0F),
+                    Color(0x000D0D0F)
+                  ],
+                  stops: [0.0, 0.55, 1.0],
+                ),
+              ),
             ),
           ),
-          padding: const EdgeInsets.only(bottom: 20),
-          child: Column(
+          Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _topBar(gc, focused, bgPath),
               if (gc.isMainStory && gc.arcCount > 1) _arcRail(gc),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -319,9 +364,7 @@ class _GuideScreenState extends State<GuideScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final h = constraints.maxHeight;
-        final headerH = _topBarHeight +
-            (gc.isMainStory && gc.arcCount > 1 ? _arcRailHeight : 0) +
-            _headerBottomPad;
+        final headerH = _headerHeight(gc);
         final visibleH = h - headerH; // area below the overlaid header
         final itemExtent = visibleH * 0.72;
         // Centre the focused card in the VISIBLE area (below the header); a card
