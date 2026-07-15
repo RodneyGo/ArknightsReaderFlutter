@@ -5,6 +5,8 @@
 //
 // Tapping a card (chapter drill-down) + notes + downloads come next.
 
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -27,6 +29,44 @@ Color _statusColor(ReadStatus s) => switch (s) {
 const _roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 const _gold = Color(0xFFE8C987);
 
+/// Snap-to-item physics that preserves fling momentum: a fling carries across
+/// several items (using the parent's friction) and then settles on the nearest
+/// item — unlike PageView, which advances only one page per swipe.
+class _SnapScrollPhysics extends ScrollPhysics {
+  final double itemExtent;
+  const _SnapScrollPhysics({required this.itemExtent, super.parent});
+
+  @override
+  _SnapScrollPhysics applyTo(ScrollPhysics? ancestor) =>
+      _SnapScrollPhysics(itemExtent: itemExtent, parent: buildParent(ancestor));
+
+  double _snapTarget(ScrollMetrics position, double velocity) {
+    // Where a normal fling would land, then round to the nearest item.
+    final sim = super.createBallisticSimulation(position, velocity);
+    var natural = sim != null ? sim.x(double.infinity) : position.pixels;
+    if (natural.isNaN) natural = position.pixels;
+    natural = natural.clamp(position.minScrollExtent, position.maxScrollExtent);
+    final snapped = (natural / itemExtent).roundToDouble() * itemExtent;
+    return snapped.clamp(position.minScrollExtent, position.maxScrollExtent);
+  }
+
+  @override
+  Simulation? createBallisticSimulation(
+      ScrollMetrics position, double velocity) {
+    final tolerance = toleranceFor(position);
+    final target = _snapTarget(position, velocity);
+    if ((target - position.pixels).abs() < tolerance.distance &&
+        velocity.abs() < tolerance.velocity) {
+      return null;
+    }
+    return ScrollSpringSimulation(spring, position.pixels, target, velocity,
+        tolerance: tolerance);
+  }
+
+  @override
+  bool get allowImplicitScrolling => false;
+}
+
 class GuideScreen extends StatefulWidget {
   const GuideScreen({super.key});
 
@@ -35,19 +75,19 @@ class GuideScreen extends StatefulWidget {
 }
 
 class _GuideScreenState extends State<GuideScreen> {
-  final _page = PageController(viewportFraction: 0.6);
+  final _scroll = ScrollController();
   EpisodeNode? _openEpisode; // chapter drill-down target (null = closed)
   bool _notesVisible = false;
   bool _lightbox = false;
 
   @override
   void dispose() {
-    _page.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
   void _resetToTop() {
-    if (_page.hasClients) _page.jumpToPage(0);
+    if (_scroll.hasClients) _scroll.jumpTo(0);
   }
 
   void _open(EpisodeNode n) {
@@ -118,8 +158,7 @@ class _GuideScreenState extends State<GuideScreen> {
                   SafeArea(
                     child: Column(
                       children: [
-                        _topBar(gc, focused, bgPath),
-                        if (gc.isMainStory && gc.arcCount > 1) _arcRail(gc),
+                        _blurHeader(gc, focused, bgPath),
                         Expanded(child: _scroller(gc, nodes)),
                         _selector(gc),
                       ],
@@ -166,6 +205,34 @@ class _GuideScreenState extends State<GuideScreen> {
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  /// Frosted, translucent header behind the top controls + arc rail, with a
+  /// gradient that dissolves into the content below (no hard edge under the arcs).
+  Widget _blurHeader(GuideController gc, EpisodeNode? focused, String? bgPath) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0x730D0D0F), Color(0x3D0D0D0F), Color(0x000D0D0F)],
+              stops: [0.0, 0.55, 1.0],
+            ),
+          ),
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _topBar(gc, focused, bgPath),
+              if (gc.isMainStory && gc.arcCount > 1) _arcRail(gc),
+            ],
+          ),
         ),
       ),
     );
@@ -228,27 +295,46 @@ class _GuideScreenState extends State<GuideScreen> {
         child: Text('No episodes', style: TextStyle(color: Colors.white54)),
       );
     }
-    return PageView.builder(
-      controller: _page,
-      scrollDirection: Axis.vertical,
-      onPageChanged: gc.setFocused,
-      itemCount: nodes.length,
-      itemBuilder: (context, i) {
-        final node = nodes[i];
-        return AnimatedBuilder(
-          animation: _page,
-          child: EpisodeCard(node: node, onTap: () => _open(node)),
-          builder: (context, child) {
-            var pageVal = gc.focusedIndex.toDouble();
-            if (_page.hasClients && _page.position.haveDimensions) {
-              pageVal = _page.page ?? pageVal;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final h = constraints.maxHeight;
+        final itemExtent = h * 0.62; // page-ish; neighbours peek above/below
+        final pad = (h - itemExtent) / 2; // so item 0 (and the last) centre
+        return NotificationListener<ScrollEndNotification>(
+          onNotification: (_) {
+            if (_scroll.hasClients) {
+              gc.setFocused((_scroll.offset / itemExtent)
+                  .round()
+                  .clamp(0, nodes.length - 1));
             }
-            final t = (pageVal - i).abs().clamp(0.0, 1.0);
-            return Opacity(
-              opacity: 1 - 0.5 * t,
-              child: Transform.scale(scale: 1 - 0.12 * t, child: child),
-            );
+            return false;
           },
+          child: ListView.builder(
+            controller: _scroll,
+            physics: _SnapScrollPhysics(itemExtent: itemExtent),
+            padding: EdgeInsets.symmetric(vertical: pad),
+            itemExtent: itemExtent,
+            itemCount: nodes.length,
+            itemBuilder: (context, i) {
+              final node = nodes[i];
+              return AnimatedBuilder(
+                animation: _scroll,
+                child: EpisodeCard(node: node, onTap: () => _open(node)),
+                builder: (context, child) {
+                  var pos = gc.focusedIndex.toDouble();
+                  if (_scroll.hasClients &&
+                      _scroll.position.hasContentDimensions) {
+                    pos = _scroll.offset / itemExtent;
+                  }
+                  final t = (pos - i).abs().clamp(0.0, 1.0);
+                  return Opacity(
+                    opacity: 1 - 0.5 * t,
+                    child: Transform.scale(scale: 1 - 0.12 * t, child: child),
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );
