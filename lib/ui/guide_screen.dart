@@ -5,8 +5,6 @@
 //
 // Tapping a card (chapter drill-down) + notes + downloads come next.
 
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -37,18 +35,11 @@ const _topBarHeight = 54.0;
 const _arcRailHeight = 46.0;
 const _headerBottomPad = 20.0;
 
-// Progressive blur. BackdropFilter can only apply ONE uniform sigma, so a
-// gradient is faked by stacking bands: each covers less of the header than the
-// last, so the blur accumulates toward the top (strongest) and stays lightest at
-// the bottom. Effective sigma ~= sqrt(sum of squares) of the bands covering a
-// point: bottom ~2, top ~7. (Each band is an extra blur pass — keep the list
-// short.)
-const _blurBands = <({double coverage, double sigma})>[
-  (coverage: 1.00, sigma: 2),
-  (coverage: 0.72, sigma: 3),
-  (coverage: 0.48, sigma: 4),
-  (coverage: 0.24, sigma: 5),
-];
+// NOTE: the header used to be a BackdropFilter "frosted glass". It was removed —
+// live backdrop blur re-runs every frame (the embers + episodes move behind it)
+// and measurably tanked the frame rate, the same reason the blur was dropped from
+// the original WebView app. The gradient tint below gives the soft transition
+// without the per-frame cost.
 
 /// Header height — the header is pinned to this and the scroller reserves it, so
 /// the two can't drift apart.
@@ -197,7 +188,7 @@ class _GuideScreenState extends State<GuideScreen> {
                                 top: 0,
                                 left: 0,
                                 right: 0,
-                                child: _blurHeader(gc, focused, bgPath),
+                                child: _header(gc, focused, bgPath),
                               ),
                               if (context
                                   .watch<SettingsStore>()
@@ -258,31 +249,16 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
-  /// Frosted header over the episode list: a progressive blur (strongest at the
-  /// top, lightest at the bottom) plus a tint that dissolves into the content, so
-  /// episodes scrolling up behind it fade into frosted glass rather than a hard
-  /// edge. Its height is pinned to [_headerHeight] so the scroller's reservation
-  /// matches exactly.
-  Widget _blurHeader(GuideController gc, EpisodeNode? focused, String? bgPath) {
-    final headerH = _headerHeight(gc);
+  /// Header over the episode list: a tint that's strongest at the top and
+  /// dissolves into the content, so episodes scrolling up behind it fade out
+  /// gradually instead of hitting a hard edge (and the controls stay legible over
+  /// the artwork). Height is pinned to [_headerHeight] so the scroller's
+  /// reservation matches exactly.
+  Widget _header(GuideController gc, EpisodeNode? focused, String? bgPath) {
     return SizedBox(
-      height: headerH,
+      height: _headerHeight(gc),
       child: Stack(
         children: [
-          for (final band in _blurBands)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: headerH * band.coverage,
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                      sigmaX: band.sigma, sigmaY: band.sigma),
-                  child: const SizedBox.expand(),
-                ),
-              ),
-            ),
           const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -290,11 +266,11 @@ class _GuideScreenState extends State<GuideScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0x730D0D0F),
-                    Color(0x3D0D0D0F),
-                    Color(0x000D0D0F)
+                    Color(0xD90D0D0F),
+                    Color(0x8C0D0D0F),
+                    Color(0x000D0D0F),
                   ],
-                  stops: [0.0, 0.55, 1.0],
+                  stops: [0.0, 0.5, 1.0],
                 ),
               ),
             ),
