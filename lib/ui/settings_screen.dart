@@ -81,6 +81,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (v) => store.set(s.copyWith(fontSize: v.round())),
           ),
           const SizedBox(height: 12),
+          const _SectionTitle('Audio'),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Background music'),
+            subtitle: const Text('Plays the story track, switching as you read'),
+            value: s.musicEnabled,
+            onChanged: (v) => store.set(s.copyWith(musicEnabled: v)),
+          ),
+          if (s.musicEnabled)
+            Slider(
+              min: 0,
+              max: 1,
+              divisions: 20,
+              value: s.musicVolume.clamp(0, 1),
+              label: '${(s.musicVolume * 100).round()}%',
+              onChanged: (v) => store.set(s.copyWith(musicVolume: v)),
+            ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Sound effects'),
+            subtitle: const Text('Show tappable sound buttons in the story'),
+            value: s.soundEnabled,
+            onChanged: (v) => store.set(s.copyWith(soundEnabled: v)),
+          ),
+          if (s.soundEnabled) ...[
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Play sounds automatically'),
+              subtitle: const Text('Play each sound once as you scroll past it'),
+              value: s.soundAutoplay,
+              onChanged: (v) => store.set(s.copyWith(soundAutoplay: v)),
+            ),
+            Slider(
+              min: 0,
+              max: 1,
+              divisions: 20,
+              value: s.soundVolume.clamp(0, 1),
+              label: '${(s.soundVolume * 100).round()}%',
+              onChanged: (v) => store.set(s.copyWith(soundVolume: v)),
+            ),
+          ],
+          const SizedBox(height: 12),
           const _SectionTitle('Developer'),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,

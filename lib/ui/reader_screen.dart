@@ -22,7 +22,9 @@ import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'avatar.dart';
 import 'css_color.dart';
+import 'reader_audio.dart';
 import 'reader_controller.dart';
+import 'row_geometry.dart';
 import 'settings_screen.dart';
 
 const _gold = Color(0xFFC8A96A);
@@ -45,9 +47,10 @@ class ReaderScreen extends StatefulWidget {
 /// [img] is set.
 typedef SceneRef = ({String id, bool img});
 
-/// The scene for a set of visible rows: the first one that actually carries a
-/// scene. Skipping rows without one avoids blanking when the top row is a gap, a
-/// sound chip, or a decision. Null when nothing on screen carries a scene.
+/// The scene for a set of visible row indices: the first one that actually
+/// carries a scene. Skipping rows without one avoids blanking when the top row
+/// is a gap, a sound chip, or a decision. Null when nothing on screen carries a
+/// scene.
 SceneRef? sceneForVisible(List<StoryItem> items, List<int> visible) {
   for (final i in visible) {
     if (i < 0 || i >= items.length) continue;
@@ -65,6 +68,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
   /// Current scene. Separate from setState so scrolling past a scene change
   /// repaints the backdrop alone.
   final _scene = ValueNotifier<SceneRef?>(null);
+
+  final _audio = ReaderAudio();
+
+  /// PlayMusic rows of the current chapter, recomputed when the shown items
+  /// change (a decision can add or hide branches).
+  List<MusicRow> _musicRows = const [];
 
   late SettingsStore _settings;
   String _loadedSig = '';
@@ -84,6 +93,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
     _settings = context.read<SettingsStore>();
     _settings.addListener(_onSettingsChanged);
     _scroll.addListener(_onScroll);
+    _controller.addListener(_onItemsChanged);
+    // Not awaited: the sound map only gates audio, and a chapter should render
+    // (and be readable) whether or not it arrives.
+    _audio.loadSoundMap();
     // Record the last-opened chapter before the fetch, so the guide's
     // return-to-episode centring is right even if you back out mid-load.
     // Deferred a frame: this notifies ProgressStore, and the guide rows we were
@@ -98,16 +111,38 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void dispose() {
     _settings.removeListener(_onSettingsChanged);
+    _controller.removeListener(_onItemsChanged);
     _scroll.dispose();
     _scene.dispose();
+    _audio.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// A decision can hide or reveal branches, which shifts every later row —
+  /// including the PlayMusic ones.
+  void _onItemsChanged() {
+    _musicRows = musicRowsOf(_controller.displayItems);
   }
 
   String _sigOf(SettingsState s) => '${s.server}|${s.altServer}|${s.doctorName}';
 
   void _onSettingsChanged() {
-    if (_sigOf(_settings.state) != _loadedSig) _reload();
+    if (_sigOf(_settings.state) != _loadedSig) {
+      _reload();
+      return;
+    }
+    final s = _settings.state;
+    // Mirror the web's musicEnabled watcher: off stops the track, on picks the
+    // one the current position calls for.
+    if (!s.musicEnabled) {
+      _audio.stopMusic();
+    } else if (_audio.currentMusicId == null) {
+      _updateAudio(_rowGeometry());
+    } else {
+      _audio.setMusicVolume(s.musicVolume);
+    }
+    if (!s.soundEnabled) _audio.stopAll();
   }
 
   Future<void> _reload() async {
@@ -117,6 +152,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
     // load() below notifies the Consumer anyway.
     _resumeAsk = null;
     _scene.value = null;
+    _audio.stopAll();
+    _audio.resetAutoplay();
     await _controller.load(
       path: _path,
       server: s.server,
@@ -130,10 +167,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final saved = widget.fresh ? 0 : context.read<ProgressStore>().getScroll(_path);
     _lastSavedIndex = 0;
     setState(() => _resumeAsk = saved > 0 ? saved : null);
-    // Seed the opening scene: no scroll has happened yet, and the rows only have
-    // geometry once this load's first frame is laid out.
+    // Seed the opening scene + track: no scroll has happened yet, and the rows
+    // only have geometry once this load's first frame is laid out.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _updateScene(_visibleIndices());
+      if (!mounted) return;
+      final geom = _rowGeometry();
+      _updateScene(geom.visibleIndices);
+      _updateAudio(geom);
     });
   }
 
@@ -149,10 +189,22 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (top >= pos.maxScrollExtent - 80 && _path.isNotEmpty) {
       context.read<ProgressStore>().markRead(_path);
     }
-    // One geometry pass feeds both the resume position and the backdrop.
-    final visible = _visibleIndices();
-    _saveTopIndex(visible);
-    _updateScene(visible);
+    // One geometry pass feeds the resume position, the backdrop and the audio.
+    final geom = _rowGeometry();
+    _saveTopIndex(geom.visibleIndices);
+    _updateScene(geom.visibleIndices);
+    _updateAudio(geom);
+  }
+
+  void _updateAudio(RowGeometry geom) {
+    final s = _settings.state;
+    final items = _controller.displayItems;
+    if (s.musicEnabled) {
+      _audio.updateMusic(_musicRows, geom, s.musicVolume);
+    }
+    if (s.soundEnabled && s.soundAutoplay) {
+      _audio.autoPlay(items, geom, s.soundVolume);
+    }
   }
 
   /// Persist the topmost visible item index for resume.
@@ -173,37 +225,38 @@ class _ReaderScreenState extends State<ReaderScreen> {
     _scene.value = next;
   }
 
-  /// Indices of the built rows that intersect the viewport, in order.
+  /// Measure the built rows, in viewport-relative coordinates.
   ///
   /// ListView.builder has no "visible range" — and unlike the web version's
   /// virtualizer, unbuilt rows have no measured extent — so we read it off the
-  /// built children's geometry. Rows kept alive in the cacheExtent sit outside
-  /// the viewport, hence testing both edges rather than just the top.
-  List<int> _visibleIndices() {
+  /// built children's render objects. One pass per scroll notification serves
+  /// every consumer.
+  RowGeometry _rowGeometry() {
     final ctx = _listKey.currentContext;
     final box = ctx?.findRenderObject();
-    if (box is! RenderBox || !box.hasSize) return const [];
+    if (box is! RenderBox || !box.hasSize) return RowGeometry.empty;
     final viewportTop = box.localToGlobal(Offset.zero).dy;
-    final viewportBottom = viewportTop + box.size.height;
 
-    final out = <int>[];
+    final rows = <RowBox>[];
     void visit(Element el) {
       final widget = el.widget;
       if (widget is _IndexedRow) {
         final rb = el.findRenderObject();
         if (rb is RenderBox && rb.hasSize) {
-          final top = rb.localToGlobal(Offset.zero).dy;
-          if (top + rb.size.height > viewportTop && top < viewportBottom) {
-            out.add(widget.index);
-          }
+          final top = rb.localToGlobal(Offset.zero).dy - viewportTop;
+          rows.add((
+            index: widget.index,
+            top: top,
+            bottom: top + rb.size.height,
+          ));
         }
       }
       el.visitChildren(visit);
     }
 
     if (ctx is Element) ctx.visitChildren(visit);
-    out.sort();
-    return out;
+    rows.sort((a, b) => a.index.compareTo(b.index));
+    return RowGeometry(rows, box.size.height);
   }
 
   void _continueResume() {
@@ -373,6 +426,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
             fontSize: fontSize.toDouble(),
             selections: c.selections,
             onSelect: c.selectOption,
+            audio: _audio,
           ),
         );
       },
@@ -397,6 +451,7 @@ class StoryRow extends StatelessWidget {
   final double fontSize;
   final Map<int, String> selections;
   final void Function(int group, String value) onSelect;
+  final ReaderAudio audio;
 
   const StoryRow({
     super.key,
@@ -404,6 +459,7 @@ class StoryRow extends StatelessWidget {
     required this.fontSize,
     required this.selections,
     required this.onSelect,
+    required this.audio,
   });
 
   @override
@@ -416,7 +472,7 @@ class StoryRow extends StatelessWidget {
         NarrationItem() => _narration(it),
         SubtitleItem() => _subtitle(it),
         DecisionItem() => _decision(it),
-        SoundItem() => _sound(it),
+        SoundItem() => _sound(context, it),
         SceneBreakItem() => _sceneBreak(),
       },
     );
@@ -534,30 +590,56 @@ class StoryRow extends StatelessWidget {
     );
   }
 
-  Widget _sound(SoundItem it) {
-    // TODO(audio): music auto-plays and SFX are tappable once the audio port
-    // lands; for now both render as passive chips.
+  /// Music rows are a passive now-playing chip (the track switches itself as you
+  /// scroll); SFX rows are tap-to-play.
+  Widget _sound(BuildContext context, SoundItem it) {
+    final settings = context.watch<SettingsStore>().state;
+    if (!it.music && !settings.soundEnabled) return const SizedBox.shrink();
+
     final label = it.key.startsWith('\$') ? it.key.substring(1) : it.key;
     return Center(
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xD9222224),
-          border: Border.all(
-              color: it.music ? const Color(0x996A8FC8) : const Color(0x99555555)),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(it.music ? '♪' : '▶',
-                style: TextStyle(color: _gold, fontSize: fontSize * 0.78)),
-            const SizedBox(width: 6),
-            Text(label,
-                style: TextStyle(
-                    color: const Color(0xFFBDBDBD), fontSize: fontSize * 0.78)),
-          ],
-        ),
+      child: AnimatedBuilder(
+        animation: audio,
+        builder: (context, _) {
+          final playing = it.music
+              ? audio.currentMusicId == it.id
+              : audio.playingSfxId == it.id;
+          final chip = Container(
+            decoration: BoxDecoration(
+              color: const Color(0xD9222224),
+              border: Border.all(
+                color: playing
+                    ? _gold
+                    : it.music
+                        ? const Color(0x996A8FC8)
+                        : const Color(0x99555555),
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(it.music ? '♪' : '▶',
+                    style: TextStyle(color: _gold, fontSize: fontSize * 0.78)),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: playing ? _ink : const Color(0xFFBDBDBD),
+                    fontSize: fontSize * 0.78,
+                  ),
+                ),
+              ],
+            ),
+          );
+          if (it.music) return chip;
+          return InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => audio.playSfx(it, settings.soundVolume),
+            child: chip,
+          );
+        },
       ),
     );
   }

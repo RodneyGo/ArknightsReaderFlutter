@@ -23,6 +23,10 @@ dependencies:
   # Android defaults apps to 60Hz; this requests the panel's highest refresh
   # mode so 90/120Hz devices actually run at their full rate.
   flutter_displaymode: ^0.7.0
+  # Story SFX + looping background music. Chosen over audioplayers because
+  # setUrl() throws on a bad url, which turns resolveSound()'s candidate-url
+  # fallback chain into a plain try/catch.
+  just_audio: ^0.10.6
 
 dev_dependencies:
   flutter_test:
