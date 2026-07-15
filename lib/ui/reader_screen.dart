@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 
 import '../data/menu.dart';
 import '../data/models.dart';
+import '../data/offline.dart';
 import '../data/source.dart';
 import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
@@ -62,7 +63,7 @@ SceneRef? sceneForVisible(List<StoryItem> items, List<int> visible) {
 }
 
 class _ReaderScreenState extends State<ReaderScreen> {
-  final _controller = ReaderController();
+  late final ReaderController _controller;
   final _scroll = ScrollController();
   final _listKey = GlobalKey();
 
@@ -101,6 +102,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void initState() {
     super.initState();
+    _controller = ReaderController(offline: context.read<Offline?>());
     _settings = context.read<SettingsStore>();
     _lastMode = _settings.state.readerMode;
     _settings.addListener(_onSettingsChanged);
@@ -461,8 +463,27 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   Widget _body(ReaderController c) {
     if (c.loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: _gold, strokeWidth: 2),
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Loading ${c.loadingPct}%',
+                style: const TextStyle(color: Color(0xFFBBBBBB), fontSize: 14)),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: 220,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(
+                  value: c.loadingPct / 100,
+                  minHeight: 6,
+                  backgroundColor: const Color(0xFF2C2B28),
+                  valueColor: const AlwaysStoppedAnimation(_gold),
+                ),
+              ),
+            ),
+          ],
+        ),
       );
     }
     if (c.error != null) {

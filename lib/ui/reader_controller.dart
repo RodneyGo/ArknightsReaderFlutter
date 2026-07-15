@@ -7,14 +7,21 @@
 
 import 'package:flutter/foundation.dart';
 
+import '../data/audio.dart';
 import '../data/menu.dart';
 import '../data/models.dart';
+import '../data/offline.dart';
 import '../data/parse.dart';
 import '../data/servers.dart';
 import '../data/source.dart';
 
 class ReaderController extends ChangeNotifier {
+  final Offline? offline;
+
+  ReaderController({this.offline});
+
   bool _loading = true;
+  int _loadingPct = 0;
   String? _error;
   String _title = '';
   List<StoryItem> _items = const [];
@@ -23,6 +30,10 @@ class ReaderController extends ChangeNotifier {
   Story? _next;
 
   bool get loading => _loading;
+
+  /// Asset-preload progress, 0-100. Stays 0 while the chapter json is in flight,
+  /// and jumps straight to 100 for a downloaded chapter (nothing to fetch).
+  int get loadingPct => _loadingPct;
   String? get error => _error;
   String get title => _title;
   Story? get prev => _prev;
@@ -70,6 +81,7 @@ class ReaderController extends ChangeNotifier {
   }) async {
     final myToken = ++_token;
     _loading = true;
+    _loadingPct = 0;
     _error = null;
     _items = const [];
     _selections = const {};
@@ -87,14 +99,14 @@ class ReaderController extends ChangeNotifier {
 
     try {
       final base = baseServer(server);
-      // TODO(offline): getStoryData() — prefer the downloaded copy, and
-      // preloadStory() for the real loading percentage. Lands with the offline
-      // port; for now this always hits the network.
+      final off = offline;
       // TODO(ru): applyRu() overlay — Russian falls back to English until the
       // ru overlay assets are ported.
-      final data = StoryData.fromJson(
-        await getJson<Map<String, dynamic>>(base, '/gamedata/story/$path.json'),
-      );
+      final downloaded = await off?.isStoryDownloaded(server, path) ?? false;
+      final data = off != null
+          ? await off.getStoryData(server, path)
+          : StoryData.fromJson(await getJson<Map<String, dynamic>>(
+              base, '/gamedata/story/$path.json'));
       if (myToken != _token) return;
 
       var raw = data.storyList;
@@ -107,6 +119,28 @@ class ReaderController extends ChangeNotifier {
           raw = mergeAltStory(raw, altData.storyList);
         } catch (_) {
           // alt unavailable — show the base language alone
+        }
+      }
+      if (myToken != _token) return;
+
+      // Resolve every asset before showing the chapter, so portraits request a
+      // working url first. A downloaded chapter already has its assets (and
+      // resolved urls) on disk, so skip the network preload entirely — it would
+      // just fail when offline.
+      if (off != null) {
+        if (downloaded) {
+          _loadingPct = 100;
+          notifyListeners();
+        } else {
+          final soundMap = await loadSoundMap();
+          if (myToken != _token) return;
+          await off.preloadStory(raw, soundMap, onProgress: (d, t) {
+            if (myToken != _token || t == 0) return;
+            final pct = (d * 100 / t).round();
+            if (pct == _loadingPct) return;
+            _loadingPct = pct;
+            notifyListeners();
+          });
         }
       }
       if (myToken != _token) return;

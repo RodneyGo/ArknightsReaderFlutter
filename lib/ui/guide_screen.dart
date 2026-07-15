@@ -15,6 +15,7 @@ import '../data/menu.dart';
 import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'ash_fx.dart';
+import 'download_button.dart';
 import 'fps_meter.dart';
 import 'guide_controller.dart';
 import 'reader_screen.dart';
@@ -751,6 +752,7 @@ class _ChapterRow extends StatelessWidget {
                 style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
+            DownloadButton(txt: story.txt),
           ],
         ),
       ),

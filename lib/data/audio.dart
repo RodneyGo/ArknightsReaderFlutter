@@ -8,6 +8,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'localstore.dart';
+
 const _arkdata = 'https://cdn.jsdelivr.net/gh/akgcc/arkdata@main/assets';
 const _soundMapUrl =
     'https://raw.githubusercontent.com/ArknightsAssets/ArknightsGamedata/master/en/gamedata/story/story_variables.json';
@@ -32,8 +34,15 @@ Future<Map<String, String>> _fetchSoundMap() async {
   } catch (_) {
     // fall through to the offline fallback
   }
-  // TODO(offline): fall back to readMeta('story_variables') once localstore is
-  // ported (mirrors the TS `.catch(() => readMeta(...) ?? {})`).
+  // Offline: downloadStory() saves the map alongside the chapter, so a
+  // downloaded chapter's sounds still resolve with no network.
+  try {
+    final store = await LocalStore.instance();
+    final meta = await store.readMeta('story_variables');
+    if (meta != null) return meta.map((k, v) => MapEntry(k, v.toString()));
+  } catch (_) {
+    // no filesystem (web) or nothing saved yet
+  }
   return {};
 }
 

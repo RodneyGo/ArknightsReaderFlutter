@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 
 import 'data/guide.dart';
 import 'data/image_assets.dart';
+import 'data/offline.dart';
 import 'data/resolved.dart';
 import 'stores/kv_store.dart';
 import 'stores/offline_store.dart';
@@ -22,9 +23,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _requestHighRefreshRate();
   final kv = await SharedPrefsStore.create();
+  final resolved = ResolvedUrls(kv);
+  final offline = await Offline.create(resolved);
   await loadImageAssets(); // chapter-image + background lookups
   await loadGuide(); // ARCS + NOTE_RU from the bundled asset
-  runApp(AkReaderApp(kv: kv));
+  runApp(AkReaderApp(kv: kv, resolved: resolved, offline: offline));
 }
 
 /// Android runs apps at 60Hz by default — Flutter renders to whatever mode the
@@ -43,19 +46,33 @@ Future<void> _requestHighRefreshRate() async {
 
 class AkReaderApp extends StatelessWidget {
   final KeyValueStore kv;
-  const AkReaderApp({super.key, required this.kv});
+  final ResolvedUrls resolved;
+  final Offline offline;
+
+  const AkReaderApp({
+    super.key,
+    required this.kv,
+    required this.resolved,
+    required this.offline,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider(
-          create: (_) => ResolvedUrls(kv),
+        Provider<ResolvedUrls>(
+          create: (_) => resolved,
           dispose: (_, r) => r.dispose(),
         ),
+        Provider<Offline?>(create: (_) => offline),
         ChangeNotifierProvider(create: (_) => SettingsStore(kv)),
         ChangeNotifierProvider(create: (_) => ProgressStore(kv)),
-        ChangeNotifierProvider(create: (_) => OfflineStore(kv)),
+        ChangeNotifierProvider(
+          // The filesystem is the truth: reconcile the marker index against the
+          // chapters actually on disk (files can vanish — cache wipes, uninstalls
+          // of app data, a failed download).
+          create: (_) => OfflineStore(kv)..rebuildFrom(offline.downloadedTxts()),
+        ),
         ChangeNotifierProvider(
           create: (ctx) =>
               GuideController()..load(ctx.read<SettingsStore>().state.server),
