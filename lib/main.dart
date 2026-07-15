@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 
 import 'data/guide.dart';
 import 'data/image_assets.dart';
+import 'data/resolved.dart';
 import 'stores/kv_store.dart';
 import 'stores/offline_store.dart';
 import 'stores/progress_store.dart';
@@ -48,6 +49,10 @@ class AkReaderApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider(
+          create: (_) => ResolvedUrls(kv),
+          dispose: (_, r) => r.dispose(),
+        ),
         ChangeNotifierProvider(create: (_) => SettingsStore(kv)),
         ChangeNotifierProvider(create: (_) => ProgressStore(kv)),
         ChangeNotifierProvider(create: (_) => OfflineStore(kv)),

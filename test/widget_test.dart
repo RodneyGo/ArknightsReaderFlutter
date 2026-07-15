@@ -7,12 +7,14 @@ import 'package:provider/provider.dart';
 
 import 'package:ak_reader/data/guide.dart';
 import 'package:ak_reader/data/menu.dart';
+import 'package:ak_reader/data/resolved.dart';
 import 'package:ak_reader/stores/kv_store.dart';
 import 'package:ak_reader/stores/progress_store.dart';
 import 'package:ak_reader/stores/settings_store.dart';
 import 'package:ak_reader/ui/ash_fx.dart';
 import 'package:ak_reader/ui/guide_controller.dart';
 import 'package:ak_reader/ui/guide_screen.dart';
+import 'package:ak_reader/ui/reader_screen.dart';
 
 Guide _fakeGuide() {
   EventGroup ev(String n) => EventGroup(
@@ -41,22 +43,25 @@ Guide _fakeGuide() {
   );
 }
 
+/// The guide screen under the same provider tree main() builds.
+Widget _app(GuideController gc) => MultiProvider(
+      providers: [
+        Provider<ResolvedUrls>(
+            create: (_) => ResolvedUrls(MemoryKeyValueStore())),
+        ChangeNotifierProvider<SettingsStore>(
+            create: (_) => SettingsStore(MemoryKeyValueStore())),
+        ChangeNotifierProvider<ProgressStore>(
+            create: (_) => ProgressStore(MemoryKeyValueStore())),
+        ChangeNotifierProvider<GuideController>.value(value: gc),
+      ],
+      child: const MaterialApp(home: GuideScreen()),
+    );
+
 void main() {
   testWidgets('guide screen renders episode cards + ambient layer',
       (tester) async {
     final gc = GuideController()..setGuide(_fakeGuide());
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider<SettingsStore>(
-              create: (_) => SettingsStore(MemoryKeyValueStore())),
-          ChangeNotifierProvider<ProgressStore>(
-              create: (_) => ProgressStore(MemoryKeyValueStore())),
-          ChangeNotifierProvider<GuideController>.value(value: gc),
-        ],
-        child: const MaterialApp(home: GuideScreen()),
-      ),
-    );
+    await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -73,18 +78,7 @@ void main() {
   testWidgets('tapping a card opens the chapter drill-down; back closes it',
       (tester) async {
     final gc = GuideController()..setGuide(_fakeGuide());
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider<SettingsStore>(
-              create: (_) => SettingsStore(MemoryKeyValueStore())),
-          ChangeNotifierProvider<ProgressStore>(
-              create: (_) => ProgressStore(MemoryKeyValueStore())),
-          ChangeNotifierProvider<GuideController>.value(value: gc),
-        ],
-        child: const MaterialApp(home: GuideScreen()),
-      ),
-    );
+    await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
 
     expect(find.byType(ChaptersPanel), findsNothing);
@@ -98,5 +92,26 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(ChaptersPanel), findsNothing);
+  });
+
+  testWidgets('tapping a chapter row opens the reader', (tester) async {
+    final gc = GuideController()..setGuide(_fakeGuide());
+    await tester.pumpWidget(_app(gc));
+    await tester.pump(const Duration(milliseconds: 16));
+
+    await tester.tap(find.byType(EpisodeCard).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Evil Time-1'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(ReaderScreen), findsOneWidget);
+    // The chapter fetch can't succeed under flutter_test's offline HttpClient, so
+    // this settles into the error state — which is itself the assertion that the
+    // load pipeline ran rather than throwing on the way in.
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Failed to load'), findsOneWidget);
   });
 }

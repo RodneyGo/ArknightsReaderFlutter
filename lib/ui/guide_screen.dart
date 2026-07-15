@@ -17,6 +17,7 @@ import '../stores/settings_store.dart';
 import 'ash_fx.dart';
 import 'fps_meter.dart';
 import 'guide_controller.dart';
+import 'reader_screen.dart';
 import 'settings_screen.dart';
 
 Color _statusColor(ReadStatus s) => switch (s) {
@@ -710,7 +711,9 @@ class _ChapterRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = context.watch<ProgressStore>().statusOf(story.txt);
     return InkWell(
-      onTap: () {}, // TODO: open the reader once StoryView is built
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => ReaderScreen(story: story)),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
