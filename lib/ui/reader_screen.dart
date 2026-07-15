@@ -94,6 +94,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
   double _lastScroll = 0;
   int _lastSavedIndex = -1;
 
+  /// Landscape only: the header starts collapsed behind a small toggle, because a
+  /// full-width bar eats too much of a short viewport. Portrait uses the
+  /// scroll-direction auto-hide instead.
+  bool _barCollapsed = true;
+
   /// Saved index awaiting a resume decision; null = no prompt.
   int? _resumeAsk;
 
@@ -346,6 +351,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
           final isVn =
               context.select<SettingsStore, bool>((s) => s.state.readerMode == 'vn');
           final ready = !c.loading && c.error == null;
+          final landscape =
+              MediaQuery.orientationOf(context) == Orientation.landscape;
           return Scaffold(
             backgroundColor: const Color(0xFF161618),
             body: Stack(
@@ -360,12 +367,34 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   ),
                 Column(
                   children: [
-                    _bar(c, isVn),
+                    // VN mode is a full-screen scene, so the bar floats over it
+                    // rather than taking a band off the top.
+                    if (!isVn) _bar(c, isVn, landscape),
                     Expanded(
-                      child: isVn && ready ? _vn(c) : _body(c),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                              child: isVn && ready ? _vn(c) : _body(c)),
+                          if (isVn)
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              child: _bar(c, isVn, landscape),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
+                // Landscape: a small toggle shows/hides the header, which starts
+                // collapsed to reclaim the short viewport.
+                if (landscape)
+                  Positioned(
+                    top: MediaQuery.paddingOf(context).top + 6,
+                    right: MediaQuery.paddingOf(context).right + 6,
+                    child: _barToggle(),
+                  ),
                 if (_resumeAsk != null && ready)
                   _ResumePrompt(
                     onStart: () => setState(() => _resumeAsk = null),
@@ -391,10 +420,30 @@ class _ReaderScreenState extends State<ReaderScreen> {
         onNavigate: _goStory,
       );
 
-  Widget _bar(ReaderController c, bool isVn) {
+  Widget _barToggle() {
+    return Material(
+      color: const Color(0xB8161618),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => setState(() => _barCollapsed = !_barCollapsed),
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(_barCollapsed ? Icons.menu : Icons.close,
+              size: 19, color: _ink),
+        ),
+      ),
+    );
+  }
+
+  Widget _bar(ReaderController c, bool isVn, bool landscape) {
     final isRead = context.watch<ProgressStore>().statusOf(_path) == ReadStatus.read;
+    // Landscape hides on the toggle; portrait uses the scroll-direction
+    // auto-hide, which VN mode has no scrolling for.
+    final hidden = landscape ? _barCollapsed : (_headerHidden && !isVn);
     return AnimatedSlide(
-      offset: _headerHidden ? const Offset(0, -1) : Offset.zero,
+      offset: hidden ? const Offset(0, -1) : Offset.zero,
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOut,
       child: Material(
@@ -402,6 +451,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
         elevation: 4,
         child: SafeArea(
           bottom: false,
+          // Landscape: leave room on the right so the bar's own buttons clear
+          // the floating toggle.
+          minimum: EdgeInsets.only(right: landscape ? 48 : 0),
           child: SizedBox(
             height: 52,
             child: Row(

@@ -314,6 +314,13 @@ class VnReaderState extends State<VnReader> {
   Widget _background(String id) {
     final srcs = sceneSrcs(id, isImage: _current?.bgImage ?? false);
     final url = _bgFallback ? srcs[1] : srcs[0];
+    // Landscape crops the scene to fill the wide screen (no letterbox bars);
+    // holding to peek switches back to the whole, uncropped image. Portrait
+    // always shows the full image.
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
+    final mainFit =
+        landscape && !_peeking ? BoxFit.cover : BoxFit.contain;
     return RepaintBoundary(
       child: Stack(
         fit: StackFit.expand,
@@ -340,7 +347,7 @@ class VnReaderState extends State<VnReader> {
           ),
           Image.network(
             url,
-            fit: BoxFit.contain,
+            fit: mainFit,
             gaplessPlayback: true,
             errorBuilder: (_, __, ___) => const SizedBox.shrink(),
           ),
@@ -356,12 +363,18 @@ class VnReaderState extends State<VnReader> {
     // Hidden on narration, decisions, the end card, or a speaker who has left the
     // stage — rather than leaving the previous character lingering.
     final show = !_atEnd && !_isDecision && !_peeking && url != null;
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
 
     return Positioned(
       left: 0,
       right: 0,
       top: 0,
-      bottom: 128,
+      // Landscape viewports are short: anchor the sprite to the very bottom so
+      // the character stands on it (feet behind the dialogue box — the usual VN
+      // look) instead of floating above a box that would eat a third of the
+      // screen. Portrait keeps it clear of the taller box.
+      bottom: landscape ? 0 : 128,
       child: IgnorePointer(
         child: AnimatedOpacity(
           opacity: show ? 1 : 0,
@@ -373,12 +386,17 @@ class VnReaderState extends State<VnReader> {
                 : Align(
                     key: ValueKey(url),
                     alignment: Alignment.bottomCenter,
-                    child: Image.network(
-                      url,
-                      fit: BoxFit.contain,
-                      alignment: Alignment.bottomCenter,
-                      gaplessPlayback: true,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    child: FractionallySizedBox(
+                      // Narrower in landscape so the character doesn't span the
+                      // whole width.
+                      widthFactor: landscape ? 0.42 : 0.96,
+                      child: Image.network(
+                        url,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.bottomCenter,
+                        gaplessPlayback: true,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
                     ),
                   ),
           ),
@@ -392,6 +410,9 @@ class VnReaderState extends State<VnReader> {
     final speaker = it is DialogItem ? it.name : '';
     final isNarration = it is NarrationItem || it is SubtitleItem;
     final runs = truncateRuns(_fullRuns, _shown);
+    // Landscape: shrink the box — 130px is about a third of a short viewport.
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
 
     return Positioned(
       left: 0,
@@ -401,7 +422,7 @@ class VnReaderState extends State<VnReader> {
         opacity: _peeking ? 0 : 1,
         duration: const Duration(milliseconds: 180),
         child: Container(
-          constraints: const BoxConstraints(minHeight: 130),
+          constraints: BoxConstraints(minHeight: landscape ? 56 : 130),
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.bottomCenter,
@@ -411,7 +432,11 @@ class VnReaderState extends State<VnReader> {
             ),
           ),
           padding: EdgeInsets.fromLTRB(
-              18, 16, 18, 20 + MediaQuery.paddingOf(context).bottom),
+            18,
+            landscape ? 10 : 16,
+            18,
+            (landscape ? 12 : 20) + MediaQuery.paddingOf(context).bottom,
+          ),
           child: Column(
             crossAxisAlignment: isNarration
                 ? CrossAxisAlignment.center
@@ -420,7 +445,7 @@ class VnReaderState extends State<VnReader> {
             children: [
               if (speaker.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
+                  padding: EdgeInsets.only(bottom: landscape ? 3 : 6),
                   child: Text(
                     speaker,
                     style: const TextStyle(
@@ -443,8 +468,8 @@ class VnReaderState extends State<VnReader> {
                 textAlign: isNarration ? TextAlign.center : TextAlign.start,
                 style: TextStyle(
                   color: _ink,
-                  fontSize: 18,
-                  height: 1.55,
+                  fontSize: landscape ? 16 : 18,
+                  height: landscape ? 1.4 : 1.55,
                   fontStyle: isNarration ? FontStyle.italic : FontStyle.normal,
                 ),
               ),

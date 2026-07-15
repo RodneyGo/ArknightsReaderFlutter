@@ -50,11 +50,24 @@ const _headerBottomPad = 20.0;
 // the original WebView app. The gradient tint below gives the soft transition
 // without the per-frame cost.
 
+// Landscape geometry: the episode scroller turns horizontal and the arc buttons
+// move to a vertical rail on the centre-left, because a landscape viewport is too
+// short for a full-height card plus a header band plus an arc row.
+const _landscapeCardWidth = 158.0;
+const _landscapeCardGap = 20.0;
+
+bool _isLandscape(BuildContext context) =>
+    MediaQuery.orientationOf(context) == Orientation.landscape;
+
+/// True when the arc rail should be shown at all (only Main Story has arcs).
+bool _hasArcs(GuideController gc) => gc.isMainStory && gc.arcCount > 1;
+
 /// Header height — the header is pinned to this and the scroller reserves it, so
-/// the two can't drift apart.
-double _headerHeight(GuideController gc) =>
+/// the two can't drift apart. In landscape the arcs aren't in the header, so it's
+/// just the control bar.
+double _headerHeight(GuideController gc, bool landscape) =>
     _topBarHeight +
-    (gc.isMainStory && gc.arcCount > 1 ? _arcRailHeight : 0) +
+    (!landscape && _hasArcs(gc) ? _arcRailHeight : 0) +
     _headerBottomPad;
 
 /// Snap-to-item physics that preserves fling momentum: a fling carries across
@@ -108,6 +121,11 @@ class _GuideScreenState extends State<GuideScreen> {
   bool _notesVisible = false;
   bool _lightbox = false;
 
+  /// Last orientation the scroller laid out in. Rotating swaps the scroll axis,
+  /// so the old pixel offset is meaningless and the focused card has to be
+  /// re-centred.
+  bool? _lastLandscape;
+
   @override
   void dispose() {
     _scroll.dispose();
@@ -116,6 +134,19 @@ class _GuideScreenState extends State<GuideScreen> {
 
   void _resetToTop() {
     if (_scroll.hasClients) _scroll.jumpTo(0);
+  }
+
+  /// After a rotation the list has re-laid-out on the other axis, so the retained
+  /// offset points at the wrong card. Put the focused one back under the centre
+  /// once the new layout exists.
+  void _recentreAfterRotate(int focusedIndex, double itemExtent) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      final pos = _scroll.position;
+      if (!pos.hasContentDimensions) return;
+      _scroll.jumpTo((focusedIndex * itemExtent)
+          .clamp(pos.minScrollExtent, pos.maxScrollExtent));
+    });
   }
 
   void _open(EpisodeNode n) {
@@ -199,6 +230,15 @@ class _GuideScreenState extends State<GuideScreen> {
                                 right: 0,
                                 child: _header(gc, focused, bgPath),
                               ),
+                              // Landscape: the arcs sit as a vertical rail over
+                              // the horizontal scroller rather than in the header.
+                              if (_isLandscape(context) && _hasArcs(gc))
+                                Positioned(
+                                  left: 6,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Center(child: _arcRailVertical(gc)),
+                                ),
                               if (context
                                   .watch<SettingsStore>()
                                   .state
@@ -264,8 +304,9 @@ class _GuideScreenState extends State<GuideScreen> {
   /// the artwork). Height is pinned to [_headerHeight] so the scroller's
   /// reservation matches exactly.
   Widget _header(GuideController gc, EpisodeNode? focused, String? bgPath) {
+    final landscape = _isLandscape(context);
     return SizedBox(
-      height: _headerHeight(gc),
+      height: _headerHeight(gc, landscape),
       child: Stack(
         children: [
           const Positioned.fill(
@@ -288,7 +329,7 @@ class _GuideScreenState extends State<GuideScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _topBar(gc, focused, bgPath),
-              if (gc.isMainStory && gc.arcCount > 1) _arcRail(gc),
+              if (!landscape && _hasArcs(gc)) _arcRail(gc),
             ],
           ),
         ],
@@ -348,6 +389,31 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
+  /// Landscape arc rail: a vertical stack of just the roman numerals. The serif
+  /// face is deliberate — without it a bare "I" reads as a stray bar.
+  Widget _arcRailVertical(GuideController gc) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < gc.arcCount; i++)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: _Pill(
+              label: _roman[i],
+              active: gc.arcIndex == i,
+              idleText: _goldMuted,
+              minWidth: 42,
+              serif: true,
+              onTap: () {
+                gc.selectArc(i);
+                _resetToTop();
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _scroller(GuideController gc, List<EpisodeNode> nodes) {
     if (nodes.isEmpty) {
       return const Center(
@@ -356,14 +422,34 @@ class _GuideScreenState extends State<GuideScreen> {
     }
     return LayoutBuilder(
       builder: (context, constraints) {
-        final h = constraints.maxHeight;
-        final headerH = _headerHeight(gc);
-        final visibleH = h - headerH; // area below the overlaid header
-        final itemExtent = visibleH * 0.72;
-        // Centre the focused card in the VISIBLE area (below the header); a card
-        // still scrolls up into the header band (where it's blurred) as it exits.
-        final topPad = headerH + (visibleH - itemExtent) / 2;
-        final bottomPad = h - itemExtent - topPad;
+        final landscape = _isLandscape(context);
+        final headerH = _headerHeight(gc, landscape);
+
+        // The scroll axis is the only thing that really changes: the snap physics
+        // work on scroll pixels, so they don't care which way the list runs.
+        final double itemExtent;
+        final EdgeInsets padding;
+        if (landscape) {
+          // Card pitch = card + gap, centred horizontally. The header still
+          // overlays the top, so reserve it; cards centre in what's left.
+          itemExtent = _landscapeCardWidth + _landscapeCardGap;
+          final sidePad = (constraints.maxWidth - itemExtent) / 2;
+          padding = EdgeInsets.fromLTRB(sidePad, headerH, sidePad, 8);
+        } else {
+          final h = constraints.maxHeight;
+          final visibleH = h - headerH; // area below the overlaid header
+          itemExtent = visibleH * 0.72;
+          // Centre the focused card in the VISIBLE area (below the header); a
+          // card still scrolls up into the header band as it exits.
+          final topPad = headerH + (visibleH - itemExtent) / 2;
+          padding = EdgeInsets.only(top: topPad, bottom: h - itemExtent - topPad);
+        }
+
+        if (_lastLandscape != landscape) {
+          _lastLandscape = landscape;
+          _recentreAfterRotate(gc.focusedIndex, itemExtent);
+        }
+
         return NotificationListener<ScrollEndNotification>(
           onNotification: (_) {
             if (_scroll.hasClients) {
@@ -375,8 +461,9 @@ class _GuideScreenState extends State<GuideScreen> {
           },
           child: ListView.builder(
             controller: _scroll,
+            scrollDirection: landscape ? Axis.horizontal : Axis.vertical,
             physics: _SnapScrollPhysics(itemExtent: itemExtent),
-            padding: EdgeInsets.only(top: topPad, bottom: bottomPad),
+            padding: padding,
             itemExtent: itemExtent,
             itemCount: nodes.length,
             itemBuilder: (context, i) {
@@ -391,8 +478,8 @@ class _GuideScreenState extends State<GuideScreen> {
                     pos = _scroll.offset / itemExtent;
                   }
                   // Keep off-centre cards fully visible (no dim/fade) — they just
-                  // slide up and clip cleanly at the header edge. A subtle scale
-                  // still marks the focused one.
+                  // slide past and clip cleanly at the header edge. A subtle
+                  // scale still marks the focused one.
                   final t = (pos - i).abs().clamp(0.0, 1.0);
                   return Transform.scale(scale: 1 - 0.06 * t, child: child);
                 },
@@ -433,12 +520,21 @@ class _Pill extends StatelessWidget {
   /// Label colour when not active. The arc rail passes gold; the plain controls
   /// keep white.
   final Color idleText;
+
+  /// Set by the landscape arc rail so the numerals line up in a column.
+  final double? minWidth;
+
+  /// Serif for the landscape rail's bare roman numerals.
+  final bool serif;
+
   final VoidCallback onTap;
   const _Pill({
     required this.label,
     required this.active,
     required this.onTap,
     this.idleText = Colors.white,
+    this.minWidth,
+    this.serif = false,
   });
 
   @override
@@ -453,14 +549,22 @@ class _Pill extends StatelessWidget {
       child: InkWell(
         borderRadius: radius,
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        child: Container(
+          constraints:
+              minWidth == null ? null : BoxConstraints(minWidth: minWidth!),
+          alignment: minWidth == null ? null : Alignment.center,
+          padding: EdgeInsets.symmetric(
+              horizontal: serif ? 6 : 14, vertical: serif ? 9 : 8),
           child: Text(
             label,
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: active ? _chipTextOnGold : idleText,
               fontWeight: FontWeight.w700,
-              fontSize: 13,
+              fontSize: serif ? 17 : 13,
+              height: serif ? 1 : null,
+              fontFamily: serif ? 'Georgia' : null,
+              fontFamilyFallback: serif ? const ['Times New Roman', 'serif'] : null,
             ),
           ),
         ),
@@ -538,13 +642,19 @@ class EpisodeCard extends StatelessWidget {
         ? null
         : progress.summarize([for (final s in node.event!.stories) s.txt]);
 
+    // Landscape items are a fixed-width card plus the gap; portrait cards fill
+    // the row and pad horizontally.
+    final landscape = _isLandscape(context);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: landscape
+          ? const EdgeInsets.symmetric(horizontal: _landscapeCardGap / 2, vertical: 8)
+          : const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: landscape ? MainAxisSize.min : MainAxisSize.max,
         children: [
           Flexible(
             child: AspectRatio(
