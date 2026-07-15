@@ -28,6 +28,13 @@ Color _statusColor(ReadStatus s) => switch (s) {
 const _roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 const _gold = Color(0xFFE8C987);
 
+// Chip palette for the top controls. Near-black fill (rather than a translucent
+// white) so labels stay legible over bright chapter artwork.
+const _goldMuted = Color(0xFFCDBB8E); // idle arc label
+const _chipFill = Color(0xB3121214);
+const _chipBorder = Color(0x24FFFFFF);
+const _chipTextOnGold = Color(0xFF1B1A18); // active arc: dark on a gold fill
+
 // Approximate heights of the frosted header pieces, so the scroller can reserve
 // space for the focused card below the header while cards still scroll up behind
 // it (the header overlays the scroller).
@@ -327,6 +334,7 @@ class _GuideScreenState extends State<GuideScreen> {
               child: _Pill(
                 label: 'Arc ${_roman[i]}',
                 active: gc.arcIndex == i,
+                idleText: _goldMuted,
                 onTap: () {
                   gc.selectArc(i);
                   _resetToTop();
@@ -419,24 +427,37 @@ class _GuideScreenState extends State<GuideScreen> {
 class _Pill extends StatelessWidget {
   final String label;
   final bool active;
+
+  /// Label colour when not active. The arc rail passes gold; the plain controls
+  /// keep white.
+  final Color idleText;
   final VoidCallback onTap;
-  const _Pill({required this.label, required this.active, required this.onTap});
+  const _Pill({
+    required this.label,
+    required this.active,
+    required this.onTap,
+    this.idleText = Colors.white,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(20);
     return Material(
-      color: active ? _gold.withValues(alpha: 0.18) : Colors.white10,
-      borderRadius: BorderRadius.circular(20),
+      color: active ? _gold.withValues(alpha: 0.92) : _chipFill,
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: active ? Colors.transparent : _chipBorder),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: radius,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Text(
             label,
             style: TextStyle(
-              color: active ? _gold : Colors.white70,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+              color: active ? _chipTextOnGold : idleText,
+              fontWeight: FontWeight.w700,
               fontSize: 13,
             ),
           ),
@@ -756,7 +777,7 @@ class _IconBtn extends StatelessWidget {
         IconButton(
           tooltip: tooltip,
           onPressed: onTap,
-          icon: Icon(icon, color: active ? _gold : Colors.white70),
+          icon: Icon(icon, color: active ? _gold : Colors.white),
         ),
         if (badge)
           const Positioned(
