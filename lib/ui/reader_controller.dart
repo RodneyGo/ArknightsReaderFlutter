@@ -12,6 +12,7 @@ import '../data/menu.dart';
 import '../data/models.dart';
 import '../data/offline.dart';
 import '../data/parse.dart';
+import '../data/ru.dart';
 import '../data/servers.dart';
 import '../data/source.dart';
 
@@ -100,8 +101,6 @@ class ReaderController extends ChangeNotifier {
     try {
       final base = baseServer(server);
       final off = offline;
-      // TODO(ru): applyRu() overlay — Russian falls back to English until the
-      // ru overlay assets are ported.
       final downloaded = await off?.isStoryDownloaded(server, path) ?? false;
       final data = off != null
           ? await off.getStoryData(server, path)
@@ -109,14 +108,19 @@ class ReaderController extends ChangeNotifier {
               base, '/gamedata/story/$path.json'));
       if (myToken != _token) return;
 
-      var raw = data.storyList;
+      // "ru" has no game server: it reads EN and overlays the bundled Russian
+      // text where a translation exists.
+      var raw = server == 'ru' ? applyRu(data.storyList, path) : data.storyList;
       if (altServer != 'none' && baseServer(altServer) != base) {
         try {
           final altData = StoryData.fromJson(
             await getJson<Map<String, dynamic>>(
                 baseServer(altServer), '/gamedata/story/$path.json'),
           );
-          raw = mergeAltStory(raw, altData.storyList);
+          final altRaw = altServer == 'ru'
+              ? applyRu(altData.storyList, path)
+              : altData.storyList;
+          raw = mergeAltStory(raw, altRaw);
         } catch (_) {
           // alt unavailable — show the base language alone
         }

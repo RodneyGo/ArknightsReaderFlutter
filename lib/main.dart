@@ -12,6 +12,7 @@ import 'data/guide.dart';
 import 'data/image_assets.dart';
 import 'data/offline.dart';
 import 'data/resolved.dart';
+import 'data/ru.dart';
 import 'stores/kv_store.dart';
 import 'stores/offline_store.dart';
 import 'stores/progress_store.dart';
@@ -27,6 +28,7 @@ Future<void> main() async {
   final offline = await Offline.create(resolved);
   await loadImageAssets(); // chapter-image + background lookups
   await loadGuide(); // ARCS + NOTE_RU from the bundled asset
+  await loadRuOverlays(); // bundled RU translations, laid over EN
   runApp(AkReaderApp(kv: kv, resolved: resolved, offline: offline));
 }
 
