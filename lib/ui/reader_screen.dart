@@ -26,6 +26,7 @@ import 'reader_audio.dart';
 import 'reader_controller.dart';
 import 'row_geometry.dart';
 import 'settings_screen.dart';
+import 'vn_reader.dart';
 
 const _gold = Color(0xFFC8A96A);
 const _ink = Color(0xFFF3F0E7);
@@ -75,6 +76,16 @@ class _ReaderScreenState extends State<ReaderScreen> {
   /// change (a decision can add or hide branches).
   List<MusicRow> _musicRows = const [];
 
+  final _vnKey = GlobalKey<VnReaderState>();
+
+  /// Where VN mode should start. 0 unless the resume prompt is accepted, or the
+  /// reader was toggled out of novel mode mid-chapter.
+  int _vnResumeIndex = 0;
+
+  /// Non-reactive read, for callbacks outside build.
+  bool get _vnMode => _settings.state.readerMode == 'vn';
+  String _lastMode = '';
+
   late SettingsStore _settings;
   String _loadedSig = '';
 
@@ -91,6 +102,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void initState() {
     super.initState();
     _settings = context.read<SettingsStore>();
+    _lastMode = _settings.state.readerMode;
     _settings.addListener(_onSettingsChanged);
     _scroll.addListener(_onScroll);
     _controller.addListener(_onItemsChanged);
@@ -133,6 +145,16 @@ class _ReaderScreenState extends State<ReaderScreen> {
       return;
     }
     final s = _settings.state;
+    if (s.readerMode != _lastMode) {
+      _onModeChanged(s.readerMode);
+      return;
+    }
+    if (_vnMode) {
+      // VN owns its own audio; only the volume knob applies from out here.
+      if (!s.musicEnabled) _audio.stopMusic();
+      _audio.setMusicVolume(s.musicVolume);
+      return;
+    }
     // Mirror the web's musicEnabled watcher: off stops the track, on picks the
     // one the current position calls for.
     if (!s.musicEnabled) {
@@ -145,6 +167,23 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (!s.soundEnabled) _audio.stopAll();
   }
 
+  /// Hand audio ownership between the two readers, and carry the reading
+  /// position across so toggling mid-chapter doesn't lose your place.
+  void _onModeChanged(String mode) {
+    final wasNovel = _lastMode == 'novel';
+    _lastMode = mode;
+    if (mode == 'vn') {
+      if (wasNovel) _vnResumeIndex = _lastSavedIndex.clamp(0, 1 << 30);
+      // VnReader.init() stops the novel track and starts the one for its line.
+    } else {
+      _audio.stopAll();
+      // Resync the novel track to wherever the list lands.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _updateAudio(_rowGeometry());
+      });
+    }
+  }
+
   Future<void> _reload() async {
     final s = _settings.state;
     _loadedSig = _sigOf(s);
@@ -152,6 +191,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     // load() below notifies the Consumer anyway.
     _resumeAsk = null;
     _scene.value = null;
+    _vnResumeIndex = 0;
     _audio.stopAll();
     _audio.resetAutoplay();
     await _controller.load(
@@ -196,7 +236,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
     _updateAudio(geom);
   }
 
+  /// Novel-mode audio only: in VN mode the reader drives audio off the timeline
+  /// it's walking, and the two must not fight over the music player.
   void _updateAudio(RowGeometry geom) {
+    if (_vnMode) return;
     final s = _settings.state;
     final items = _controller.displayItems;
     if (s.musicEnabled) {
@@ -263,7 +306,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final index = _resumeAsk;
     setState(() => _resumeAsk = null);
     if (index == null) return;
-    _jumpToIndex(index);
+    if (_vnMode) {
+      _vnKey.currentState?.jumpTo(index);
+    } else {
+      _jumpToIndex(index);
+    }
   }
 
   /// Jump to an item index. Rows are variable-height and unbuilt rows have no
@@ -294,11 +341,15 @@ class _ReaderScreenState extends State<ReaderScreen> {
         builder: (context, c, _) {
           final showBg = context.select<SettingsStore, bool>(
               (s) => s.state.showBackground);
+          final isVn =
+              context.select<SettingsStore, bool>((s) => s.state.readerMode == 'vn');
+          final ready = !c.loading && c.error == null;
           return Scaffold(
             backgroundColor: const Color(0xFF161618),
             body: Stack(
               children: [
-                if (showBg)
+                // VN mode paints its own scene behind the sprite.
+                if (showBg && !isVn)
                   ValueListenableBuilder<SceneRef?>(
                     valueListenable: _scene,
                     builder: (_, scene, __) => scene == null
@@ -307,11 +358,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   ),
                 Column(
                   children: [
-                    _bar(c),
-                    Expanded(child: _body(c)),
+                    _bar(c, isVn),
+                    Expanded(
+                      child: isVn && ready ? _vn(c) : _body(c),
+                    ),
                   ],
                 ),
-                if (_resumeAsk != null && !c.loading && c.error == null)
+                if (_resumeAsk != null && ready)
                   _ResumePrompt(
                     onStart: () => setState(() => _resumeAsk = null),
                     onContinue: _continueResume,
@@ -324,7 +377,19 @@ class _ReaderScreenState extends State<ReaderScreen> {
     );
   }
 
-  Widget _bar(ReaderController c) {
+  Widget _vn(ReaderController c) => VnReader(
+        key: _vnKey,
+        items: c.displayItems,
+        path: _path,
+        prev: c.prev,
+        next: c.next,
+        audio: _audio,
+        resumeIndex: _vnResumeIndex,
+        onSelect: c.selectOption,
+        onNavigate: _goStory,
+      );
+
+  Widget _bar(ReaderController c, bool isVn) {
     final isRead = context.watch<ProgressStore>().statusOf(_path) == ReadStatus.read;
     return AnimatedSlide(
       offset: _headerHidden ? const Offset(0, -1) : Offset.zero,
@@ -353,6 +418,23 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     style: const TextStyle(
                         color: _ink, fontSize: 16, fontWeight: FontWeight.w600),
                   ),
+                ),
+                if (isVn)
+                  IconButton(
+                    tooltip: 'Log',
+                    icon: const Icon(Icons.menu, color: _ink),
+                    onPressed: () => _vnKey.currentState?.openLog(),
+                  ),
+                IconButton(
+                  tooltip: isVn ? 'Novel mode' : 'Visual-novel mode',
+                  icon: Icon(isVn ? Icons.notes : Icons.view_carousel_outlined,
+                      color: _ink),
+                  onPressed: () {
+                    final store = context.read<SettingsStore>();
+                    store.set(store.state
+                        .copyWith(readerMode: isVn ? 'novel' : 'vn'));
+                    setState(() => _headerHidden = false);
+                  },
                 ),
                 IconButton(
                   tooltip: isRead ? 'Mark unread' : 'Mark read',

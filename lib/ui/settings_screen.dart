@@ -66,10 +66,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Visual-novel mode'),
+            subtitle: const Text('One line at a time; tap to advance'),
             value: s.readerMode == 'vn',
             onChanged: (v) =>
                 store.set(s.copyWith(readerMode: v ? 'vn' : 'novel')),
           ),
+          if (s.readerMode == 'vn') ...[
+            const SizedBox(height: 12),
+            const _SectionTitle('Text speed'),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'slow', label: Text('Slow')),
+                ButtonSegment(value: 'normal', label: Text('Normal')),
+                ButtonSegment(value: 'fast', label: Text('Fast')),
+                ButtonSegment(value: 'instant', label: Text('Instant')),
+              ],
+              selected: {s.textSpeed},
+              showSelectedIcon: false,
+              onSelectionChanged: (v) =>
+                  store.set(s.copyWith(textSpeed: v.first)),
+            ),
+          ],
           const SizedBox(height: 12),
           _SectionTitle('Font size — ${s.fontSize}'),
           Slider(

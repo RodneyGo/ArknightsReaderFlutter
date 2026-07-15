@@ -57,6 +57,18 @@ MusicRow? activeMusic(
   return active;
 }
 
+/// The track playing at [idx]: the most recent PlayMusic at or before it.
+///
+/// VN mode needs this because its forward walk only fires music commands it steps
+/// *through* — resuming, or jumping from the log, lands past them.
+String? activeMusicKeyAt(List<StoryItem> items, int idx) {
+  for (var k = idx.clamp(0, items.length - 1); k >= 0; k--) {
+    final it = items[k];
+    if (it is SoundItem && it.music) return it.key;
+  }
+  return null;
+}
+
 /// SFX rows whose centre has just crossed the viewport centre — the trigger for
 /// autoplay. Excludes music rows (those play automatically) and anything in
 /// [alreadyPlayed].
@@ -90,8 +102,13 @@ class ReaderAudio extends ChangeNotifier {
   /// Story-item id of the SFX currently playing, for the chip highlight.
   int? playingSfxId;
 
-  /// Story-item id of the active music row.
+  /// Story-item id of the active music row. Novel mode dedupes on this: two
+  /// PlayMusic rows sharing a key restart the track, as the web did.
   int? currentMusicId;
+
+  /// Key of the active track. VN mode dedupes on this instead, so stepping onto
+  /// a second PlayMusic row with the same key doesn't restart it.
+  String? currentMusicKey;
 
   final _autoPlayed = <int>{};
 
@@ -141,29 +158,35 @@ class ReaderAudio extends ChangeNotifier {
   }
 
   Future<void> playSfx(SoundItem item, double volume) async {
-    final p = _player(false);
-    if (p == null) return;
     _autoPlayed.add(item.id);
     playingSfxId = item.id;
     notifyListeners();
+    final ok = await _playSfxKey(item.key, volume, ownerId: item.id);
+    // Clear the chip if it failed and nothing newer has taken over.
+    if (!ok && playingSfxId == item.id) {
+      playingSfxId = null;
+      if (!_disposed) notifyListeners();
+    }
+  }
+
+  /// Fire a sound by key — VN mode walks the timeline and has no chip to light.
+  Future<void> playSfxKey(String key, double volume) =>
+      _playSfxKey(key, volume);
+
+  Future<bool> _playSfxKey(String key, double volume, {int? ownerId}) async {
+    final p = _player(false);
+    if (p == null) return false;
     try {
       await p.stop();
-      final ok = await _load(p, audio_data.resolveSound(item.key, _soundMap));
-      // Bail if disposed or superseded by a newer sound while we were loading.
-      if (!ok || _disposed || playingSfxId != item.id) {
-        if (!ok && playingSfxId == item.id) {
-          playingSfxId = null;
-          if (!_disposed) notifyListeners();
-        }
-        return;
-      }
+      final ok = await _load(p, audio_data.resolveSound(key, _soundMap));
+      // Bail if disposed, or superseded by a newer sound while we were loading.
+      if (!ok || _disposed) return false;
+      if (ownerId != null && playingSfxId != ownerId) return true;
       await p.setVolume(volume);
       unawaited(p.play());
+      return true;
     } catch (_) {
-      if (playingSfxId == item.id) {
-        playingSfxId = null;
-        if (!_disposed) notifyListeners();
-      }
+      return false;
     }
   }
 
@@ -178,16 +201,35 @@ class ReaderAudio extends ChangeNotifier {
     }
   }
 
+  /// Novel mode: switch to a PlayMusic row (deduped by row id upstream).
   Future<void> switchMusic(MusicRow row, double volume) async {
+    currentMusicId = row.id;
+    currentMusicKey = row.key;
+    notifyListeners();
+    await _startMusic(row.key, volume, token: row.id);
+  }
+
+  /// VN mode: play a track by key, ignoring a repeat of the one already playing.
+  Future<void> playMusicKey(String key, double volume) async {
+    if (key == currentMusicKey) return;
+    currentMusicId = null;
+    currentMusicKey = key;
+    notifyListeners();
+    await _startMusic(key, volume, token: null);
+  }
+
+  /// [token] guards against a later switch winning the race while this loads;
+  /// null means "guard on the key alone".
+  Future<void> _startMusic(String key, double volume, {int? token}) async {
     final p = _player(true);
     if (p == null) return;
-    currentMusicId = row.id;
-    notifyListeners();
     try {
       await p.stop();
-      final ok = await _load(p, audio_data.resolveSound(row.key, _soundMap));
-      // A later row may have won the race while this one loaded.
-      if (!ok || _disposed || currentMusicId != row.id) return;
+      final ok = await _load(p, audio_data.resolveSound(key, _soundMap));
+      if (!ok || _disposed) return;
+      final superseded =
+          token != null ? currentMusicId != token : currentMusicKey != key;
+      if (superseded) return;
       await p.setLoopMode(LoopMode.one);
       await p.setVolume(volume);
       unawaited(p.play());
@@ -210,8 +252,9 @@ class ReaderAudio extends ChangeNotifier {
 
   void stopMusic() {
     _musicPlayer?.stop();
-    if (currentMusicId != null) {
+    if (currentMusicId != null || currentMusicKey != null) {
       currentMusicId = null;
+      currentMusicKey = null;
       if (!_disposed) notifyListeners();
     }
   }
