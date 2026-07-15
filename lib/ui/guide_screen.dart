@@ -326,11 +326,11 @@ class _GuideScreenState extends State<GuideScreen> {
                       _scroll.position.hasContentDimensions) {
                     pos = _scroll.offset / itemExtent;
                   }
+                  // Keep off-centre cards fully visible (no dim/fade) — they just
+                  // slide up and clip cleanly at the header edge. A subtle scale
+                  // still marks the focused one.
                   final t = (pos - i).abs().clamp(0.0, 1.0);
-                  return Opacity(
-                    opacity: 1 - 0.5 * t,
-                    child: Transform.scale(scale: 1 - 0.12 * t, child: child),
-                  );
+                  return Transform.scale(scale: 1 - 0.06 * t, child: child);
                 },
               );
             },
