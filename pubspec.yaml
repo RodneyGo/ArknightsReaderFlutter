@@ -20,6 +20,9 @@ dependencies:
   path: ^1.9.0
   # State management / DI for the stores (composes with the ChangeNotifiers).
   provider: ^6.1.2
+  # Android defaults apps to 60Hz; this requests the panel's highest refresh
+  # mode so 90/120Hz devices actually run at their full rate.
+  flutter_displaymode: ^0.7.0
 
 dev_dependencies:
   flutter_test:
