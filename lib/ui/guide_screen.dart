@@ -29,6 +29,13 @@ Color _statusColor(ReadStatus s) => switch (s) {
 const _roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 const _gold = Color(0xFFE8C987);
 
+// Approximate heights of the frosted header pieces, so the scroller can reserve
+// space for the focused card below the header while cards still scroll up behind
+// it (the header overlays the scroller).
+const _topBarHeight = 54.0;
+const _arcRailHeight = 46.0;
+const _headerBottomPad = 20.0;
+
 /// Snap-to-item physics that preserves fling momentum: a fling carries across
 /// several items (using the parent's friction) and then settles on the nearest
 /// item — unlike PageView, which advances only one page per swipe.
@@ -158,8 +165,22 @@ class _GuideScreenState extends State<GuideScreen> {
                   SafeArea(
                     child: Column(
                       children: [
-                        _blurHeader(gc, focused, bgPath),
-                        Expanded(child: _scroller(gc, nodes)),
+                        // The scroller fills the area and the header overlays its
+                        // top, so episodes slide UP behind the frosted header
+                        // (blurred by it) instead of clipping at its edge.
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              Positioned.fill(child: _scroller(gc, nodes)),
+                              Positioned(
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                child: _blurHeader(gc, focused, bgPath),
+                              ),
+                            ],
+                          ),
+                        ),
                         _selector(gc),
                       ],
                     ),
@@ -298,8 +319,15 @@ class _GuideScreenState extends State<GuideScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final h = constraints.maxHeight;
-        final itemExtent = h * 0.62; // page-ish; neighbours peek above/below
-        final pad = (h - itemExtent) / 2; // so item 0 (and the last) centre
+        final headerH = _topBarHeight +
+            (gc.isMainStory && gc.arcCount > 1 ? _arcRailHeight : 0) +
+            _headerBottomPad;
+        final visibleH = h - headerH; // area below the overlaid header
+        final itemExtent = visibleH * 0.72;
+        // Centre the focused card in the VISIBLE area (below the header); a card
+        // still scrolls up into the header band (where it's blurred) as it exits.
+        final topPad = headerH + (visibleH - itemExtent) / 2;
+        final bottomPad = h - itemExtent - topPad;
         return NotificationListener<ScrollEndNotification>(
           onNotification: (_) {
             if (_scroll.hasClients) {
@@ -312,7 +340,7 @@ class _GuideScreenState extends State<GuideScreen> {
           child: ListView.builder(
             controller: _scroll,
             physics: _SnapScrollPhysics(itemExtent: itemExtent),
-            padding: EdgeInsets.symmetric(vertical: pad),
+            padding: EdgeInsets.only(top: topPad, bottom: bottomPad),
             itemExtent: itemExtent,
             itemCount: nodes.length,
             itemBuilder: (context, i) {
