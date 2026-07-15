@@ -80,6 +80,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             label: '${s.fontSize}',
             onChanged: (v) => store.set(s.copyWith(fontSize: v.round())),
           ),
+          const SizedBox(height: 12),
+          const _SectionTitle('Developer'),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('FPS meter'),
+            subtitle: const Text('Show measured frame rate + worst frame time'),
+            value: s.debugPerf,
+            onChanged: (v) => store.set(s.copyWith(debugPerf: v)),
+          ),
         ],
       ),
     );

@@ -9,6 +9,7 @@ import 'package:ak_reader/data/guide.dart';
 import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/stores/kv_store.dart';
 import 'package:ak_reader/stores/progress_store.dart';
+import 'package:ak_reader/stores/settings_store.dart';
 import 'package:ak_reader/ui/ash_fx.dart';
 import 'package:ak_reader/ui/guide_controller.dart';
 import 'package:ak_reader/ui/guide_screen.dart';
@@ -47,6 +48,8 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider<SettingsStore>(
+              create: (_) => SettingsStore(MemoryKeyValueStore())),
           ChangeNotifierProvider<ProgressStore>(
               create: (_) => ProgressStore(MemoryKeyValueStore())),
           ChangeNotifierProvider<GuideController>.value(value: gc),
@@ -73,6 +76,8 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider<SettingsStore>(
+              create: (_) => SettingsStore(MemoryKeyValueStore())),
           ChangeNotifierProvider<ProgressStore>(
               create: (_) => ProgressStore(MemoryKeyValueStore())),
           ChangeNotifierProvider<GuideController>.value(value: gc),

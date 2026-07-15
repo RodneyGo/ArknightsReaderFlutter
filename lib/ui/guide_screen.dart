@@ -17,6 +17,7 @@ import '../data/menu.dart';
 import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'ash_fx.dart';
+import 'fps_meter.dart';
 import 'guide_controller.dart';
 import 'settings_screen.dart';
 
@@ -198,6 +199,12 @@ class _GuideScreenState extends State<GuideScreen> {
                                 right: 0,
                                 child: _blurHeader(gc, focused, bgPath),
                               ),
+                              if (context
+                                  .watch<SettingsStore>()
+                                  .state
+                                  .debugPerf)
+                                const Positioned(
+                                    left: 10, bottom: 8, child: FpsMeter()),
                             ],
                           ),
                         ),
