@@ -41,10 +41,30 @@ class ReaderScreen extends StatefulWidget {
   State<ReaderScreen> createState() => _ReaderScreenState();
 }
 
+/// The scene behind the transcript: a background id, or a full-screen CG when
+/// [img] is set.
+typedef SceneRef = ({String id, bool img});
+
+/// The scene for a set of visible rows: the first one that actually carries a
+/// scene. Skipping rows without one avoids blanking when the top row is a gap, a
+/// sound chip, or a decision. Null when nothing on screen carries a scene.
+SceneRef? sceneForVisible(List<StoryItem> items, List<int> visible) {
+  for (final i in visible) {
+    if (i < 0 || i >= items.length) continue;
+    final bg = items[i].bg;
+    if (bg != null) return (id: bg, img: items[i].bgImage);
+  }
+  return null;
+}
+
 class _ReaderScreenState extends State<ReaderScreen> {
   final _controller = ReaderController();
   final _scroll = ScrollController();
   final _listKey = GlobalKey();
+
+  /// Current scene. Separate from setState so scrolling past a scene change
+  /// repaints the backdrop alone.
+  final _scene = ValueNotifier<SceneRef?>(null);
 
   late SettingsStore _settings;
   String _loadedSig = '';
@@ -79,6 +99,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void dispose() {
     _settings.removeListener(_onSettingsChanged);
     _scroll.dispose();
+    _scene.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -95,6 +116,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     // Plain assignment, not setState: _reload() runs from initState, and the
     // load() below notifies the Consumer anyway.
     _resumeAsk = null;
+    _scene.value = null;
     await _controller.load(
       path: _path,
       server: s.server,
@@ -108,6 +130,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final saved = widget.fresh ? 0 : context.read<ProgressStore>().getScroll(_path);
     _lastSavedIndex = 0;
     setState(() => _resumeAsk = saved > 0 ? saved : null);
+    // Seed the opening scene: no scroll has happened yet, and the rows only have
+    // geometry once this load's first frame is laid out.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _updateScene(_visibleIndices());
+    });
   }
 
   void _onScroll() {
@@ -122,40 +149,61 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (top >= pos.maxScrollExtent - 80 && _path.isNotEmpty) {
       context.read<ProgressStore>().markRead(_path);
     }
-    _saveTopIndex();
+    // One geometry pass feeds both the resume position and the backdrop.
+    final visible = _visibleIndices();
+    _saveTopIndex(visible);
+    _updateScene(visible);
   }
 
-  /// Persist the topmost visible item index for resume. ListView.builder has no
-  /// "first visible index", so we read it off the built children's geometry.
-  void _saveTopIndex() {
-    final index = _firstVisibleIndex();
-    if (index == null || index == _lastSavedIndex) return;
+  /// Persist the topmost visible item index for resume.
+  void _saveTopIndex(List<int> visible) {
+    if (visible.isEmpty) return;
+    final index = visible.first;
+    if (index == _lastSavedIndex) return;
     _lastSavedIndex = index;
     context.read<ProgressStore>().saveScroll(_path, index);
   }
 
-  int? _firstVisibleIndex() {
-    final box = _listKey.currentContext?.findRenderObject();
-    if (box is! RenderBox) return null;
+  /// Pushes the current scene through the notifier, so a scene change repaints
+  /// only the backdrop rather than rebuilding the whole transcript.
+  void _updateScene(List<int> visible) {
+    final next = sceneForVisible(_controller.displayItems, visible);
+    final cur = _scene.value;
+    if (cur?.id == next?.id && cur?.img == next?.img) return;
+    _scene.value = next;
+  }
+
+  /// Indices of the built rows that intersect the viewport, in order.
+  ///
+  /// ListView.builder has no "visible range" — and unlike the web version's
+  /// virtualizer, unbuilt rows have no measured extent — so we read it off the
+  /// built children's geometry. Rows kept alive in the cacheExtent sit outside
+  /// the viewport, hence testing both edges rather than just the top.
+  List<int> _visibleIndices() {
+    final ctx = _listKey.currentContext;
+    final box = ctx?.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return const [];
     final viewportTop = box.localToGlobal(Offset.zero).dy;
-    int? best;
+    final viewportBottom = viewportTop + box.size.height;
+
+    final out = <int>[];
     void visit(Element el) {
       final widget = el.widget;
       if (widget is _IndexedRow) {
         final rb = el.findRenderObject();
         if (rb is RenderBox && rb.hasSize) {
-          final bottom = rb.localToGlobal(Offset.zero).dy + rb.size.height;
-          if (bottom > viewportTop && (best == null || widget.index < best!)) {
-            best = widget.index;
+          final top = rb.localToGlobal(Offset.zero).dy;
+          if (top + rb.size.height > viewportTop && top < viewportBottom) {
+            out.add(widget.index);
           }
         }
       }
       el.visitChildren(visit);
     }
 
-    final ctx = _listKey.currentContext;
     if (ctx is Element) ctx.visitChildren(visit);
-    return best;
+    out.sort();
+    return out;
   }
 
   void _continueResume() {
@@ -197,7 +245,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
             backgroundColor: const Color(0xFF161618),
             body: Stack(
               children: [
-                if (showBg) _Backdrop(items: c.displayItems),
+                if (showBg)
+                  ValueListenableBuilder<SceneRef?>(
+                    valueListenable: _scene,
+                    builder: (_, scene, __) => scene == null
+                        ? const SizedBox.shrink()
+                        : _Backdrop(scene: scene),
+                  ),
                 Column(
                   children: [
                     _bar(c),
@@ -674,37 +728,26 @@ class _NavButton extends StatelessWidget {
 /// That's the opposite of a BackdropFilter, which re-samples the live scene every
 /// frame and is what tanked the menu's frame rate.
 class _Backdrop extends StatefulWidget {
-  final List<StoryItem> items;
-  const _Backdrop({required this.items});
+  final SceneRef scene;
+  const _Backdrop({required this.scene});
 
   @override
   State<_Backdrop> createState() => _BackdropState();
 }
 
 class _BackdropState extends State<_Backdrop> {
+  /// Scene art lives under one of two url shapes; fall back on the first 404.
   bool _fallback = false;
-  String? _lastId;
 
-  ({String id, bool img})? get _activeBg {
-    // TODO(scene-sync): the web version used the first *visible* row's scene, so
-    // the backdrop changed as you scrolled. ListView.builder doesn't expose that
-    // cheaply — wire this to the same visible-index tracking the resume uses.
-    for (final it in widget.items) {
-      final bg = it.bg;
-      if (bg != null) return (id: bg, img: it.bgImage);
-    }
-    return null;
+  @override
+  void didUpdateWidget(_Backdrop old) {
+    super.didUpdateWidget(old);
+    if (old.scene.id != widget.scene.id) _fallback = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    final active = _activeBg;
-    if (active == null) return const SizedBox.shrink();
-    if (active.id != _lastId) {
-      _lastId = active.id;
-      _fallback = false;
-    }
-    final srcs = sceneSrcs(active.id, isImage: active.img);
+    final srcs = sceneSrcs(widget.scene.id, isImage: widget.scene.img);
     final url = _fallback ? srcs[1] : srcs[0];
 
     return Positioned.fill(
