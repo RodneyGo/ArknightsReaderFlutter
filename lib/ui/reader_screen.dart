@@ -32,6 +32,16 @@ import 'vn_reader.dart';
 const _gold = Color(0xFFC8A96A);
 const _ink = Color(0xFFF3F0E7);
 
+/// What a vertical swipe on the VN scene wants the floating bar to do: `true` =
+/// reveal (swipe down), `false` = hide (swipe up), `null` = too small to count.
+/// A fast fling ([velocity]) or a deliberate slow drag ([netDy]) both qualify;
+/// down is positive, matching Flutter's screen-space y-axis.
+bool? barSwipeReveal(double netDy, double velocity) {
+  if (netDy > 40 || velocity > 120) return true;
+  if (netDy < -40 || velocity < -120) return false;
+  return null;
+}
+
 class ReaderScreen extends StatefulWidget {
   final Story story;
 
@@ -94,10 +104,19 @@ class _ReaderScreenState extends State<ReaderScreen> {
   double _lastScroll = 0;
   int _lastSavedIndex = -1;
 
-  /// Landscape only: the header starts collapsed behind a small toggle, because a
-  /// full-width bar eats too much of a short viewport. Portrait uses the
-  /// scroll-direction auto-hide instead.
-  bool _barCollapsed = true;
+  /// Landscape only: whether the header is hidden. Driven by vertical swipes —
+  /// swipe up to hide, swipe down to reveal — rather than a toggle button, since a
+  /// full-width bar eats too much of a short viewport. It starts shown so the
+  /// controls are discoverable; portrait uses the scroll-direction auto-hide.
+  bool _barCollapsed = false;
+
+  /// Orientation cached from the last build, so scroll/drag callbacks (which run
+  /// without a BuildContext) know which hide mechanism applies.
+  bool _landscape = false;
+
+  /// Net vertical travel of an in-progress VN swipe, so a slow drag counts too
+  /// (not just a fast fling).
+  double _vnDragDy = 0;
 
   /// Saved index awaiting a resume decision; null = no prompt.
   int? _resumeAsk;
@@ -228,7 +247,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (!_scroll.hasClients) return;
     final top = _scroll.offset;
     if ((top - _lastScroll).abs() > 12) {
-      setState(() => _headerHidden = top > _lastScroll && top > 80);
+      // Reading forward (offset growing) is an upward finger swipe -> hide;
+      // scrolling back (a downward swipe) reveals it. Landscape drives the
+      // swipe-controlled bar; portrait keeps its own auto-hide flag.
+      final forward = top > _lastScroll;
+      setState(() {
+        if (_landscape) {
+          _barCollapsed = forward && top > 40;
+        } else {
+          _headerHidden = forward && top > 80;
+        }
+      });
       _lastScroll = top;
     }
     // Reaching the bottom marks the chapter finished.
@@ -353,6 +382,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           final ready = !c.loading && c.error == null;
           final landscape =
               MediaQuery.orientationOf(context) == Orientation.landscape;
+          _landscape = landscape;
           return Scaffold(
             backgroundColor: const Color(0xFF161618),
             body: Stack(
@@ -374,7 +404,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       child: Stack(
                         children: [
                           Positioned.fill(
-                              child: isVn && ready ? _vn(c) : _body(c)),
+                            child: isVn && ready
+                                ? _vnArea(c, landscape)
+                                : _body(c),
+                          ),
                           if (isVn)
                             Positioned(
                               top: 0,
@@ -387,14 +420,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     ),
                   ],
                 ),
-                // Landscape: a small toggle shows/hides the header, which starts
-                // collapsed to reclaim the short viewport.
-                if (landscape)
-                  Positioned(
-                    top: MediaQuery.paddingOf(context).top + 6,
-                    right: MediaQuery.paddingOf(context).right + 6,
-                    child: _barToggle(),
-                  ),
                 if (_resumeAsk != null && ready)
                   _ResumePrompt(
                     onStart: () => setState(() => _resumeAsk = null),
@@ -420,26 +445,29 @@ class _ReaderScreenState extends State<ReaderScreen> {
         onNavigate: _goStory,
       );
 
-  Widget _barToggle() {
-    return Material(
-      color: const Color(0xB8161618),
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: () => setState(() => _barCollapsed = !_barCollapsed),
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(_barCollapsed ? Icons.menu : Icons.close,
-              size: 19, color: _ink),
-        ),
-      ),
+  /// The VN scene, wrapped in landscape with a vertical-swipe recognizer that
+  /// shows/hides the floating bar. VnReader owns tap-to-advance and
+  /// hold-to-peek; a vertical drag exceeds the touch slop those ignore, so the
+  /// gesture arena hands it here without stealing taps.
+  Widget _vnArea(ReaderController c, bool landscape) {
+    if (!landscape) return _vn(c);
+    return GestureDetector(
+      onVerticalDragStart: (_) => _vnDragDy = 0,
+      onVerticalDragUpdate: (d) => _vnDragDy += d.delta.dy,
+      onVerticalDragEnd: _onVnDragEnd,
+      child: _vn(c),
     );
+  }
+
+  void _onVnDragEnd(DragEndDetails d) {
+    final reveal = barSwipeReveal(_vnDragDy, d.primaryVelocity ?? 0);
+    if (reveal == null || reveal == !_barCollapsed) return;
+    setState(() => _barCollapsed = !reveal);
   }
 
   Widget _bar(ReaderController c, bool isVn, bool landscape) {
     final isRead = context.watch<ProgressStore>().statusOf(_path) == ReadStatus.read;
-    // Landscape hides on the toggle; portrait uses the scroll-direction
+    // Landscape hides on a vertical swipe; portrait uses the scroll-direction
     // auto-hide, which VN mode has no scrolling for.
     final hidden = landscape ? _barCollapsed : (_headerHidden && !isVn);
     return AnimatedSlide(
@@ -451,9 +479,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
         elevation: 4,
         child: SafeArea(
           bottom: false,
-          // Landscape: leave room on the right so the bar's own buttons clear
-          // the floating toggle.
-          minimum: EdgeInsets.only(right: landscape ? 48 : 0),
           child: SizedBox(
             height: 52,
             child: Row(

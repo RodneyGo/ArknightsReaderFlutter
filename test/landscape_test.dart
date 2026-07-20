@@ -16,6 +16,7 @@ import 'package:ak_reader/stores/settings_store.dart';
 import 'package:ak_reader/ui/guide_controller.dart';
 import 'package:ak_reader/ui/guide_screen.dart';
 import 'package:ak_reader/ui/reader_audio.dart';
+import 'package:ak_reader/ui/reader_screen.dart';
 import 'package:ak_reader/ui/vn_reader.dart';
 
 const _portrait = Size(400, 800);
@@ -151,8 +152,8 @@ void main() {
     testWidgets('a side storyline has no arc rail in either orientation',
         (tester) async {
       final gc = GuideController()
-        ..setGuide(Guide(
-          mainArcs: const [],
+        ..setGuide(const Guide(
+          mainArcs: [],
           sideStorylines: [
             Storyline(
               name: 'Side',
@@ -162,7 +163,7 @@ void main() {
                 EpisodeNode(
                   title: 'A Walk in the Dust',
                   event: EventGroup(
-                      id: 'x', name: 'x', startTime: 0, stories: const []),
+                      id: 'x', name: 'x', startTime: 0, stories: []),
                   isEpisode: true,
                   episodeIndex: 0,
                   forceOptional: false,
@@ -175,6 +176,30 @@ void main() {
       await tester.pumpWidget(_guideApp(gc));
       await tester.pump(const Duration(milliseconds: 16));
       expect(find.text('I'), findsNothing);
+    });
+  });
+
+  group('barSwipeReveal', () {
+    test('a downward fling reveals the bar', () {
+      expect(barSwipeReveal(0, 800), isTrue); // fast down, no net travel yet
+      expect(barSwipeReveal(120, 0), isTrue); // slow deliberate drag down
+    });
+
+    test('an upward fling hides the bar', () {
+      expect(barSwipeReveal(0, -800), isFalse);
+      expect(barSwipeReveal(-120, 0), isFalse);
+    });
+
+    test('a tiny movement does nothing', () {
+      expect(barSwipeReveal(10, 30), isNull);
+      expect(barSwipeReveal(-10, -30), isNull);
+      expect(barSwipeReveal(0, 0), isNull);
+    });
+
+    test('down is positive, matching screen-space y', () {
+      // A drag whose net travel is downward reveals even against a weak
+      // opposite velocity flick at release.
+      expect(barSwipeReveal(200, -50), isTrue);
     });
   });
 
@@ -240,6 +265,76 @@ void main() {
       await pumpVn(tester);
       expect(find.textContaining('Doctor!'), findsOneWidget);
       expect(find.text('Amiya'), findsOneWidget);
+    });
+  });
+
+  // The reader wraps VN in a vertical-drag detector to swipe the bar. This
+  // checks the gesture arena: the drag must not swallow tap-to-advance. Mirrors
+  // the wrapper in ReaderScreen._vnArea, since driving VN inside ReaderScreen
+  // needs network.
+  group('vn bar swipe / tap coexistence', () {
+    Future<void> pump(WidgetTester tester) async {
+      final kv = MemoryKeyValueStore();
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<ResolvedUrls>(create: (_) => ResolvedUrls(kv)),
+            ChangeNotifierProvider<SettingsStore>(
+              create: (_) => SettingsStore(kv)
+                ..set(const SettingsState().copyWith(textSpeed: 'instant')),
+            ),
+            ChangeNotifierProvider<ProgressStore>(
+                create: (_) => ProgressStore(MemoryKeyValueStore())),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: GestureDetector(
+                onVerticalDragStart: (_) {},
+                onVerticalDragUpdate: (_) {},
+                onVerticalDragEnd: (_) {},
+                child: VnReader(
+                  items: [
+                    DialogItem(
+                        id: 0, name: 'Amiya', runs: const [TextRun('Doctor!')]),
+                    NarrationItem(
+                        id: 1, runs: const [TextRun('The rain fell.')]),
+                  ],
+                  path: 'ch1',
+                  prev: null,
+                  next: null,
+                  audio: ReaderAudio(),
+                  resumeIndex: 0,
+                  onSelect: (_, __) {},
+                  onNavigate: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('a tap still advances through the drag wrapper', (tester) async {
+      await _setSize(tester, _landscape);
+      await pump(tester);
+      expect(find.textContaining('Doctor!'), findsOneWidget);
+
+      await tester.tap(find.byType(VnReader));
+      await tester.pump();
+      expect(find.textContaining('The rain fell.'), findsOneWidget);
+    });
+
+    testWidgets('a vertical drag does not advance the story', (tester) async {
+      await _setSize(tester, _landscape);
+      await pump(tester);
+
+      await tester.drag(find.byType(VnReader), const Offset(0, -160));
+      await tester.pump();
+      // The drag is the bar gesture, not an advance: still on the first line.
+      expect(find.textContaining('Doctor!'), findsOneWidget);
+      expect(find.textContaining('The rain fell.'), findsNothing);
     });
   });
 }
