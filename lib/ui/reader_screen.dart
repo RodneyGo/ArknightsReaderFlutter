@@ -106,9 +106,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   /// Landscape only: whether the header is hidden. Driven by vertical swipes —
   /// swipe up to hide, swipe down to reveal — rather than a toggle button, since a
-  /// full-width bar eats too much of a short viewport. It starts shown so the
-  /// controls are discoverable; portrait uses the scroll-direction auto-hide.
-  bool _barCollapsed = false;
+  /// full-width bar eats too much of a short viewport. Portrait uses the
+  /// scroll-direction auto-hide instead.
+  ///
+  /// Seeded from [_rememberedBarCollapsed] so the choice carries across chapters
+  /// (prev/next spins up a fresh screen).
+  late bool _barCollapsed = _rememberedBarCollapsed;
+
+  /// Last bar state, shared across reader instances so hiding it stays hidden
+  /// when you move to the next chapter. Starts shown for discoverability on a
+  /// fresh launch (it's in-memory, so app restart resets it).
+  static bool _rememberedBarCollapsed = false;
 
   /// Orientation cached from the last build, so scroll/drag callbacks (which run
   /// without a BuildContext) know which hide mechanism applies.
@@ -251,13 +259,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
       // scrolling back (a downward swipe) reveals it. Landscape drives the
       // swipe-controlled bar; portrait keeps its own auto-hide flag.
       final forward = top > _lastScroll;
-      setState(() {
-        if (_landscape) {
-          _barCollapsed = forward && top > 40;
-        } else {
-          _headerHidden = forward && top > 80;
-        }
-      });
+      if (_landscape) {
+        _setBarCollapsed(forward && top > 40);
+      } else {
+        setState(() => _headerHidden = forward && top > 80);
+      }
       _lastScroll = top;
     }
     // Reaching the bottom marks the chapter finished.
@@ -380,7 +386,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     return PopScope(
       canPop: !interceptBack,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) setState(() => _barCollapsed = false);
+        if (!didPop) _setBarCollapsed(false);
       },
       child: ChangeNotifierProvider.value(
         value: _controller,
@@ -471,7 +477,15 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void _onVnDragEnd(DragEndDetails d) {
     final reveal = barSwipeReveal(_vnDragDy, d.primaryVelocity ?? 0);
     if (reveal == null || reveal == !_barCollapsed) return;
-    setState(() => _barCollapsed = !reveal);
+    _setBarCollapsed(!reveal);
+  }
+
+  /// Set the bar's hidden state and remember it, so the choice carries to the
+  /// next chapter's fresh screen.
+  void _setBarCollapsed(bool v) {
+    _rememberedBarCollapsed = v;
+    if (_barCollapsed == v) return;
+    setState(() => _barCollapsed = v);
   }
 
   Widget _bar(ReaderController c, bool isVn, bool landscape) {
