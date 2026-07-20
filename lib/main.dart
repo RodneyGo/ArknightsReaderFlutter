@@ -5,6 +5,7 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:provider/provider.dart';
 
@@ -22,6 +23,14 @@ import 'ui/guide_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Draw behind the (transparent) system bars so the scene reaches every edge,
+  // and don't let Android tint the nav bar. Orientation then decides whether the
+  // status bar shows — see [_OrientationChrome].
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarContrastEnforced: false,
+  ));
   await _requestHighRefreshRate();
   final kv = await SharedPrefsStore.create();
   final resolved = ResolvedUrls(kv);
@@ -86,8 +95,53 @@ class AkReaderApp extends StatelessWidget {
         theme: ThemeData.dark(useMaterial3: true).copyWith(
           scaffoldBackgroundColor: const Color(0xFF0D0D0F),
         ),
+        builder: (context, child) =>
+            _OrientationChrome(child: child ?? const SizedBox.shrink()),
         home: const GuideScreen(),
       ),
     );
+  }
+}
+
+/// Applies the system-UI mode for the current orientation: landscape hides the
+/// status bar (the immersive reading surface the user asked for) while keeping
+/// the nav bar; portrait shows both, edge-to-edge, so the scene stays seamless
+/// behind their transparent backgrounds. Wraps every route via MaterialApp's
+/// builder, so it covers the guide and the reader alike.
+class _OrientationChrome extends StatefulWidget {
+  final Widget child;
+  const _OrientationChrome({required this.child});
+
+  @override
+  State<_OrientationChrome> createState() => _OrientationChromeState();
+}
+
+class _OrientationChromeState extends State<_OrientationChrome> {
+  Orientation? _applied;
+
+  @override
+  Widget build(BuildContext context) {
+    final o = MediaQuery.orientationOf(context);
+    if (o != _applied) {
+      _applied = o;
+      // Defer: setEnabledSystemUIMode is a platform call, not for build().
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _apply(o);
+      });
+    }
+    return widget.child;
+  }
+
+  void _apply(Orientation o) {
+    if (o == Orientation.landscape) {
+      // Status bar gone; nav bar stays. Not immersive — an immersive mode would
+      // reappear the bars on the reader's own swipe gesture.
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: const [SystemUiOverlay.bottom],
+      );
+    } else {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
   }
 }

@@ -371,19 +371,27 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _controller,
-      child: Consumer<ReaderController>(
-        builder: (context, c, _) {
-          final showBg = context.select<SettingsStore, bool>(
-              (s) => s.state.showBackground);
-          final isVn =
-              context.select<SettingsStore, bool>((s) => s.state.readerMode == 'vn');
-          final ready = !c.loading && c.error == null;
-          final landscape =
-              MediaQuery.orientationOf(context) == Orientation.landscape;
-          _landscape = landscape;
-          return Scaffold(
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
+    _landscape = landscape;
+    // Landscape back press: reveal the hidden bar first, and only exit the
+    // chapter once it's already shown. Portrait exits straight away.
+    final interceptBack = landscape && _barCollapsed;
+    return PopScope(
+      canPop: !interceptBack,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => _barCollapsed = false);
+      },
+      child: ChangeNotifierProvider.value(
+        value: _controller,
+        child: Consumer<ReaderController>(
+          builder: (context, c, _) {
+            final showBg = context.select<SettingsStore, bool>(
+                (s) => s.state.showBackground);
+            final isVn = context
+                .select<SettingsStore, bool>((s) => s.state.readerMode == 'vn');
+            final ready = !c.loading && c.error == null;
+            return Scaffold(
             backgroundColor: const Color(0xFF161618),
             body: Stack(
               children: [
@@ -428,7 +436,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
               ],
             ),
           );
-        },
+          },
+        ),
       ),
     );
   }
