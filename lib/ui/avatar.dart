@@ -11,8 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models.dart';
+import '../data/offline.dart';
 import '../data/resolved.dart';
 import '../data/source.dart';
+import 'local_image.dart';
 
 const double avatarSize = 44;
 
@@ -78,8 +80,8 @@ class _AvatarState extends State<Avatar> {
     if (_failed) return const SizedBox(width: avatarSize, height: avatarSize);
     final candidate = _candidates[_index];
 
-    Widget image = Image.network(
-      candidate.url,
+    Widget image = Image(
+      image: readerImage(candidate.url, context.read<Offline?>()),
       width: avatarSize,
       height: avatarSize,
       fit: BoxFit.cover,

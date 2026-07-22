@@ -152,6 +152,10 @@ class Offline {
     return Offline(store: store, resolved: resolved);
   }
 
+  /// Absolute path to a downloaded copy of [url], or null if it isn't on disk.
+  /// Lets the reader load a saved asset offline instead of hitting the network.
+  String? localFile(String url) => store?.localFilePath(url);
+
   /// Probe candidates in order; return the first that exists.
   Future<String?> resolveFirst(List<String> urls) async {
     for (final u in urls) {

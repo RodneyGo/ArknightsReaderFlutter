@@ -23,6 +23,7 @@ import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'avatar.dart';
 import 'css_color.dart';
+import 'local_image.dart';
 import 'reader_audio.dart';
 import 'reader_controller.dart';
 import 'row_geometry.dart';
@@ -1037,6 +1038,7 @@ class _BackdropState extends State<_Backdrop> {
   Widget build(BuildContext context) {
     final srcs = sceneSrcs(widget.scene.id, isImage: widget.scene.img);
     final url = _fallback ? srcs[1] : srcs[0];
+    final img = readerImage(url, context.read<Offline?>());
 
     return Positioned.fill(
       child: RepaintBoundary(
@@ -1047,8 +1049,8 @@ class _BackdropState extends State<_Backdrop> {
               imageFilter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
               child: Transform.scale(
                 scale: 1.1,
-                child: Image.network(
-                  url,
+                child: Image(
+                  image: img,
                   fit: BoxFit.cover,
                   color: Colors.black.withValues(alpha: 0.5),
                   colorBlendMode: BlendMode.darken,
@@ -1066,8 +1068,8 @@ class _BackdropState extends State<_Backdrop> {
             ),
             Opacity(
               opacity: 0.5,
-              child: Image.network(
-                url,
+              child: Image(
+                image: img,
                 fit: BoxFit.contain,
                 gaplessPlayback: true,
                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),

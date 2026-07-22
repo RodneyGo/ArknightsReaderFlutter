@@ -12,16 +12,19 @@
 
 import 'package:flutter/widgets.dart';
 
+import '../data/offline.dart';
 import '../data/resolved.dart';
 import '../data/source.dart';
+import 'local_image.dart';
 
 class SpriteResolver extends ChangeNotifier {
   final ResolvedUrls _memo;
+  final Offline? _offline;
   final _resolved = <String, String>{};
   final _inFlight = <String>{};
   bool _disposed = false;
 
-  SpriteResolver(this._memo);
+  SpriteResolver(this._memo, this._offline);
 
   /// The working url for a portrait, or null while unresolved / if all
   /// candidates failed.
@@ -56,7 +59,8 @@ class SpriteResolver extends ChangeNotifier {
       for (final url in ordered) {
         if (!context.mounted || _disposed) return;
         try {
-          await precacheImage(NetworkImage(url), context);
+          // Prefer a downloaded copy so a sprite resolves offline.
+          await precacheImage(readerImage(url, _offline), context);
           if (_disposed) return;
           _resolved[portrait] = url;
           _memo.set(_memoKey(portrait), url);

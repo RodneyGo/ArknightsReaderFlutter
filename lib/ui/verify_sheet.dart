@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 
 import '../data/offline.dart';
 import '../stores/offline_store.dart';
+import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'download_queue.dart';
 
@@ -148,11 +149,34 @@ class _VerifySheetState extends State<_VerifySheet> {
                 style: const TextStyle(color: Colors.white38, fontSize: 12)),
             const SizedBox(height: 16),
             _status(report),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            _readToggle(),
+            const SizedBox(height: 10),
             _actions(report),
           ],
         ),
       ),
+    );
+  }
+
+  /// Mark every chapter of this item read (or unread if they all are already).
+  /// Independent of download state — it's about reading progress.
+  Widget _readToggle() {
+    final progress = context.watch<ProgressStore>();
+    final allRead = widget.txts.isNotEmpty &&
+        widget.txts.every((t) => progress.statusOf(t) == ReadStatus.read);
+    return _SheetButton(
+      label: allRead ? 'Mark as unread' : 'Mark as read',
+      color: const Color(0xFF5AA469),
+      onTap: () {
+        for (final t in widget.txts) {
+          if (allRead) {
+            progress.markUnread(t);
+          } else {
+            progress.markRead(t);
+          }
+        }
+      },
     );
   }
 

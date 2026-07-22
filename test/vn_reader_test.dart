@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:ak_reader/data/models.dart';
+import 'package:ak_reader/data/offline.dart';
 import 'package:ak_reader/data/resolved.dart';
 import 'package:ak_reader/stores/kv_store.dart';
 import 'package:ak_reader/stores/progress_store.dart';
@@ -34,6 +35,7 @@ Future<ProgressStore> _pump(
     MultiProvider(
       providers: [
         Provider<ResolvedUrls>(create: (_) => ResolvedUrls(kv)),
+        Provider<Offline?>(create: (_) => null),
         ChangeNotifierProvider<SettingsStore>.value(value: settings),
         ChangeNotifierProvider<ProgressStore>.value(value: progress),
       ],
@@ -150,6 +152,7 @@ void main() {
       MultiProvider(
         providers: [
           Provider<ResolvedUrls>(create: (_) => ResolvedUrls(kv)),
+        Provider<Offline?>(create: (_) => null),
           ChangeNotifierProvider<SettingsStore>(
             create: (_) => SettingsStore(kv)
               ..set(const SettingsState().copyWith(textSpeed: 'instant')),

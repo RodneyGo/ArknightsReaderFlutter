@@ -213,6 +213,7 @@ void main() {
         MultiProvider(
           providers: [
             Provider<ResolvedUrls>(create: (_) => ResolvedUrls(kv)),
+            Provider<Offline?>(create: (_) => null),
             ChangeNotifierProvider<SettingsStore>(
               create: (_) => SettingsStore(kv)
                 ..set(const SettingsState().copyWith(textSpeed: 'instant')),
@@ -282,6 +283,7 @@ void main() {
         MultiProvider(
           providers: [
             Provider<ResolvedUrls>(create: (_) => ResolvedUrls(kv)),
+            Provider<Offline?>(create: (_) => null),
             ChangeNotifierProvider<SettingsStore>(
               create: (_) => SettingsStore(kv)
                 ..set(const SettingsState().copyWith(textSpeed: 'instant')),

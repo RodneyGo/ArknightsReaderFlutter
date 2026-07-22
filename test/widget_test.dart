@@ -52,7 +52,8 @@ Guide _fakeGuide() {
 /// The guide screen under the same provider tree main() builds. [offline] is
 /// null by default (download UI hidden — as on web), so tests that don't care
 /// about downloads stay focused.
-Widget _app(GuideController gc, {Offline? offline}) => MultiProvider(
+Widget _app(GuideController gc, {Offline? offline, ProgressStore? progress}) =>
+    MultiProvider(
       providers: [
         Provider<ResolvedUrls>(
             create: (_) => ResolvedUrls(MemoryKeyValueStore())),
@@ -60,7 +61,7 @@ Widget _app(GuideController gc, {Offline? offline}) => MultiProvider(
         ChangeNotifierProvider<SettingsStore>(
             create: (_) => SettingsStore(MemoryKeyValueStore())),
         ChangeNotifierProvider<ProgressStore>(
-            create: (_) => ProgressStore(MemoryKeyValueStore())),
+            create: (_) => progress ?? ProgressStore(MemoryKeyValueStore())),
         ChangeNotifierProvider<OfflineStore>(
             create: (_) => OfflineStore(MemoryKeyValueStore())),
         ChangeNotifierProvider<DownloadQueue>(
@@ -206,6 +207,24 @@ void main() {
       // result path is covered in offline_test/download_queue_test).
       expect(find.text('Verifying…'), findsOneWidget);
       expect(find.text('1 chapter(s)'), findsOneWidget);
+    });
+
+    testWidgets('the sheet can mark the episode read', (tester) async {
+      final gc = GuideController()..setGuide(_fakeGuide());
+      final progress = ProgressStore(MemoryKeyValueStore());
+      await tester.pumpWidget(_app(gc, offline: offline, progress: progress));
+      await tester.pump(const Duration(milliseconds: 16));
+
+      await tester.longPress(find.byType(EpisodeCard).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.text('Mark as read'));
+      await tester.pump();
+
+      expect(progress.statusOf('Evil Time-1'), ReadStatus.read);
+      // The button flips now that everything is read.
+      expect(find.text('Mark as unread'), findsOneWidget);
     });
   });
 }

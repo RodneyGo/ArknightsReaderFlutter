@@ -14,11 +14,13 @@ import 'package:provider/provider.dart';
 
 import '../data/menu.dart';
 import '../data/models.dart';
+import '../data/offline.dart';
 import '../data/resolved.dart';
 import '../data/source.dart';
 import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'css_color.dart';
+import 'local_image.dart';
 import 'reader_audio.dart';
 import 'vn_sprites.dart';
 import 'vn_timeline.dart';
@@ -82,7 +84,8 @@ class VnReaderState extends State<VnReader> {
   @override
   void initState() {
     super.initState();
-    _sprites = SpriteResolver(context.read<ResolvedUrls>());
+    _sprites =
+        SpriteResolver(context.read<ResolvedUrls>(), context.read<Offline?>());
     _sprites.addListener(_onSpritesChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _init();
@@ -331,6 +334,7 @@ class VnReaderState extends State<VnReader> {
         MediaQuery.orientationOf(context) == Orientation.landscape;
     final mainFit =
         landscape && !_peeking ? BoxFit.cover : BoxFit.contain;
+    final img = readerImage(url, context.read<Offline?>());
     return RepaintBoundary(
       child: Stack(
         fit: StackFit.expand,
@@ -339,8 +343,8 @@ class VnReaderState extends State<VnReader> {
           // so this rasterizes once per scene rather than every frame.
           ImageFiltered(
             imageFilter: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
-            child: Image.network(
-              url,
+            child: Image(
+              image: img,
               fit: BoxFit.cover,
               gaplessPlayback: true,
               color: Colors.black.withValues(alpha: 0.55),
@@ -355,8 +359,8 @@ class VnReaderState extends State<VnReader> {
               },
             ),
           ),
-          Image.network(
-            url,
+          Image(
+            image: img,
             fit: mainFit,
             gaplessPlayback: true,
             errorBuilder: (_, __, ___) => const SizedBox.shrink(),
@@ -400,8 +404,8 @@ class VnReaderState extends State<VnReader> {
                       // Narrower in landscape so the character doesn't span the
                       // whole width.
                       widthFactor: landscape ? 0.42 : 0.96,
-                      child: Image.network(
-                        url,
+                      child: Image(
+                        image: readerImage(url, context.read<Offline?>()),
                         fit: BoxFit.contain,
                         alignment: Alignment.bottomCenter,
                         gaplessPlayback: true,
@@ -423,6 +427,10 @@ class VnReaderState extends State<VnReader> {
     // Landscape: shrink the box — 130px is about a third of a short viewport.
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
+    // Story text tracks the font-size setting; landscape trims 2pt to fit the
+    // shorter box. Defaults reproduce the old 18/16.
+    final base = _settings.fontSize.toDouble();
+    final bodySize = landscape ? base : base + 2;
 
     return Positioned(
       left: 0,
@@ -458,8 +466,10 @@ class VnReaderState extends State<VnReader> {
                   padding: EdgeInsets.only(bottom: landscape ? 3 : 6),
                   child: Text(
                     speaker,
-                    style: const TextStyle(
-                        color: _gold, fontSize: 15, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                        color: _gold,
+                        fontSize: base - 1,
+                        fontWeight: FontWeight.w700),
                   ),
                 ),
               Text.rich(
@@ -478,7 +488,7 @@ class VnReaderState extends State<VnReader> {
                 textAlign: isNarration ? TextAlign.center : TextAlign.start,
                 style: TextStyle(
                   color: _ink,
-                  fontSize: landscape ? 16 : 18,
+                  fontSize: bodySize,
                   height: landscape ? 1.4 : 1.55,
                   fontStyle: isNarration ? FontStyle.italic : FontStyle.normal,
                 ),
@@ -520,7 +530,9 @@ class VnReaderState extends State<VnReader> {
                             child: Text(
                               it.options[k],
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: _ink, fontSize: 16),
+                              style: TextStyle(
+                                  color: _ink,
+                                  fontSize: _settings.fontSize.toDouble()),
                             ),
                           ),
                         ),
