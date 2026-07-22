@@ -659,67 +659,87 @@ class EpisodeCard extends StatelessWidget {
       padding: landscape
           ? const EdgeInsets.symmetric(horizontal: _landscapeCardGap / 2, vertical: 8)
           : const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: landscape ? MainAxisSize.min : MainAxisSize.max,
-        children: [
-          Flexible(
-            child: AspectRatio(
-            aspectRatio: 0.84,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF23221F),
-                  border: Border.all(
-                    color: node.isEpisode
-                        ? _gold.withValues(alpha: 0.55)
-                        : Colors.white24,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (banner != null)
-                      Image.asset(banner, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _placeholder())
-                    else
-                      _placeholder(),
-                    if (node.isIS) _tag('IS', const Color(0xFF8A6CC0)),
-                    if (node.optional || node.forceOptional)
-                      _tag('Optional', const Color(0xCC141416)),
-                    if (event != null)
-                      Positioned(
-                        top: 6,
-                        right: 6,
-                        child: EpisodeDownloadButton(event: event),
+      child: LayoutBuilder(
+        builder: (context, cons) {
+          // Portrait shrinks the artwork ~30% (it filled too much of the cell);
+          // landscape keeps its fixed card width. The bar tracks the artwork
+          // width, a touch narrower.
+          final imgW = landscape ? cons.maxWidth : cons.maxWidth * 0.7;
+          final barW = imgW * 0.94;
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: landscape ? MainAxisSize.min : MainAxisSize.max,
+            children: [
+              Flexible(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: imgW),
+                    child: AspectRatio(
+                      aspectRatio: 0.84,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF23221F),
+                            border: Border.all(
+                              color: node.isEpisode
+                                  ? _gold.withValues(alpha: 0.55)
+                                  : Colors.white24,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              if (banner != null)
+                                Image.asset(banner, fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => _placeholder())
+                              else
+                                _placeholder(),
+                              if (node.isIS) _tag('IS', const Color(0xFF8A6CC0)),
+                              if (node.optional || node.forceOptional)
+                                _tag('Optional', const Color(0xCC141416)),
+                              if (event != null)
+                                Positioned(
+                                  top: 6,
+                                  right: 6,
+                                  child: EpisodeDownloadButton(event: event),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
-                  ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          )),
-          const SizedBox(height: 8),
-          Text(
-            node.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: node.isEpisode ? _gold : Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
-          if (summary != null && event != null) ...[
-            const SizedBox(height: 7),
-            _ProgressBar(
-                pct: progress.readingFraction(
-                    [for (final s in event.stories) s.txt]),
-                full: summary.status == ReadStatus.read),
-          ],
-        ],
+              const SizedBox(height: 8),
+              SizedBox(
+                width: imgW,
+                child: Text(
+                  node.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: node.isEpisode ? _gold : Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              if (summary != null && event != null) ...[
+                const SizedBox(height: 7),
+                _ProgressBar(
+                  width: barW,
+                  pct: progress.readingFraction(
+                      [for (final s in event.stories) s.txt]),
+                  full: summary.status == ReadStatus.read,
+                ),
+              ],
+            ],
+          );
+        },
       ),
       ),
     );
@@ -751,55 +771,38 @@ class EpisodeCard extends StatelessWidget {
 }
 
 /// Per-episode reading bar: how far through the event you've read (averaged
-/// across its chapters). Rendered with a dark, outlined track so the empty state
-/// is visible over bright chapter artwork — not just a faint line.
+/// across its chapters). Gold while in progress, green once fully read. Sized to
+/// roughly the artwork width, and drawn on a dark, outlined track so the empty
+/// state stays visible over bright chapter art.
 class _ProgressBar extends StatelessWidget {
   final double pct;
   final bool full;
-  const _ProgressBar({required this.pct, required this.full});
+  final double width;
+  const _ProgressBar(
+      {required this.pct, required this.full, required this.width});
 
   @override
   Widget build(BuildContext context) {
     final p = pct.clamp(0.0, 1.0);
     final fill = full ? const Color(0xFF5AA469) : _gold;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 120,
-          height: 8,
-          decoration: BoxDecoration(
-            color: const Color(0xCC0A0A0C),
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: Colors.white24),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: FractionallySizedBox(
-              widthFactor: p,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: fill,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 6),
-        SizedBox(
-          width: 30,
-          child: Text(
-            '${(p * 100).round()}%',
-            style: TextStyle(
-              color: full ? const Color(0xFF7FBF8C) : _goldMuted,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
+    return Container(
+      width: width,
+      height: 8,
+      decoration: BoxDecoration(
+        color: const Color(0xCC0A0A0C),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: Colors.white24),
+      ),
+      clipBehavior: Clip.antiAlias,
+      // heightFactor: 1 is essential — without it the fill has no height (a
+      // width-only FractionallySizedBox leaves its child zero-height) and the
+      // bar never appears to fill.
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: p,
+        heightFactor: 1,
+        child: DecoratedBox(decoration: BoxDecoration(color: fill)),
+      ),
     );
   }
 }

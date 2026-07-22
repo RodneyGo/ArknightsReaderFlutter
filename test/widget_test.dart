@@ -94,14 +94,15 @@ void main() {
     expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
     expect(find.byIcon(Icons.sticky_note_2_outlined), findsOneWidget);
     expect(find.text('☰ Story List'), findsOneWidget);
-    // per-episode reading bar shows a percentage (0% when nothing is read)
-    expect(find.text('0%'), findsWidgets);
+    // per-episode reading bar renders (its fill is a FractionallySizedBox)
+    expect(find.byType(FractionallySizedBox), findsWidgets);
   });
 
-  testWidgets('the episode reading bar reflects saved progress', (tester) async {
+  testWidgets('the episode reading bar fill reflects saved progress',
+      (tester) async {
     final gc = GuideController()..setGuide(_fakeGuide());
     final progress = ProgressStore(MemoryKeyValueStore());
-    // 'Evil Time' has one chapter 'Evil Time-1'; half-read -> 50%.
+    // 'Evil Time' has one chapter 'Evil Time-1'; half-read -> a 0.5 fill.
     progress.savePercent('Evil Time-1', 0.5);
     await tester.pumpWidget(
       MultiProvider(
@@ -121,7 +122,13 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 16));
 
-    expect(find.text('50%'), findsOneWidget);
+    // One episode's bar fill is half-width; the other is empty.
+    final fills = tester
+        .widgetList<FractionallySizedBox>(find.byType(FractionallySizedBox));
+    expect(
+      fills.any((f) => f.widthFactor != null && (f.widthFactor! - 0.5).abs() < 1e-6),
+      isTrue,
+    );
   });
 
   testWidgets('tapping a card opens the chapter drill-down; back closes it',
