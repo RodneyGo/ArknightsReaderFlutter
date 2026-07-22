@@ -115,6 +115,45 @@ void main() {
       expect(p2.statusOf('a'), ReadStatus.read);
       expect(p2.statusOf('b'), ReadStatus.reading);
     });
+
+    test('savePercent records scroll depth; a read chapter is always 100%', () {
+      final p = ProgressStore(MemoryKeyValueStore());
+      p.savePercent('a', 0.4);
+      expect(p.percentOf('a'), closeTo(0.4, 1e-9));
+
+      p.markRead('b');
+      p.savePercent('b', 0.3); // ignored — b is finished
+      expect(p.percentOf('b'), 1.0);
+
+      expect(p.percentOf('never-opened'), 0.0);
+    });
+
+    test('savePercent ignores sub-threshold changes but persists real ones', () {
+      final kv = MemoryKeyValueStore();
+      final p = ProgressStore(kv);
+      p.savePercent('a', 0.50);
+      p.savePercent('a', 0.51); // < 0.02 delta — not written
+      expect(p.percentOf('a'), closeTo(0.50, 1e-9));
+      p.savePercent('a', 0.70); // real change
+      expect(ProgressStore(kv).percentOf('a'), closeTo(0.70, 1e-9)); // persisted
+    });
+
+    test('savePercent clamps and clears at zero', () {
+      final p = ProgressStore(MemoryKeyValueStore());
+      p.savePercent('a', 1.5);
+      expect(p.percentOf('a'), 1.0);
+      p.savePercent('a', -0.2);
+      expect(p.percentOf('a'), 0.0);
+    });
+
+    test('readingFraction averages read (full) and in-progress chapters', () {
+      final p = ProgressStore(MemoryKeyValueStore());
+      p.markRead('a'); // 1.0
+      p.savePercent('b', 0.5); // 0.5
+      // c untouched -> 0.0
+      expect(p.readingFraction(['a', 'b', 'c']), closeTo(0.5, 1e-9));
+      expect(p.readingFraction([]), 0.0);
+    });
   });
 
   group('OfflineStore', () {

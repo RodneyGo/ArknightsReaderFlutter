@@ -93,6 +93,34 @@ void main() {
     expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
     expect(find.byIcon(Icons.sticky_note_2_outlined), findsOneWidget);
     expect(find.text('☰ Story List'), findsOneWidget);
+    // per-episode reading bar shows a percentage (0% when nothing is read)
+    expect(find.text('0%'), findsWidgets);
+  });
+
+  testWidgets('the episode reading bar reflects saved progress', (tester) async {
+    final gc = GuideController()..setGuide(_fakeGuide());
+    final progress = ProgressStore(MemoryKeyValueStore());
+    // 'Evil Time' has one chapter 'Evil Time-1'; half-read -> 50%.
+    progress.savePercent('Evil Time-1', 0.5);
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<ResolvedUrls>(
+              create: (_) => ResolvedUrls(MemoryKeyValueStore())),
+          Provider<Offline?>(create: (_) => null),
+          ChangeNotifierProvider<SettingsStore>(
+              create: (_) => SettingsStore(MemoryKeyValueStore())),
+          ChangeNotifierProvider<ProgressStore>.value(value: progress),
+          ChangeNotifierProvider<OfflineStore>(
+              create: (_) => OfflineStore(MemoryKeyValueStore())),
+          ChangeNotifierProvider<GuideController>.value(value: gc),
+        ],
+        child: const MaterialApp(home: GuideScreen()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+
+    expect(find.text('50%'), findsOneWidget);
   });
 
   testWidgets('tapping a card opens the chapter drill-down; back closes it',

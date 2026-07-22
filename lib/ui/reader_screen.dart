@@ -266,10 +266,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
       }
       _lastScroll = top;
     }
-    // Reaching the bottom marks the chapter finished.
+    // Reaching the bottom marks the chapter finished; otherwise record how far
+    // through it we've scrolled, for the guide's per-episode reading bar.
     final pos = _scroll.position;
     if (top >= pos.maxScrollExtent - 80 && _path.isNotEmpty) {
       context.read<ProgressStore>().markRead(_path);
+    } else if (_path.isNotEmpty && pos.maxScrollExtent > 0) {
+      context.read<ProgressStore>().savePercent(_path, top / pos.maxScrollExtent);
     }
     // One geometry pass feeds the resume position, the backdrop and the audio.
     final geom = _rowGeometry();

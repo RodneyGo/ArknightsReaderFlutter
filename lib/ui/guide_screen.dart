@@ -712,10 +712,11 @@ class EpisodeCard extends StatelessWidget {
               fontSize: 13,
             ),
           ),
-          if (summary != null) ...[
-            const SizedBox(height: 6),
+          if (summary != null && event != null) ...[
+            const SizedBox(height: 7),
             _ProgressBar(
-                pct: summary.total == 0 ? 0 : summary.read / summary.total,
+                pct: progress.readingFraction(
+                    [for (final s in event.stories) s.txt]),
                 full: summary.status == ReadStatus.read),
           ],
         ],
@@ -749,6 +750,9 @@ class EpisodeCard extends StatelessWidget {
       );
 }
 
+/// Per-episode reading bar: how far through the event you've read (averaged
+/// across its chapters). Rendered with a dark, outlined track so the empty state
+/// is visible over bright chapter artwork — not just a faint line.
 class _ProgressBar extends StatelessWidget {
   final double pct;
   final bool full;
@@ -756,22 +760,46 @@ class _ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 140,
-      height: 7,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: Stack(
-          children: [
-            const ColoredBox(color: Colors.white24),
-            FractionallySizedBox(
-              widthFactor: pct.clamp(0.0, 1.0),
-              child: ColoredBox(
-                  color: full ? const Color(0xFF5AA469) : _gold),
+    final p = pct.clamp(0.0, 1.0);
+    final fill = full ? const Color(0xFF5AA469) : _gold;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 120,
+          height: 8,
+          decoration: BoxDecoration(
+            color: const Color(0xCC0A0A0C),
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(color: Colors.white24),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: FractionallySizedBox(
+              widthFactor: p,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: fill,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
             ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(width: 6),
+        SizedBox(
+          width: 30,
+          child: Text(
+            '${(p * 100).round()}%',
+            style: TextStyle(
+              color: full ? const Color(0xFF7FBF8C) : _goldMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

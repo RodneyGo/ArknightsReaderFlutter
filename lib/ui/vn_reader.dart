@@ -168,12 +168,20 @@ class VnReaderState extends State<VnReader> {
       });
       return;
     }
-    context.read<ProgressStore>().saveScroll(widget.path, walk.index);
+    final progress = context.read<ProgressStore>();
+    progress.saveScroll(widget.path, walk.index);
+    progress.savePercent(widget.path, _fractionAt(walk.index));
     setState(() {
       _atEnd = false;
       _index = walk.index;
     });
     _startLine();
+  }
+
+  /// How far through the chapter a line index is, for the guide's reading bar.
+  double _fractionAt(int index) {
+    final last = widget.items.length - 1;
+    return last <= 0 ? 0 : index / last;
   }
 
   void _startLine() {
@@ -251,7 +259,9 @@ class VnReaderState extends State<VnReader> {
     _index = index;
     // A jump skips the forward walk, so resync the track by scanning backward.
     _syncMusicTo(index);
-    context.read<ProgressStore>().saveScroll(widget.path, index);
+    final progress = context.read<ProgressStore>();
+    progress.saveScroll(widget.path, index);
+    progress.savePercent(widget.path, _fractionAt(index));
     _startLine();
   }
 
