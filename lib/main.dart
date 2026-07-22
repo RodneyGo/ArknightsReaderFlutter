@@ -18,6 +18,7 @@ import 'stores/kv_store.dart';
 import 'stores/offline_store.dart';
 import 'stores/progress_store.dart';
 import 'stores/settings_store.dart';
+import 'ui/download_queue.dart';
 import 'ui/guide_controller.dart';
 import 'ui/guide_screen.dart';
 
@@ -83,6 +84,10 @@ class AkReaderApp extends StatelessWidget {
           // chapters actually on disk (files can vanish — cache wipes, uninstalls
           // of app data, a failed download).
           create: (_) => OfflineStore(kv)..rebuildFrom(offline.downloadedTxts()),
+        ),
+        ChangeNotifierProvider(
+          // Serialises every download so jobs can't race on the shared url map.
+          create: (ctx) => DownloadQueue(offline, ctx.read<OfflineStore>()),
         ),
         ChangeNotifierProvider(
           create: (ctx) =>

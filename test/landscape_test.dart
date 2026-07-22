@@ -10,6 +10,7 @@ import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/data/models.dart';
 import 'package:ak_reader/data/resolved.dart';
 import 'package:ak_reader/stores/kv_store.dart';
+import 'package:ak_reader/data/offline.dart';
 import 'package:ak_reader/stores/offline_store.dart';
 import 'package:ak_reader/stores/progress_store.dart';
 import 'package:ak_reader/stores/settings_store.dart';
@@ -63,6 +64,8 @@ Widget _guideApp(GuideController gc) {
   return MultiProvider(
     providers: [
       Provider<ResolvedUrls>(create: (_) => ResolvedUrls(kv)),
+      // Download UI hidden (no filesystem), keeping these tests on layout.
+      Provider<Offline?>(create: (_) => null),
       ChangeNotifierProvider<SettingsStore>(create: (_) => SettingsStore(kv)),
       ChangeNotifierProvider<ProgressStore>(create: (_) => ProgressStore(kv)),
       ChangeNotifierProvider<OfflineStore>(create: (_) => OfflineStore(kv)),

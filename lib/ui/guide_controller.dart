@@ -10,9 +10,16 @@ import '../data/menu.dart';
 
 class GuideController extends ChangeNotifier {
   final Future<Menu> Function(String server) _fetchMenu;
+  final Future<Menu?> Function(String server) _refreshMenu;
 
-  GuideController({Future<Menu> Function(String server)? fetchMenu})
-      : _fetchMenu = fetchMenu ?? getMenu;
+  GuideController({
+    Future<Menu> Function(String server)? fetchMenu,
+    Future<Menu?> Function(String server)? refreshMenu,
+  })  : _fetchMenu = fetchMenu ?? getMenu,
+        _refreshMenu = refreshMenu ?? refreshMenu_;
+
+  /// Default background revalidator (tear-off wrapper so the field can name it).
+  static Future<Menu?> refreshMenu_(String server) => refreshMenu(server);
 
   Guide? _guide;
   Object? _error;
@@ -35,6 +42,8 @@ class GuideController extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
+      // Cache-first: this returns instantly from disk when available, so the
+      // guide renders offline; the network revalidation runs behind it.
       final menu = await _fetchMenu(server);
       _guide = buildGuide(menu.categories);
     } catch (e) {
@@ -42,6 +51,20 @@ class GuideController extends ChangeNotifier {
     } finally {
       _loading = false;
       notifyListeners();
+    }
+    if (_error == null) _revalidate(server);
+  }
+
+  /// Fire-and-forget network refresh. Rebuilds only when new episodes appeared;
+  /// a network failure is silent, since the cached list is already showing.
+  Future<void> _revalidate(String server) async {
+    try {
+      final fresh = await _refreshMenu(server);
+      if (fresh == null) return; // nothing new
+      _guide = buildGuide(fresh.categories);
+      notifyListeners();
+    } catch (_) {
+      // offline / transient — keep the rendered cache
     }
   }
 

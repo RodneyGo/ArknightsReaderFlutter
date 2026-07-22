@@ -16,6 +16,7 @@ import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'ash_fx.dart';
 import 'download_button.dart';
+import 'verify_sheet.dart';
 import 'fps_meter.dart';
 import 'guide_controller.dart';
 import 'reader_screen.dart';
@@ -645,8 +646,14 @@ class EpisodeCard extends StatelessWidget {
     // Landscape items are a fixed-width card plus the gap; portrait cards fill
     // the row and pad horizontally.
     final landscape = _isLandscape(context);
+    final event = node.event;
     return GestureDetector(
       onTap: onTap,
+      onLongPress: event == null
+          ? null
+          : () => showVerifySheet(context,
+              title: event.name,
+              txts: [for (final s in event.stories) s.txt]),
       behavior: HitTestBehavior.opaque,
       child: Padding(
       padding: landscape
@@ -682,6 +689,12 @@ class EpisodeCard extends StatelessWidget {
                     if (node.isIS) _tag('IS', const Color(0xFF8A6CC0)),
                     if (node.optional || node.forceOptional)
                       _tag('Optional', const Color(0xCC141416)),
+                    if (event != null)
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: EpisodeDownloadButton(event: event),
+                      ),
                   ],
                 ),
               ),
@@ -825,6 +838,9 @@ class _ChapterRow extends StatelessWidget {
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => ReaderScreen(story: story)),
       ),
+      onLongPress: () => showVerifySheet(context,
+          title: story.name.isNotEmpty ? story.name : story.txt,
+          txts: [story.txt]),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(

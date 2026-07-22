@@ -2,10 +2,11 @@
 // Ported from BetterPhoneReader/src/data/menu.ts.
 //
 // The pure transform (classify / mainOrder / buildMenu / neighbor lookup) is
-// ported faithfully. The TS persistence layer (localStorage cache-first +
-// offline readMeta fallback + background revalidate) is deferred until the
-// state/offline layers are ported — for now `fetchMenu` just fetches and builds.
+// ported faithfully. Persistence is cache-first: the table is read from the
+// on-disk meta copy (written by Offline._ensureMeta), so the guide opens with no
+// network; refreshMenu revalidates in the background and merges any new events.
 
+import 'localstore.dart';
 import 'servers.dart';
 import 'source.dart';
 
@@ -212,7 +213,16 @@ Menu buildMenu(Map<String, dynamic> table) {
   return (prev: null, next: null);
 }
 
-// --- fetch (in-memory cached; persistent cache TODO) ---
+// --- fetch (cache-first, in-memory memoised) ---
+
+const _tableEndpoint = '/gamedata/excel/story_review_table.json';
+String _metaName(String base) => '${base}__story_review_table';
+
+/// Network fetch of the review table, injectable so tests don't hit the network.
+typedef TableFetch = Future<Map<String, dynamic>> Function(String base);
+
+Future<Map<String, dynamic>> _networkTable(String base) =>
+    getJson<Map<String, dynamic>>(base, _tableEndpoint);
 
 final _menuCache = <String, Future<Menu>>{};
 
@@ -220,13 +230,63 @@ final _menuCache = <String, Future<Menu>>{};
 Future<Menu> getMenu(String server) =>
     _menuCache.putIfAbsent(server, () => fetchMenu(server));
 
-Future<Menu> fetchMenu(String server) async {
+/// Prefer the on-disk table (works offline, no network wait); fall back to the
+/// network and save a copy so the next launch is instant.
+Future<Menu> fetchMenu(String server, {LocalStore? store, TableFetch? fetch}) async {
   final base = baseServer(server);
-  // TODO(cache): localStorage cache-first + background revalidate + offline
-  // readMeta fallback, once the state/offline layers are ported.
-  final table = await getJson<Map<String, dynamic>>(
-      base, '/gamedata/excel/story_review_table.json');
+  final cached = await _readCachedTable(base, store);
+  if (cached != null) return buildMenu(cached);
+
+  final table = await (fetch ?? _networkTable)(base);
+  await _saveTable(base, table, store);
   return buildMenu(table);
+}
+
+/// Revalidate against the network and merge any newly-added events into the
+/// cache. An existing event never gains chapters, so this is a union on event
+/// ids: new keys are added, and events that vanish upstream stay readable.
+///
+/// Returns the rebuilt [Menu] when new events appeared, else null (nothing to
+/// redraw). The in-memory [getMenu] cache is refreshed as a side effect.
+Future<Menu?> refreshMenu(String server, {LocalStore? store, TableFetch? fetch}) async {
+  final base = baseServer(server);
+  final fresh = await (fetch ?? _networkTable)(base);
+  final cached = await _readCachedTable(base, store) ?? const {};
+
+  final merged = <String, dynamic>{...cached};
+  var added = false;
+  for (final id in fresh.keys) {
+    if (!merged.containsKey(id)) {
+      merged[id] = fresh[id];
+      added = true;
+    }
+  }
+  if (!added) return null;
+
+  await _saveTable(base, merged, store);
+  final menu = buildMenu(merged);
+  _menuCache[server] = Future.value(menu);
+  return menu;
+}
+
+Future<Map<String, dynamic>?> _readCachedTable(
+    String base, LocalStore? store) async {
+  try {
+    final s = store ?? await LocalStore.instance();
+    return await s.readMeta(_metaName(base));
+  } catch (_) {
+    return null; // no filesystem (web) or nothing saved yet
+  }
+}
+
+Future<void> _saveTable(
+    String base, Map<String, dynamic> table, LocalStore? store) async {
+  try {
+    final s = store ?? await LocalStore.instance();
+    await s.saveMeta(_metaName(base), table);
+  } catch (_) {
+    // no filesystem — the in-memory cache still serves this session
+  }
 }
 
 /// Find the previous/next story within the same event for a given storyTxt.
