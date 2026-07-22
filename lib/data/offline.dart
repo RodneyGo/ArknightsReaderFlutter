@@ -31,7 +31,12 @@ typedef UrlProbe = Future<bool> Function(String url);
 
 Future<bool> _httpProbe(String url) async {
   try {
-    final res = await http.get(Uri.parse(url));
+    // HEAD, not GET: preload only needs to know the asset exists so it can pick
+    // the working candidate URL. A GET would download the whole body (image or
+    // full mp3) just to discard it, and the reader then fetches it again to
+    // render — Flutter shares no HTTP cache between http and NetworkImage/audio,
+    // so that doubled the bandwidth of every online read.
+    final res = await http.head(Uri.parse(url));
     return res.statusCode >= 200 && res.statusCode < 300;
   } catch (_) {
     return false;

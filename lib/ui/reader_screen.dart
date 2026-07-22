@@ -19,6 +19,7 @@ import '../data/menu.dart';
 import '../data/models.dart';
 import '../data/offline.dart';
 import '../data/source.dart';
+import '../stores/offline_store.dart';
 import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'avatar.dart';
@@ -234,6 +235,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
       server: s.server,
       altServer: s.altServer,
       doctorName: s.doctorName,
+      // Verified marker, not JSON-on-disk: only skip preload for a fully
+      // downloaded chapter.
+      downloaded: context.read<OfflineStore>().hasStory(_path),
     );
     if (!mounted || _controller.error != null) return;
     context.read<ProgressStore>().markReading(_path);

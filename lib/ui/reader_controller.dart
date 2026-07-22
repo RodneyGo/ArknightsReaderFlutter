@@ -79,6 +79,11 @@ class ReaderController extends ChangeNotifier {
     required String server,
     required String altServer,
     required String doctorName,
+    // Verified-downloaded marker (OfflineStore), not mere JSON-on-disk: a
+    // half-finished download leaves the JSON but not every asset, so gating the
+    // preload skip on the verified marker means an incomplete chapter still
+    // resolves its assets instead of being trusted as complete.
+    bool downloaded = false,
   }) async {
     final myToken = ++_token;
     _loading = true;
@@ -101,7 +106,6 @@ class ReaderController extends ChangeNotifier {
     try {
       final base = baseServer(server);
       final off = offline;
-      final downloaded = await off?.isStoryDownloaded(server, path) ?? false;
       final data = off != null
           ? await off.getStoryData(server, path)
           : StoryData.fromJson(await getJson<Map<String, dynamic>>(
