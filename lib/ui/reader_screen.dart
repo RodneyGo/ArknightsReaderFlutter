@@ -15,6 +15,7 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/i18n.dart';
 import '../data/menu.dart';
 import '../data/models.dart';
 import '../data/offline.dart';
@@ -519,7 +520,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
             child: Row(
               children: [
                 IconButton(
-                  tooltip: 'Back',
+                  tooltip: context.l('back'),
                   icon: const Icon(Icons.chevron_left, color: _ink),
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
@@ -535,12 +536,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 ),
                 if (isVn)
                   IconButton(
-                    tooltip: 'Log',
+                    tooltip: context.l('log'),
                     icon: const Icon(Icons.menu, color: _ink),
                     onPressed: () => _vnKey.currentState?.openLog(),
                   ),
                 IconButton(
-                  tooltip: isVn ? 'Novel mode' : 'Visual-novel mode',
+                  tooltip: isVn ? context.l('novelMode') : context.l('vnMode'),
                   icon: Icon(isVn ? Icons.notes : Icons.view_carousel_outlined,
                       color: _ink),
                   onPressed: () {
@@ -551,7 +552,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   },
                 ),
                 IconButton(
-                  tooltip: isRead ? 'Mark unread' : 'Mark read',
+                  tooltip: isRead ? context.l('markUnread') : context.l('markRead'),
                   icon: Icon(Icons.check,
                       size: 20,
                       color: isRead ? const Color(0xFF5AA469) : Colors.white38),
@@ -559,7 +560,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       context.read<ProgressStore>().toggleRead(_path),
                 ),
                 IconButton(
-                  tooltip: 'Settings',
+                  tooltip: context.l('settings'),
                   icon: const Icon(Icons.settings_outlined, color: _ink),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const SettingsScreen()),
@@ -579,7 +580,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Loading ${c.loadingPct}%',
+            Text(context.l('loadingPct', {'pct': '${c.loadingPct}'}),
                 style: const TextStyle(color: Color(0xFFBBBBBB), fontSize: 14)),
             const SizedBox(height: 12),
             SizedBox(
@@ -605,14 +606,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Failed to load',
-                  style: TextStyle(color: Color(0xFFE07A7A), fontSize: 16)),
+              Text(context.l('failedToLoad'),
+                  style: const TextStyle(color: Color(0xFFE07A7A), fontSize: 16)),
               const SizedBox(height: 8),
               Text(c.error!,
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.white38, fontSize: 12)),
               const SizedBox(height: 16),
-              TextButton(onPressed: _reload, child: const Text('Retry')),
+              TextButton(onPressed: _reload, child: Text(context.l('retry'))),
             ],
           ),
         ),
@@ -967,14 +968,14 @@ class _ChapterNav extends StatelessWidget {
         children: [
           Expanded(
             child: _NavButton(
-              label: '‹ Previous',
+              label: context.l('previous'),
               onTap: prev == null ? null : () => onGo(prev),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: _NavButton(
-              label: 'Next ›',
+              label: context.l('next'),
               onTap: next == null ? null : () => onGo(next),
             ),
           ),
@@ -1114,16 +1115,18 @@ class _ResumePrompt extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'You have saved progress in this chapter.',
+                  Text(
+                    context.l('resumePrompt'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: _ink, fontSize: 15, height: 1.5),
+                    style: const TextStyle(
+                        color: _ink, fontSize: 15, height: 1.5),
                   ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: _NavButton(label: 'Start over', onTap: onStart),
+                        child: _NavButton(
+                            label: context.l('startOver'), onTap: onStart),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -1133,12 +1136,12 @@ class _ResumePrompt extends StatelessWidget {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(10),
                             onTap: onContinue,
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
                               child: Text(
-                                'Continue',
+                                context.l('continueLabel'),
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Color(0xFF1B1A18),
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,

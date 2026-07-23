@@ -13,6 +13,7 @@ import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 
 import '../data/menu.dart';
+import '../data/i18n.dart';
 import '../data/models.dart';
 import '../data/offline.dart';
 import '../data/resolved.dart';
@@ -555,21 +556,21 @@ class VnReaderState extends State<VnReader> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('The End',
-                  style: TextStyle(color: _ink, fontSize: 18)),
+              Text(context.l('theEnd'),
+                  style: const TextStyle(color: _ink, fontSize: 18)),
               const SizedBox(height: 20),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _EndNav(
-                    label: '‹ Previous',
+                    label: context.l('previous'),
                     onTap: widget.prev == null
                         ? null
                         : () => widget.onNavigate(widget.prev!),
                   ),
                   const SizedBox(width: 12),
                   _EndNav(
-                    label: 'Next ›',
+                    label: context.l('next'),
                     onTap: widget.next == null
                         ? null
                         : () => widget.onNavigate(widget.next!),
@@ -682,15 +683,15 @@ class _VnLogState extends State<VnLog> {
               children: [
                 Row(
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
-                      child: Text('Log',
-                          style: TextStyle(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                      child: Text(context.l('log'),
+                          style: const TextStyle(
                               color: _ink, fontWeight: FontWeight.w700)),
                     ),
                     const Spacer(),
                     IconButton(
-                      tooltip: 'Close log',
+                      tooltip: context.l('closeLog'),
                       icon: const Icon(Icons.close, color: _ink),
                       onPressed: widget.onClose,
                     ),

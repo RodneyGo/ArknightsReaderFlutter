@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import '../data/backgrounds.dart';
 import '../data/chapter_images.dart';
 import '../data/guide.dart';
+import '../data/i18n.dart';
 import '../data/menu.dart';
 import '../data/ru.dart';
 import '../stores/progress_store.dart';
@@ -356,11 +357,11 @@ class _GuideScreenState extends State<GuideScreen> {
         children: [
           _IconBtn(
               icon: Icons.settings_outlined,
-              tooltip: 'Settings',
+              tooltip: context.l('settings'),
               onTap: _openSettings),
           _IconBtn(
             icon: Icons.sticky_note_2_outlined,
-            tooltip: 'Notes',
+            tooltip: context.l('notes'),
             active: _notesVisible,
             badge: _hasNote(focused) && !_notesVisible,
             onTap: () => setState(() => _notesVisible = !_notesVisible),
@@ -368,10 +369,10 @@ class _GuideScreenState extends State<GuideScreen> {
           const Spacer(),
           if (bgPath != null)
             _TextBtn(
-                label: 'Background',
+                label: context.l('background'),
                 onTap: () => setState(() => _lightbox = true)),
           const SizedBox(width: 8),
-          _TextBtn(label: '☰ Story List', onTap: _openStoryList),
+          _TextBtn(label: context.l('storyList'), onTap: _openStoryList),
         ],
       ),
     );
@@ -428,8 +429,9 @@ class _GuideScreenState extends State<GuideScreen> {
 
   Widget _scroller(GuideController gc, List<EpisodeNode> nodes) {
     if (nodes.isEmpty) {
-      return const Center(
-        child: Text('No episodes', style: TextStyle(color: Colors.white54)),
+      return Center(
+        child: Text(context.l('noEpisodes'),
+            style: const TextStyle(color: Colors.white54)),
       );
     }
     return LayoutBuilder(
@@ -631,10 +633,10 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text("Couldn't load the story list",
-              style: TextStyle(color: Colors.white70)),
+          Text(context.l('couldntLoad'),
+              style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 12),
-          OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
+          OutlinedButton(onPressed: onRetry, child: Text(context.l('retry'))),
         ],
       ),
     );
@@ -850,7 +852,7 @@ class ChaptersPanel extends StatelessWidget {
                 IconButton(
                   onPressed: onBack,
                   icon: const Icon(Icons.chevron_left),
-                  tooltip: 'Back',
+                  tooltip: context.l('back'),
                 ),
                 Expanded(
                   child: Text(
@@ -995,8 +997,10 @@ class _NotesPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lead = node.lead;
-    final note = node.note;
+    // Guide notes have bundled Russian (NOTE_RU); localize them by UI language.
+    final lang = context.select<SettingsStore, String>((s) => s.state.server);
+    final lead = localizeNote(node.lead, lang);
+    final note = localizeNote(node.note, lang);
     final subs = node.subStories ?? const <SubStory>[];
     final hasAny = (lead?.isNotEmpty ?? false) ||
         (note?.isNotEmpty ?? false) ||
@@ -1049,11 +1053,12 @@ class _NotesPanel extends StatelessWidget {
                   ),
                 ],
                 if (!hasAny)
-                  const Text('No notes for this entry.',
-                      style: TextStyle(color: Colors.white54)),
+                  Text(context.l('noNotes'),
+                      style: const TextStyle(color: Colors.white54)),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: TextButton(onPressed: onClose, child: const Text('Close')),
+                  child: TextButton(
+                      onPressed: onClose, child: Text(context.l('close'))),
                 ),
               ],
             ),
@@ -1096,7 +1101,7 @@ class StoryListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Story List')),
+      appBar: AppBar(title: Text(context.l('storyListTitle'))),
       body: const Center(
         child: Padding(
           padding: EdgeInsets.all(24),

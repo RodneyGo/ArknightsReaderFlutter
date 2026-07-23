@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/i18n.dart';
 import '../data/menu.dart';
 import '../data/offline.dart';
 import '../stores/settings_store.dart';
@@ -112,7 +113,7 @@ class _DownloadChip extends StatelessWidget {
     String tip;
     switch (state) {
       case DownloadState.busy:
-        tip = 'Downloading ${(percent * 100).round()}%';
+        tip = context.l('downloading', {'pct': '${(percent * 100).round()}'});
         inner = SizedBox(
           width: 18,
           height: 18,
@@ -123,19 +124,19 @@ class _DownloadChip extends StatelessWidget {
           ),
         );
       case DownloadState.queued:
-        tip = 'Queued — tap to cancel';
+        tip = context.l('queuedCancel');
         inner = const Icon(Icons.hourglass_empty, size: 20, color: _gold);
       case DownloadState.full:
-        tip = 'Downloaded — tap to manage';
+        tip = context.l('downloadedManage');
         inner = const Icon(Icons.download_done, size: 20, color: _green);
       case DownloadState.partial:
-        tip = 'Partly downloaded — tap to finish';
+        tip = context.l('partlyDownloaded');
         inner = const Icon(Icons.donut_large, size: 20, color: _gold);
       case DownloadState.failed:
-        tip = 'Download failed — tap to retry';
+        tip = context.l('downloadFailedRetry');
         inner = const Icon(Icons.error_outline, size: 20, color: _red);
       case DownloadState.none:
-        tip = 'Download for offline';
+        tip = context.l('downloadForOffline');
         inner = const Icon(Icons.download_outlined, size: 20, color: Colors.white70);
     }
 

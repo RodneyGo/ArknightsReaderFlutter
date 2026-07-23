@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/i18n.dart';
 import '../data/servers.dart';
 import '../stores/settings_store.dart';
 import 'guide_controller.dart';
@@ -36,20 +37,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final store = context.watch<SettingsStore>();
     final s = store.state;
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(context.l('settings'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const _SectionTitle('Doctor name'),
+          _SectionTitle(context.l('doctorName')),
           TextField(
             controller: _name,
-            decoration: const InputDecoration(
-                border: OutlineInputBorder(), hintText: 'Doctor'),
+            decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                hintText: context.l('doctorHint')),
             onChanged: (v) => store.set(
                 s.copyWith(doctorName: v.trim().isEmpty ? 'Doctor' : v.trim())),
           ),
           const SizedBox(height: 20),
-          const _SectionTitle('Story language'),
+          _SectionTitle(context.l('storyLanguage')),
           DropdownButton<String>(
             value: servers.contains(s.server) ? s.server : servers.first,
             isExpanded: true,
@@ -65,21 +67,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Visual-novel mode'),
-            subtitle: const Text('One line at a time; tap to advance'),
+            title: Text(context.l('vnModeSetting')),
+            subtitle: Text(context.l('vnModeSettingDesc')),
             value: s.readerMode == 'vn',
             onChanged: (v) =>
                 store.set(s.copyWith(readerMode: v ? 'vn' : 'novel')),
           ),
           if (s.readerMode == 'vn') ...[
             const SizedBox(height: 12),
-            const _SectionTitle('Text speed'),
+            _SectionTitle(context.l('textSpeed')),
             SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'slow', label: Text('Slow')),
-                ButtonSegment(value: 'normal', label: Text('Normal')),
-                ButtonSegment(value: 'fast', label: Text('Fast')),
-                ButtonSegment(value: 'instant', label: Text('Instant')),
+              segments: [
+                ButtonSegment(value: 'slow', label: Text(context.l('speedSlow'))),
+                ButtonSegment(
+                    value: 'normal', label: Text(context.l('speedNormal'))),
+                ButtonSegment(value: 'fast', label: Text(context.l('speedFast'))),
+                ButtonSegment(
+                    value: 'instant', label: Text(context.l('speedInstant'))),
               ],
               selected: {s.textSpeed},
               showSelectedIcon: false,
@@ -88,7 +92,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
           const SizedBox(height: 12),
-          _SectionTitle('Font size — ${s.fontSize}'),
+          _SectionTitle('${context.l('fontSize')} — ${s.fontSize}'),
           Slider(
             min: 12,
             max: 24,
@@ -98,11 +102,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (v) => store.set(s.copyWith(fontSize: v.round())),
           ),
           const SizedBox(height: 12),
-          const _SectionTitle('Audio'),
+          _SectionTitle(context.l('audio')),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Background music'),
-            subtitle: const Text('Plays the story track, switching as you read'),
+            title: Text(context.l('backgroundMusic')),
+            subtitle: Text(context.l('backgroundMusicDesc')),
             value: s.musicEnabled,
             onChanged: (v) => store.set(s.copyWith(musicEnabled: v)),
           ),
@@ -117,16 +121,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Sound effects'),
-            subtitle: const Text('Show tappable sound buttons in the story'),
+            title: Text(context.l('soundEffects')),
+            subtitle: Text(context.l('soundEffectsDesc')),
             value: s.soundEnabled,
             onChanged: (v) => store.set(s.copyWith(soundEnabled: v)),
           ),
           if (s.soundEnabled) ...[
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Play sounds automatically'),
-              subtitle: const Text('Play each sound once as you scroll past it'),
+              title: Text(context.l('autoPlaySounds')),
+              subtitle: Text(context.l('autoPlaySoundsDesc')),
               value: s.soundAutoplay,
               onChanged: (v) => store.set(s.copyWith(soundAutoplay: v)),
             ),
@@ -140,11 +144,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
           const SizedBox(height: 12),
-          const _SectionTitle('Developer'),
+          _SectionTitle(context.l('developer')),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('FPS meter'),
-            subtitle: const Text('Show measured frame rate + worst frame time'),
+            title: Text(context.l('fpsMeter')),
+            subtitle: Text(context.l('fpsMeterDesc')),
             value: s.debugPerf,
             onChanged: (v) => store.set(s.copyWith(debugPerf: v)),
           ),

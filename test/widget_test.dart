@@ -136,6 +136,24 @@ void main() {
     });
   });
 
+  group('UI localization', () {
+    testWidgets('the menu is Russian when the language is ru', (tester) async {
+      final gc = GuideController()..setGuide(_fakeGuide());
+      await tester.pumpWidget(_ruApp(gc, server: 'ru', translated: const []));
+      await tester.pump(const Duration(milliseconds: 16));
+      // '☰ Story List' -> '☰ Список историй'
+      expect(find.text('☰ Список историй'), findsOneWidget);
+      expect(find.text('☰ Story List'), findsNothing);
+    });
+
+    testWidgets('the menu is English for other languages', (tester) async {
+      final gc = GuideController()..setGuide(_fakeGuide());
+      await tester.pumpWidget(_ruApp(gc, server: 'en_US', translated: const []));
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(find.text('☰ Story List'), findsOneWidget);
+    });
+  });
+
   testWidgets('guide screen renders episode cards + ambient layer',
       (tester) async {
     final gc = GuideController()..setGuide(_fakeGuide());

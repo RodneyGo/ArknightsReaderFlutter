@@ -9,6 +9,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/i18n.dart';
 import '../data/offline.dart';
 import '../data/ru.dart';
 import '../stores/offline_store.dart';
@@ -148,7 +149,7 @@ class _VerifySheetState extends State<_VerifySheet> {
                   color: _gold, fontSize: 17, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
-            Text('${widget.txts.length} chapter(s)',
+            Text(context.l('chaptersCount', {'n': '${widget.txts.length}'}),
                 style: const TextStyle(color: Colors.white38, fontSize: 12)),
             const SizedBox(height: 16),
             _status(report),
@@ -169,7 +170,7 @@ class _VerifySheetState extends State<_VerifySheet> {
     final allRead = widget.txts.isNotEmpty &&
         widget.txts.every((t) => progress.statusOf(t) == ReadStatus.read);
     return _SheetButton(
-      label: allRead ? 'Mark as unread' : 'Mark as read',
+      label: allRead ? context.l('markAsUnread') : context.l('markAsRead'),
       color: const Color(0xFF5AA469),
       onTap: () {
         for (final t in widget.txts) {
@@ -185,37 +186,40 @@ class _VerifySheetState extends State<_VerifySheet> {
 
   Widget _status(_Report? report) {
     if (_busy || report == null) {
-      return const Row(
+      return Row(
         children: [
-          SizedBox(
+          const SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2, color: _gold)),
-          SizedBox(width: 12),
-          Text('Verifying…', style: TextStyle(color: Colors.white70)),
+          const SizedBox(width: 12),
+          Text(context.l('verifying'),
+              style: const TextStyle(color: Colors.white70)),
         ],
       );
     }
     if (!report.anyDownloaded) {
-      return const _StatusLine(
+      return _StatusLine(
         icon: Icons.cloud_off,
         color: Colors.white54,
-        text: "Not downloaded.",
+        text: context.l('notDownloaded'),
       );
     }
     if (report.incomplete.isNotEmpty) {
-      final missingLabel =
-          report.total > 0 ? '${report.missing} of ${report.total}' : 'some';
+      final text = report.total > 0
+          ? context.l('filesMissing',
+              {'missing': '${report.missing} / ${report.total}'})
+          : context.l('someFilesMissing');
       return _StatusLine(
         icon: Icons.warning_amber_rounded,
         color: const Color(0xFFE0A24A),
-        text: '$missingLabel files missing.',
+        text: text,
       );
     }
     return _StatusLine(
       icon: Icons.check_circle_outline,
       color: const Color(0xFF5AA469),
-      text: 'All files present (${report.present}).',
+      text: context.l('allFilesPresent', {'n': '${report.present}'}),
     );
   }
 
@@ -226,7 +230,7 @@ class _VerifySheetState extends State<_VerifySheet> {
         if (report != null && report.anyDownloaded)
           Expanded(
             child: _SheetButton(
-              label: 'Delete',
+              label: context.l('delete'),
               color: const Color(0xFFE07A7A),
               onTap: _busy || _repairing ? null : _delete,
             ),
@@ -235,8 +239,8 @@ class _VerifySheetState extends State<_VerifySheet> {
         Expanded(
           child: _SheetButton(
             label: needsRepair
-                ? (_repairing ? 'Repairing…' : 'Repair')
-                : 'Verify',
+                ? (_repairing ? context.l('repairing') : context.l('repair'))
+                : context.l('verify'),
             color: _gold,
             filled: needsRepair,
             onTap: _busy || _repairing
