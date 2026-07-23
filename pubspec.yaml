@@ -37,8 +37,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/guide_data.json
-    # Russian story overlays (no RU game server — these are laid over EN).
-    - assets/ru/
+    # RU translation index only (fallback for first-run-offline); the overlays
+    # themselves are fetched from GitHub — see lib/data/ru.dart.
+    - assets/ru_index.json
     - assets/ChapterImages/
     - assets/EpisodeBackgrounds/
     - assets/StoryBackgrounds/

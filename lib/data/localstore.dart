@@ -184,6 +184,11 @@ class LocalStore {
 
   Future<bool> hasMeta(String name) => File(_metaPath(name)).exists();
 
+  Future<void> removeMeta(String name) async {
+    final f = File(_metaPath(name));
+    if (await f.exists()) await f.delete();
+  }
+
   // --- chapter story JSON ---
   Future<void> saveStory(String server, String txt, Object? data) async {
     await _writeJson(_storyPath(server, txt), data);

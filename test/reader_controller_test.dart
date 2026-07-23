@@ -123,7 +123,7 @@ void main() {
       if (await tmp.exists()) await tmp.delete(recursive: true);
     });
 
-    Offline _offline(void Function() onProbe) => Offline(
+    Offline mkOffline(void Function() onProbe) => Offline(
           store: store,
           resolved: ResolvedUrls(MemoryKeyValueStore()),
           probe: (_) async {
@@ -134,7 +134,7 @@ void main() {
 
     test('a verified-downloaded chapter skips asset preload', () async {
       var probes = 0;
-      final c = ReaderController(offline: _offline(() => probes++));
+      final c = ReaderController(offline: mkOffline(() => probes++));
       await c.load(
         path: 'ch1',
         server: 'en_US',
@@ -151,7 +151,7 @@ void main() {
     test('an un-verified chapter (files on disk, no marker) still preloads',
         () async {
       var probes = 0;
-      final c = ReaderController(offline: _offline(() => probes++));
+      final c = ReaderController(offline: mkOffline(() => probes++));
       await c.load(
         path: 'ch1',
         server: 'en_US',

@@ -36,10 +36,10 @@ Future<void> main() async {
   final kv = await SharedPrefsStore.create();
   final resolved = ResolvedUrls(kv);
   final offline = await Offline.create(resolved);
+  final ru = await RuStore.create(); // RU index cache-first (saved -> bundled)
   await loadImageAssets(); // chapter-image + background lookups
   await loadGuide(); // ARCS + NOTE_RU from the bundled asset
-  await loadRuOverlays(); // bundled RU translations, laid over EN
-  runApp(AkReaderApp(kv: kv, resolved: resolved, offline: offline));
+  runApp(AkReaderApp(kv: kv, resolved: resolved, offline: offline, ru: ru));
 }
 
 /// Android runs apps at 60Hz by default — Flutter renders to whatever mode the
@@ -60,12 +60,14 @@ class AkReaderApp extends StatelessWidget {
   final KeyValueStore kv;
   final ResolvedUrls resolved;
   final Offline offline;
+  final RuStore ru;
 
   const AkReaderApp({
     super.key,
     required this.kv,
     required this.resolved,
     required this.offline,
+    required this.ru,
   });
 
   @override
@@ -77,6 +79,7 @@ class AkReaderApp extends StatelessWidget {
           dispose: (_, r) => r.dispose(),
         ),
         Provider<Offline?>(create: (_) => offline),
+        ChangeNotifierProvider<RuStore>.value(value: ru),
         ChangeNotifierProvider(create: (_) => SettingsStore(kv)),
         ChangeNotifierProvider(create: (_) => ProgressStore(kv)),
         ChangeNotifierProvider(
@@ -86,8 +89,10 @@ class AkReaderApp extends StatelessWidget {
           create: (_) => OfflineStore(kv)..rebuildFrom(offline.downloadedTxts()),
         ),
         ChangeNotifierProvider(
-          // Serialises every download so jobs can't race on the shared url map.
-          create: (ctx) => DownloadQueue(offline, ctx.read<OfflineStore>()),
+          // Serialises every download so jobs can't race on the shared url map;
+          // saves the RU overlay too when downloading in Russian.
+          create: (ctx) =>
+              DownloadQueue(offline, ctx.read<OfflineStore>(), ru: ru),
         ),
         ChangeNotifierProvider(
           create: (ctx) =>

@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:ak_reader/data/guide.dart';
 import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/data/offline.dart';
+import 'package:ak_reader/data/ru.dart';
 import 'package:ak_reader/data/localstore.dart';
 import 'package:ak_reader/data/resolved.dart';
 import 'package:ak_reader/stores/kv_store.dart';
@@ -58,6 +59,8 @@ Widget _app(GuideController gc, {Offline? offline, ProgressStore? progress}) =>
         Provider<ResolvedUrls>(
             create: (_) => ResolvedUrls(MemoryKeyValueStore())),
         Provider<Offline?>(create: (_) => offline),
+        ChangeNotifierProvider<RuStore>(
+            create: (_) => RuStore(store: null, fetch: (_) async => null)),
         ChangeNotifierProvider<SettingsStore>(
             create: (_) => SettingsStore(MemoryKeyValueStore())),
         ChangeNotifierProvider<ProgressStore>(
@@ -78,7 +81,61 @@ Widget _app(GuideController gc, {Offline? offline, ProgressStore? progress}) =>
       child: const MaterialApp(home: GuideScreen()),
     );
 
+/// Guide tree with an explicit language + RU index, for the marker tests.
+Widget _ruApp(GuideController gc,
+    {required String server, required List<String> translated}) {
+  final settings = SettingsStore(MemoryKeyValueStore())
+    ..set(const SettingsState().copyWith(server: server));
+  final ru = RuStore(store: null, fetch: (_) async => null)
+    ..setIndexForTest(RuIndex(1, {for (final t in translated) t: 'h'}));
+  return MultiProvider(
+    providers: [
+      Provider<ResolvedUrls>(create: (_) => ResolvedUrls(MemoryKeyValueStore())),
+      Provider<Offline?>(create: (_) => null),
+      ChangeNotifierProvider<RuStore>.value(value: ru),
+      ChangeNotifierProvider<SettingsStore>.value(value: settings),
+      ChangeNotifierProvider<ProgressStore>(
+          create: (_) => ProgressStore(MemoryKeyValueStore())),
+      ChangeNotifierProvider<OfflineStore>(
+          create: (_) => OfflineStore(MemoryKeyValueStore())),
+      ChangeNotifierProvider<GuideController>.value(value: gc),
+    ],
+    child: const MaterialApp(home: GuideScreen()),
+  );
+}
+
 void main() {
+  group('RU marker', () {
+    // 'Evil Time' -> chapter 'Evil Time-1'; 'Roaring Flare' -> 'Roaring Flare-1'.
+    testWidgets('shows on a fully-translated episode in Russian',
+        (tester) async {
+      final gc = GuideController()..setGuide(_fakeGuide());
+      await tester.pumpWidget(_ruApp(gc,
+          server: 'ru', translated: ['Evil Time-1', 'Roaring Flare-1']));
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(find.text('RU'), findsWidgets);
+    });
+
+    testWidgets('hidden when the language is not Russian', (tester) async {
+      final gc = GuideController()..setGuide(_fakeGuide());
+      await tester.pumpWidget(_ruApp(gc,
+          server: 'en_US', translated: ['Evil Time-1', 'Roaring Flare-1']));
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(find.text('RU'), findsNothing);
+    });
+
+    testWidgets('hidden when the episode is only partially translated',
+        (tester) async {
+      final gc = GuideController()..setGuide(_fakeGuide());
+      // Only 'Evil Time' translated; 'Roaring Flare-1' missing.
+      await tester.pumpWidget(
+          _ruApp(gc, server: 'ru', translated: ['Evil Time-1']));
+      await tester.pump(const Duration(milliseconds: 16));
+      // 'Roaring Flare' episode must not show RU; 'Evil Time' (fully) may.
+      expect(find.text('RU'), findsOneWidget);
+    });
+  });
+
   testWidgets('guide screen renders episode cards + ambient layer',
       (tester) async {
     final gc = GuideController()..setGuide(_fakeGuide());
@@ -110,6 +167,8 @@ void main() {
           Provider<ResolvedUrls>(
               create: (_) => ResolvedUrls(MemoryKeyValueStore())),
           Provider<Offline?>(create: (_) => null),
+          ChangeNotifierProvider<RuStore>(
+              create: (_) => RuStore(store: null, fetch: (_) async => null)),
           ChangeNotifierProvider<SettingsStore>(
               create: (_) => SettingsStore(MemoryKeyValueStore())),
           ChangeNotifierProvider<ProgressStore>.value(value: progress),

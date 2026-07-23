@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/offline.dart';
+import '../data/ru.dart';
 import '../stores/offline_store.dart';
 import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
@@ -117,10 +118,12 @@ class _VerifySheetState extends State<_VerifySheet> {
     setState(() => _busy = true);
     final offline = context.read<Offline?>();
     final store = context.read<OfflineStore>();
+    final ru = context.read<RuStore>();
     final server = context.read<SettingsStore>().state.server;
     if (offline != null) {
       for (final txt in widget.txts) {
         await offline.removeStory(server, txt);
+        await ru.removeOverlay(txt); // drop the saved RU overlay too
         store.unmark(txt);
       }
     }

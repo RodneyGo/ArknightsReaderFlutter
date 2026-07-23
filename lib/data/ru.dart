@@ -1,22 +1,59 @@
-// Russian story overlay. Ported from BetterPhoneReader/src/data/ru.ts.
+// Russian story overlay, fetched from GitHub (jsDelivr) instead of bundled.
 //
 // There is no Russian game-data server, so "Русский" loads the EN chapter as the
-// base and overlays bundled translations where they exist (keyed by storyTxt).
+// base and overlays translations where they exist (keyed by storyTxt).
 // Untranslated chapters fall back to English.
 //
-// The web used `import.meta.glob("./ru/*.json", { eager: true })`; the Dart
-// equivalent is reading the bundled assets off the AssetManifest at startup.
+// Design (see the plan): translations live in the project repo's `translations/`
+// folder, served by jsDelivr; an index (version + per-path hash) says what's
+// translated and when it changed. The app loads the index cache-first (saved
+// copy → bundled fallback), revalidates in the background, and fetches each
+// chapter's overlay on demand — local-first for downloaded chapters, so offline
+// reading keeps working. [RuStore] is a ChangeNotifier so the guide's RU marker
+// updates when a refresh lands new translations.
 //
-// Unlike the TS, which mutated each line's attributes in place, this rebuilds the
-// lines it changes: a RawLine parsed from json with no attributes holds a const
-// map, and writing to that throws.
+// Overlay application is unchanged from the bundled version: rebuild only the
+// lines that change (a RawLine parsed with no attributes holds a const map, so
+// mutating in place would throw).
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:flutter/services.dart' show rootBundle, AssetManifest;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:http/http.dart' as http;
 
+import 'localstore.dart';
 import 'models.dart';
+
+/// jsDelivr base for the translations folder in the project repo. Publish the
+/// `translations/` tree to `main` for this to serve it.
+const ruBase =
+    'https://cdn.jsdelivr.net/gh/RodneyGo/ArknightsReaderFlutter@main/translations';
+
+const _bundledIndexAsset = 'assets/ru_index.json';
+const _indexMetaName = 'ru_index';
+String _overlayMetaName(String path) => 'ru/$path';
+
+/// Which chapters are translated, and a per-overlay hash to detect changes.
+class RuIndex {
+  final int version;
+  final Map<String, String> entries; // storyTxt (path) -> overlay hash
+
+  const RuIndex(this.version, this.entries);
+  static const empty = RuIndex(0, {});
+
+  bool has(String path) => entries.containsKey(path);
+  String? hashOf(String path) => entries[path];
+
+  static RuIndex fromJson(Map<String, dynamic> j) {
+    final raw = j['entries'];
+    final entries = raw is Map
+        ? {for (final e in raw.entries) '${e.key}': '${e.value}'}
+        : <String, String>{};
+    final v = j['version'];
+    return RuIndex(v is num ? v.toInt() : 0, entries);
+  }
+}
 
 class RuOverlay {
   final String path;
@@ -29,8 +66,7 @@ class RuOverlay {
     this.lines = const {},
   });
 
-  /// Null when the json isn't an overlay — `_GLOSSARY.json` and friends live in
-  /// the same folder and carry no `path`.
+  /// Null when the json isn't an overlay (no `path`).
   static RuOverlay? tryFromJson(Map<String, dynamic> json) {
     final path = json['path'];
     if (path is! String || path.isEmpty) return null;
@@ -45,42 +81,135 @@ class RuOverlay {
   }
 }
 
-Map<String, RuOverlay> _byPath = const {};
+/// Fetch a JSON object from a URL, or null on any failure. Injectable for tests.
+typedef JsonFetch = Future<Map<String, dynamic>?> Function(String url);
 
-/// Load the bundled overlays. Call once at startup.
-Future<void> loadRuOverlays() async {
-  final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-  final paths = manifest
-      .listAssets()
-      .where((p) => p.startsWith('assets/ru/') && p.endsWith('.json'));
-  final map = <String, RuOverlay>{};
-  for (final asset in paths) {
-    try {
-      final json = jsonDecode(await rootBundle.loadString(asset));
-      if (json is! Map) continue;
-      final ov = RuOverlay.tryFromJson(json.cast<String, dynamic>());
-      if (ov != null) map[ov.path] = ov;
-    } catch (_) {
-      // A malformed overlay must not stop the app booting — that chapter just
-      // stays English.
+Future<Map<String, dynamic>?> _httpJson(String url) async {
+  try {
+    final res = await http.get(Uri.parse(url));
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      final j = jsonDecode(res.body);
+      if (j is Map<String, dynamic>) return j;
+      if (j is Map) return j.cast<String, dynamic>();
     }
+  } catch (_) {
+    // network / parse failure — caller falls back
   }
-  _byPath = map;
+  return null;
 }
 
-@visibleForTesting
-void setRuOverlays(Iterable<RuOverlay> overlays) =>
-    _byPath = {for (final o in overlays) o.path: o};
+class RuStore extends ChangeNotifier {
+  final LocalStore? _store;
+  final JsonFetch _fetch;
 
-/// True if a Russian translation is bundled for this chapter.
-bool hasRu(String path) => _byPath.containsKey(path);
+  RuIndex _index = RuIndex.empty;
+  // Session cache of resolved overlays; cleared when the index changes so a
+  // corrected translation isn't served stale within a session.
+  final Map<String, RuOverlay> _cache = {};
 
-/// Overlay Russian text onto an EN base story. Returns [list] untouched when the
-/// chapter has no translation.
-List<RawLine> applyRu(List<RawLine> list, String path) {
-  final ov = _byPath[path];
-  if (ov == null) return list;
-  return [for (final line in list) _applyLine(line, ov)];
+  RuStore({LocalStore? store, JsonFetch? fetch})
+      : _store = store,
+        _fetch = fetch ?? _httpJson;
+
+  /// App wiring: a real store everywhere except web, with the index loaded.
+  static Future<RuStore> create() async {
+    LocalStore? store;
+    if (!kIsWeb) {
+      try {
+        store = await LocalStore.instance();
+      } catch (_) {
+        store = null;
+      }
+    }
+    final s = RuStore(store: store);
+    await s.loadIndex();
+    return s;
+  }
+
+  RuIndex get index => _index;
+  bool hasRu(String path) => _index.has(path);
+
+  /// The RU marker rule: every chapter of the episode is translated.
+  bool episodeFullyTranslated(List<String> txts) =>
+      txts.isNotEmpty && txts.every(_index.has);
+
+  /// Load the index cache-first: the saved copy, else the bundled fallback.
+  Future<void> loadIndex() async {
+    final cached = await _store?.readMeta(_indexMetaName);
+    if (cached != null) {
+      _index = RuIndex.fromJson(cached);
+      return;
+    }
+    try {
+      final json = jsonDecode(await rootBundle.loadString(_bundledIndexAsset));
+      if (json is Map) _index = RuIndex.fromJson(json.cast<String, dynamic>());
+    } catch (_) {
+      // no bundled index — stays empty; ru simply reads English until fetched
+    }
+  }
+
+  /// Revalidate the index against the network. Adopts a newer version, persists
+  /// it, and notifies so the markers refresh. Silent on failure.
+  Future<void> refreshIndex() async {
+    final fresh = await _fetch('$ruBase/ru_index.json');
+    if (fresh == null) return;
+    final idx = RuIndex.fromJson(fresh);
+    if (idx.version == _index.version) return; // nothing new
+    _index = idx;
+    _cache.clear(); // hashes may have changed
+    await _store?.saveMeta(_indexMetaName, fresh);
+    notifyListeners();
+  }
+
+  /// The overlay for a chapter, or null if untranslated / unavailable. Prefers a
+  /// saved copy whose hash still matches the index; otherwise fetches and caches
+  /// it (both in memory and, when a store is present, on disk for offline).
+  Future<RuOverlay?> overlayFor(String path) async {
+    final hash = _index.hashOf(path);
+    if (hash == null) return null; // not translated
+    final cached = _cache[path];
+    if (cached != null) return cached;
+
+    final local = await _store?.readMeta(_overlayMetaName(path));
+    if (local != null && local['hash'] == hash && local['data'] is Map) {
+      final ov = RuOverlay.tryFromJson((local['data'] as Map).cast());
+      if (ov != null) {
+        _cache[path] = ov;
+        return ov;
+      }
+    }
+
+    final fetched = await _fetch('$ruBase/ru/$path.json');
+    if (fetched == null) return null;
+    final ov = RuOverlay.tryFromJson(fetched);
+    if (ov == null) return null;
+    _cache[path] = ov;
+    await _store?.saveMeta(_overlayMetaName(path), {'hash': hash, 'data': fetched});
+    return ov;
+  }
+
+  /// Ensure a translated chapter's overlay is saved locally (offline download).
+  Future<void> ensureDownloaded(String path) => overlayFor(path);
+
+  /// Drop a chapter's saved overlay (chapter removed from offline storage).
+  Future<void> removeOverlay(String path) async {
+    _cache.remove(path);
+    await _store?.removeMeta(_overlayMetaName(path));
+  }
+
+  /// Overlay Russian text onto an EN base story. Returns [list] untouched when
+  /// the chapter has no (available) translation.
+  Future<List<RawLine>> applyRu(List<RawLine> list, String path) async {
+    final ov = await overlayFor(path);
+    if (ov == null) return list;
+    return [for (final line in list) _applyLine(line, ov)];
+  }
+
+  @visibleForTesting
+  void setIndexForTest(RuIndex index) {
+    _index = index;
+    _cache.clear();
+  }
 }
 
 RawLine _applyLine(RawLine line, RuOverlay ov) {

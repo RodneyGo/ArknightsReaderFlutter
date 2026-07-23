@@ -18,8 +18,9 @@ import '../data/source.dart';
 
 class ReaderController extends ChangeNotifier {
   final Offline? offline;
+  final RuStore? ru;
 
-  ReaderController({this.offline});
+  ReaderController({this.offline, this.ru});
 
   bool _loading = true;
   int _loadingPct = 0;
@@ -112,17 +113,20 @@ class ReaderController extends ChangeNotifier {
               base, '/gamedata/story/$path.json'));
       if (myToken != _token) return;
 
-      // "ru" has no game server: it reads EN and overlays the bundled Russian
-      // text where a translation exists.
-      var raw = server == 'ru' ? applyRu(data.storyList, path) : data.storyList;
+      // "ru" has no game server: it reads EN and overlays the Russian text
+      // (fetched/cached from GitHub) where a translation exists.
+      var raw = server == 'ru' && ru != null
+          ? await ru!.applyRu(data.storyList, path)
+          : data.storyList;
+      if (myToken != _token) return;
       if (altServer != 'none' && baseServer(altServer) != base) {
         try {
           final altData = StoryData.fromJson(
             await getJson<Map<String, dynamic>>(
                 baseServer(altServer), '/gamedata/story/$path.json'),
           );
-          final altRaw = altServer == 'ru'
-              ? applyRu(altData.storyList, path)
+          final altRaw = altServer == 'ru' && ru != null
+              ? await ru!.applyRu(altData.storyList, path)
               : altData.storyList;
           raw = mergeAltStory(raw, altRaw);
         } catch (_) {

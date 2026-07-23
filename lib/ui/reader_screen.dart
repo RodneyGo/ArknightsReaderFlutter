@@ -18,6 +18,7 @@ import 'package:provider/provider.dart';
 import '../data/menu.dart';
 import '../data/models.dart';
 import '../data/offline.dart';
+import '../data/ru.dart';
 import '../data/source.dart';
 import '../stores/offline_store.dart';
 import '../stores/progress_store.dart';
@@ -136,7 +137,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = ReaderController(offline: context.read<Offline?>());
+    _controller = ReaderController(
+      offline: context.read<Offline?>(),
+      ru: context.read<RuStore>(),
+    );
     _settings = context.read<SettingsStore>();
     _lastMode = _settings.state.readerMode;
     _settings.addListener(_onSettingsChanged);

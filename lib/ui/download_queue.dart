@@ -15,6 +15,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../data/offline.dart';
+import '../data/ru.dart';
 import '../stores/offline_store.dart';
 
 enum DownloadState { none, partial, full, queued, busy, failed }
@@ -27,6 +28,10 @@ class DownloadQueue extends ChangeNotifier {
   final Offline _offline;
   final OfflineStore _store;
 
+  /// Saves the RU overlay alongside a chapter when downloading in Russian, so a
+  /// downloaded ru chapter still reads Russian offline.
+  final RuStore? _ru;
+
   /// Per-chapter seams, injectable so tests can drive the orchestration (which
   /// otherwise needs the network). Default to the real [Offline].
   final Future<void> Function(String server, String txt)? _downloadOverride;
@@ -35,9 +40,11 @@ class DownloadQueue extends ChangeNotifier {
   DownloadQueue(
     this._offline,
     this._store, {
+    RuStore? ru,
     Future<void> Function(String server, String txt)? download,
     Future<bool> Function(String server, String txt)? verifyComplete,
-  })  : _downloadOverride = download,
+  })  : _ru = ru,
+        _downloadOverride = download,
         _verifyOverride = verifyComplete;
 
   final _queue = <_Job>[];
@@ -142,6 +149,14 @@ class DownloadQueue extends ChangeNotifier {
       }
       if (await _isComplete(server, txt)) {
         _failed.remove(txt);
+        // Save the RU overlay too, so a ru download reads Russian offline. A
+        // failure here is non-fatal: the chapter is still downloaded, and an
+        // untranslated chapter is a no-op.
+        if (server == 'ru') {
+          try {
+            await _ru?.ensureDownloaded(txt);
+          } catch (_) {/* offline ru just falls back to English */}
+        }
         _store.mark(txt);
         return;
       }

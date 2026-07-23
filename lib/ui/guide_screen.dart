@@ -12,6 +12,7 @@ import '../data/backgrounds.dart';
 import '../data/chapter_images.dart';
 import '../data/guide.dart';
 import '../data/menu.dart';
+import '../data/ru.dart';
 import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'ash_fx.dart';
@@ -126,6 +127,16 @@ class _GuideScreenState extends State<GuideScreen> {
   /// so the old pixel offset is meaningless and the focused card has to be
   /// re-centred.
   bool? _lastLandscape;
+
+  @override
+  void initState() {
+    super.initState();
+    // Revalidate the RU translation index once per app run (the guide is the
+    // home and mounts once). New/changed translations light up the markers.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<RuStore>().refreshIndex();
+    });
+  }
 
   @override
   void dispose() {
@@ -647,6 +658,11 @@ class EpisodeCard extends StatelessWidget {
     // the row and pad horizontally.
     final landscape = _isLandscape(context);
     final event = node.event;
+    // RU marker: only in Russian, and only when the whole episode is translated.
+    final showRu = event != null &&
+        context.select<SettingsStore, bool>((s) => s.state.server == 'ru') &&
+        context.watch<RuStore>().episodeFullyTranslated(
+            [for (final s in event.stories) s.txt]);
     return GestureDetector(
       onTap: onTap,
       onLongPress: event == null
@@ -699,6 +715,14 @@ class EpisodeCard extends StatelessWidget {
                               if (node.isIS) _tag('IS', const Color(0xFF8A6CC0)),
                               if (node.optional || node.forceOptional)
                                 _tag('Optional', const Color(0xCC141416)),
+                              // RU marker sits bottom-left, clear of the top tags
+                              // and the top-right download button.
+                              if (showRu)
+                                Positioned(
+                                  bottom: 8,
+                                  left: 8,
+                                  child: _pill('RU', const Color(0xD01F6FEB)),
+                                ),
                               if (event != null)
                                 Positioned(
                                   top: 6,
@@ -754,19 +778,18 @@ class EpisodeCard extends StatelessWidget {
         ),
       );
 
-  Widget _tag(String text, Color bg) => Positioned(
-        top: 8,
-        left: 8,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(text,
-              style: const TextStyle(
-                  fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
+  Widget _tag(String text, Color bg) =>
+      Positioned(top: 8, left: 8, child: _pill(text, bg));
+
+  Widget _pill(String text, Color bg) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(6),
         ),
+        child: Text(text,
+            style: const TextStyle(
+                fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
       );
 }
 
