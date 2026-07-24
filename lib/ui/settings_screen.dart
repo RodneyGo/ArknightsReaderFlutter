@@ -102,6 +102,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (v) => store.set(s.copyWith(fontSize: v.round())),
           ),
           const SizedBox(height: 12),
+          _SectionTitle(context.l('backdropFade')),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(context.l('backdropFadeDesc'),
+                style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          ),
+          SegmentedButton<String>(
+            segments: [
+              ButtonSegment(value: 'none', label: Text(context.l('fadeNone'))),
+              ButtonSegment(
+                  value: 'small', label: Text(context.l('fadeSmall'))),
+              ButtonSegment(
+                  value: 'normal', label: Text(context.l('fadeNormal'))),
+            ],
+            selected: {s.backdropFade},
+            showSelectedIcon: false,
+            onSelectionChanged: (v) =>
+                store.set(s.copyWith(backdropFade: v.first)),
+          ),
+          const SizedBox(height: 12),
           _SectionTitle(context.l('audio')),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,

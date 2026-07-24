@@ -24,6 +24,7 @@ class SettingsState {
   final double soundVolume; // 0..1 (SFX)
   final String readerMode; // "novel" | "vn"
   final String textSpeed; // "slow" | "normal" | "fast" | "instant"
+  final String backdropFade; // menu backdrop crossfade: "none" | "small" | "normal"
   final bool debugPerf; // show an FPS/perf overlay on the main menu
 
   const SettingsState({
@@ -39,6 +40,7 @@ class SettingsState {
     this.soundVolume = 1,
     this.readerMode = 'novel',
     this.textSpeed = 'normal',
+    this.backdropFade = 'normal',
     this.debugPerf = false,
   });
 
@@ -64,6 +66,7 @@ class SettingsState {
       soundVolume: dbl('soundVolume', d.soundVolume),
       readerMode: str('readerMode', d.readerMode),
       textSpeed: str('textSpeed', d.textSpeed),
+      backdropFade: str('backdropFade', d.backdropFade),
       debugPerf: boolean('debugPerf', d.debugPerf),
     );
   }
@@ -81,6 +84,7 @@ class SettingsState {
         'soundVolume': soundVolume,
         'readerMode': readerMode,
         'textSpeed': textSpeed,
+        'backdropFade': backdropFade,
         'debugPerf': debugPerf,
       };
 
@@ -97,6 +101,7 @@ class SettingsState {
     double? soundVolume,
     String? readerMode,
     String? textSpeed,
+    String? backdropFade,
     bool? debugPerf,
   }) =>
       SettingsState(
@@ -112,6 +117,7 @@ class SettingsState {
         soundVolume: soundVolume ?? this.soundVolume,
         readerMode: readerMode ?? this.readerMode,
         textSpeed: textSpeed ?? this.textSpeed,
+        backdropFade: backdropFade ?? this.backdropFade,
         debugPerf: debugPerf ?? this.debugPerf,
       );
 }

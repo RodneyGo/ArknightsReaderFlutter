@@ -59,6 +59,26 @@ const _headerBottomPad = 20.0;
 const _landscapeCardWidth = 158.0;
 const _landscapeCardGap = 20.0;
 
+/// Fling damping for the landscape scroller — it keeps a sense of throw while
+/// pulling the reach back to portrait's. The narrow landscape pitch made raw
+/// momentum overshoot badly (measured cards crossed per flick):
+///
+///   velocity        1200  2000  3000
+///   portrait           1     2     3
+///   landscape @1.0     2     4     7   <- "jumps to the fourth"
+///   landscape @0.6     1     2     4   <- matches portrait
+const _landscapeFlingScale = 0.6;
+
+/// How far (as a fraction of one card) an unrestrained fling would have to
+/// travel for the release to count as a deliberate swipe. Past it, the scroller
+/// moves one card the way it was thrown, however short the drag; below it, it
+/// settles on the nearest card.
+const _swipeTravelFraction = 0.2;
+
+/// Ceiling on the spring's launch speed, per pixel it has to travel, so a hard
+/// flick can't sail past the chosen target.
+const _flingSpeedPerPixel = 8.0;
+
 bool _isLandscape(BuildContext context) =>
     MediaQuery.orientationOf(context) == Orientation.landscape;
 
@@ -78,19 +98,66 @@ double _headerHeight(GuideController gc, bool landscape) =>
 /// item — unlike PageView, which advances only one page per swipe.
 class _SnapScrollPhysics extends ScrollPhysics {
   final double itemExtent;
-  const _SnapScrollPhysics({required this.itemExtent, super.parent});
+
+  /// Damping applied to fling velocity (1.0 leaves momentum untouched).
+  ///
+  /// Landscape cells are a fixed 178px while portrait cells are ~72% of the
+  /// viewport (~2.5x wider), so identical momentum crossed far more cards
+  /// sideways — a flick meant for the next episode landed four along. Damping
+  /// keeps the feel of a throw while bringing the reach back to portrait's.
+  final double flingVelocityScale;
+
+  /// Whether a deliberate swipe must advance at least one card. Momentum still
+  /// decides how much FURTHER it goes; this only sets the floor, so a short
+  /// quick flick can't be pulled back to where it started.
+  final bool minOneCardPerSwipe;
+
+  const _SnapScrollPhysics({
+    required this.itemExtent,
+    this.flingVelocityScale = 1.0,
+    this.minOneCardPerSwipe = false,
+    super.parent,
+  });
 
   @override
-  _SnapScrollPhysics applyTo(ScrollPhysics? ancestor) =>
-      _SnapScrollPhysics(itemExtent: itemExtent, parent: buildParent(ancestor));
+  _SnapScrollPhysics applyTo(ScrollPhysics? ancestor) => _SnapScrollPhysics(
+        itemExtent: itemExtent,
+        flingVelocityScale: flingVelocityScale,
+        minOneCardPerSwipe: minOneCardPerSwipe,
+        parent: buildParent(ancestor),
+      );
 
   double _snapTarget(ScrollMetrics position, double velocity) {
-    // Where a normal fling would land, then round to the nearest item.
-    final sim = super.createBallisticSimulation(position, velocity);
+    // Where the (optionally damped) fling would land.
+    final sim =
+        super.createBallisticSimulation(position, velocity * flingVelocityScale);
     var natural = sim != null ? sim.x(double.infinity) : position.pixels;
     if (natural.isNaN) natural = position.pixels;
     natural = natural.clamp(position.minScrollExtent, position.maxScrollExtent);
-    final snapped = (natural / itemExtent).roundToDouble() * itemExtent;
+
+    final start = position.pixels / itemExtent;
+    var index = (natural / itemExtent).roundToDouble();
+
+    if (minOneCardPerSwipe) {
+      // Momentum sets the distance; this only guarantees a deliberate throw
+      // moves at least one card. Rounding to the nearest card alone ignored the
+      // throw, so a swipe released before the halfway mark got dragged back and
+      // the next episode was unreachable.
+      //
+      // Direction comes from how far the fling WOULD have travelled, not from
+      // the raw velocity: travel is in scroll-offset space, so it carries the
+      // right sign for either scroll axis and direction.
+      final travel = natural - position.pixels;
+      final threshold = itemExtent * _swipeTravelFraction;
+      if (travel > threshold) {
+        final atLeast = start.floorToDouble() + 1;
+        if (index < atLeast) index = atLeast;
+      } else if (travel < -threshold) {
+        final atMost = start.ceilToDouble() - 1;
+        if (index > atMost) index = atMost;
+      }
+    }
+    final snapped = index * itemExtent;
     return snapped.clamp(position.minScrollExtent, position.maxScrollExtent);
   }
 
@@ -99,11 +166,19 @@ class _SnapScrollPhysics extends ScrollPhysics {
       ScrollMetrics position, double velocity) {
     final tolerance = toleranceFor(position);
     final target = _snapTarget(position, velocity);
-    if ((target - position.pixels).abs() < tolerance.distance &&
+    final distance = target - position.pixels;
+    if (distance.abs() < tolerance.distance &&
         velocity.abs() < tolerance.velocity) {
       return null;
     }
-    return ScrollSpringSimulation(spring, position.pixels, target, velocity,
+    // Hand the spring a speed proportional to the trip it actually has to make.
+    // Capping the target alone is not enough: the spring would still leave at
+    // the raw flick speed, sail past the capped target and only stop at the end
+    // of the list — which is exactly what "it takes me to the fourth" was.
+    var v = velocity;
+    final maxV = distance.abs() * _flingSpeedPerPixel;
+    if (v.abs() > maxV) v = v.isNegative ? -maxV : maxV;
+    return ScrollSpringSimulation(spring, position.pixels, target, v,
         tolerance: tolerance);
   }
 
@@ -124,6 +199,18 @@ class _GuideScreenState extends State<GuideScreen> {
   bool _notesVisible = false;
   bool _lightbox = false;
 
+  /// Fractional card position (2.4 = 40% from card 2 toward card 3), pushed
+  /// every scroll frame from the scroller's ScrollNotifications — the signal we
+  /// KNOW reaches this widget (ScrollEnd already drives setFocused here). The
+  /// backdrop blends off this so its CG tracks the scroll instead of waiting
+  /// for settle. Precaching neighbours (see [_precacheAround]) keeps the swap a
+  /// resident-texture draw; the first naive live attempt decoded full-screen
+  /// images mid-fling and janked the snap so hard it leapt over cards.
+  /// `gc.focusedIndex` still lags to ScrollEnd — it drives non-visual state.
+  final _scrollPos = ValueNotifier<double>(0);
+  int _precachedCentre = -1; // last index we warmed the decode window around
+  List<EpisodeNode> _scrollNodes = const [];
+
   /// Last orientation the scroller laid out in. Rotating swaps the scroll axis,
   /// so the old pixel offset is meaningless and the focused card has to be
   /// re-centred.
@@ -139,9 +226,51 @@ class _GuideScreenState extends State<GuideScreen> {
     });
   }
 
+  /// The one live scroll position, or null. During an orientation swap the old
+  /// and new ListViews both exist for a frame, so the controller is briefly
+  /// attached to two positions and `_scroll.position` would assert.
+  ScrollPosition? get _pos =>
+      _scroll.positions.length == 1 ? _scroll.positions.first : null;
+
+  /// Fractional card position from the live scroll offset, or 0 before layout.
+  double _currentPos(double itemExtent, int count) {
+    final p = _pos;
+    if (p == null || !p.hasContentDimensions || itemExtent <= 0) return 0;
+    return (p.pixels / itemExtent).clamp(0.0, (count - 1).toDouble());
+  }
+
+  /// Fold a scroll frame into the live position + precache window. [pos] is the
+  /// fractional card index. Called for every drag/fling tick from the scroller's
+  /// NotificationListener, which has [itemExtent] to convert pixels.
+  void _onScrollFrame(double pos) {
+    _scrollPos.value = pos;
+    if (_scrollNodes.isEmpty) return;
+    final centre = pos.round().clamp(0, _scrollNodes.length - 1);
+    if (centre != _precachedCentre) {
+      _precachedCentre = centre;
+      _precacheAround(centre);
+    }
+  }
+
+  /// Decode the backgrounds around [centre] into the image cache ahead of the
+  /// scroll, so swapping the backdrop to a neighbour is a cheap texture reuse
+  /// instead of a mid-scroll decode. Already-cached images complete instantly.
+  void _precacheAround(int centre) {
+    for (var i = centre - 2; i <= centre + 2; i++) {
+      if (i < 0 || i >= _scrollNodes.length) continue;
+      final path = episodeBackground(_scrollNodes[i]);
+      // Swallow decode failures: a missing background degrades to no backdrop,
+      // it must never take down a scroll frame.
+      if (path != null) {
+        precacheImage(AssetImage(path), context, onError: (_, __) {});
+      }
+    }
+  }
+
   @override
   void dispose() {
     _scroll.dispose();
+    _scrollPos.dispose();
     super.dispose();
   }
 
@@ -154,9 +283,9 @@ class _GuideScreenState extends State<GuideScreen> {
   /// once the new layout exists.
   void _recentreAfterRotate(int focusedIndex, double itemExtent) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scroll.hasClients) return;
-      final pos = _scroll.position;
-      if (!pos.hasContentDimensions) return;
+      if (!mounted) return;
+      final pos = _pos;
+      if (pos == null || !pos.hasContentDimensions) return;
       _scroll.jumpTo((focusedIndex * itemExtent)
           .clamp(pos.minScrollExtent, pos.maxScrollExtent));
     });
@@ -203,6 +332,10 @@ class _GuideScreenState extends State<GuideScreen> {
   @override
   Widget build(BuildContext context) {
     final overlayUp = _lightbox || _openEpisode != null;
+    // Read here (not inside the Consumer builder / _liveBackdrop): `select` is
+    // only legal in a widget's own build method.
+    final backdropFade =
+        context.select<SettingsStore, String>((s) => s.state.backdropFade);
     return PopScope(
       canPop: !overlayUp && !_notesVisible,
       onPopInvokedWithResult: (didPop, _) {
@@ -218,7 +351,7 @@ class _GuideScreenState extends State<GuideScreen> {
               fit: StackFit.expand,
               children: [
                 const ColoredBox(color: Color(0xFF0D0D0F)),
-                _Backdrop(node: focused),
+                _liveBackdrop(nodes, backdropFade),
                 Positioned.fill(child: AshFx(paused: overlayUp)),
                 if (gc.loading)
                   const Center(child: CircularProgressIndicator())
@@ -228,6 +361,14 @@ class _GuideScreenState extends State<GuideScreen> {
                           gc.load(context.read<SettingsStore>().state.server))
                 else
                   SafeArea(
+                    // Landscape puts the display cutout on ONE side, so insetting
+                    // horizontally shifts the whole scroller and the focused card
+                    // no longer sits on the screen's centre line — it reads as
+                    // "off centre". Go edge-to-edge sideways in landscape (which
+                    // is also what the cutout-strip fix asked for); the vertical
+                    // insets that matter for the status bar are kept.
+                    left: !_isLandscape(context),
+                    right: !_isLandscape(context),
                     child: Column(
                       children: [
                         // The scroller fills the area and the header overlays its
@@ -427,6 +568,82 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
+  /// Backdrop whose crossfade is driven directly by the scroll position: as the
+  /// next card approaches centre its background blends in proportionally, frame
+  /// by frame — not a fixed-duration fade fired at a threshold, which always
+  /// finished around settle and read as "changes only once it settles". With
+  /// the neighbours precached this is two resident-texture draws per frame.
+  Widget _liveBackdrop(List<EpisodeNode> nodes, String fade) {
+    if (nodes.isEmpty) return const SizedBox.shrink();
+    return ValueListenableBuilder<double>(
+      valueListenable: _scrollPos,
+      builder: (context, raw, _) {
+        final pos = raw.clamp(0.0, (nodes.length - 1).toDouble());
+        final i = pos.floor(); // pos is clamped, so i is in [0, length-1]
+        final t = (pos - i).clamp(0.0, 1.0);
+        final from = episodeBackground(nodes[i]);
+        final to =
+            i + 1 < nodes.length ? episodeBackground(nodes[i + 1]) : null;
+        final blend = _blend(fade, t);
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // BOTH images stay mounted for the whole transit, keyed by path.
+            // Mounting the incoming one at opacity 0 (rather than only once
+            // blend > 0) starts its decode while it's still invisible, so it
+            // has real pixels the instant the blend lifts. Mounting it late was
+            // what made the change appear only at settle: the decode began
+            // mid-drag and finished about when the scroll stopped.
+            if (from != null)
+              Image.asset(
+                from,
+                key: ValueKey(from),
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            if (to != null)
+              Image.asset(
+                to,
+                key: ValueKey(to),
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                opacity: AlwaysStoppedAnimation(blend),
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xCC0D0D0F),
+                    Color(0x550D0D0F),
+                    Color(0xF20D0D0F)
+                  ],
+                  stops: [0.0, 0.4, 1.0],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Map the transit fraction [t] (0 = old card centred, 1 = new card centred)
+  /// to the incoming background's opacity, per the backdrop-fade setting. All
+  /// curves are *eager* — they commit the incoming CG early in the swipe so the
+  /// change reads "as you go", not clustered near settle where a snap-spring
+  /// lingers. "none" hard-cuts almost immediately; "small" ramps in fast and is
+  /// done by ~40%; "normal" is the smoothest but still finishes well before the
+  /// card lands.
+  static double _blend(String mode, double t) => switch (mode) {
+        'none' => t < 0.15 ? 0 : 1,
+        'small' => (t / 0.4).clamp(0.0, 1.0),
+        _ => (t / 0.65).clamp(0.0, 1.0),
+      };
+
   Widget _scroller(GuideController gc, List<EpisodeNode> nodes) {
     if (nodes.isEmpty) {
       return Center(
@@ -464,19 +681,47 @@ class _GuideScreenState extends State<GuideScreen> {
           _recentreAfterRotate(gc.focusedIndex, itemExtent);
         }
 
-        return NotificationListener<ScrollEndNotification>(
-          onNotification: (_) {
-            if (_scroll.hasClients) {
-              gc.setFocused((_scroll.offset / itemExtent)
+        // Warm the decode window on first layout / whenever the node list swaps
+        // (arc change), and reset the live position to the new list's start.
+        if (!identical(_scrollNodes, nodes)) {
+          _scrollNodes = nodes;
+          _precachedCentre = -1;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _onScrollFrame(_currentPos(itemExtent, nodes.length));
+          });
+        }
+
+        return NotificationListener<ScrollNotification>(
+          onNotification: (n) {
+            // Every drag/fling tick updates the live backdrop position; settling
+            // additionally commits the focus (drives non-visual state).
+            _onScrollFrame(_currentPos(itemExtent, nodes.length));
+            final sp = _pos;
+            if (n is ScrollEndNotification && sp != null) {
+              gc.setFocused((sp.pixels / itemExtent)
                   .round()
                   .clamp(0, nodes.length - 1));
             }
             return false;
           },
           child: ListView.builder(
+            // Forces a fresh Scrollable + ScrollPosition per orientation.
+            // Scrollable only rebuilds its position when the physics
+            // runtimeType changes, and both orientations use
+            // _SnapScrollPhysics — so after a rotation it kept the PORTRAIT
+            // physics and snapped a 178px-pitch list to multiples of the ~482px
+            // portrait extent: cards landed off-centre, ~3 apart. The key makes
+            // the swap explicit; _recentreAfterRotate then restores the focus.
+            key: ValueKey(landscape),
             controller: _scroll,
             scrollDirection: landscape ? Axis.horizontal : Axis.vertical,
-            physics: _SnapScrollPhysics(itemExtent: itemExtent),
+            physics: _SnapScrollPhysics(
+              itemExtent: itemExtent,
+              // Portrait keeps its full inertia (its wide cells already limit
+              // the reach); only landscape needs damping + a one-card floor.
+              flingVelocityScale: landscape ? _landscapeFlingScale : 1.0,
+              minOneCardPerSwipe: landscape,
+            ),
             padding: padding,
             itemExtent: itemExtent,
             itemCount: nodes.length,
@@ -487,9 +732,9 @@ class _GuideScreenState extends State<GuideScreen> {
                 child: EpisodeCard(node: node, onTap: () => _open(node)),
                 builder: (context, child) {
                   var pos = gc.focusedIndex.toDouble();
-                  if (_scroll.hasClients &&
-                      _scroll.position.hasContentDimensions) {
-                    pos = _scroll.offset / itemExtent;
+                  final sp = _pos;
+                  if (sp != null && sp.hasContentDimensions) {
+                    pos = sp.pixels / itemExtent;
                   }
                   // Keep off-centre cards fully visible (no dim/fade) — they just
                   // slide past and clip cleanly at the header edge. A subtle
@@ -587,42 +832,6 @@ class _Pill extends StatelessWidget {
   }
 }
 
-class _Backdrop extends StatelessWidget {
-  final EpisodeNode? node;
-  const _Backdrop({required this.node});
-
-  @override
-  Widget build(BuildContext context) {
-    final path = node == null ? null : episodeBackground(node!);
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 350),
-      child: path == null
-          ? const SizedBox.shrink(key: ValueKey('none'))
-          : Stack(
-              key: ValueKey(path),
-              fit: StackFit.expand,
-              children: [
-                Image.asset(
-                  path,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xCC0D0D0F), Color(0x550D0D0F), Color(0xF20D0D0F)],
-                      stops: [0.0, 0.4, 1.0],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-}
-
 class _ErrorView extends StatelessWidget {
   final VoidCallback onRetry;
   const _ErrorView({required this.onRetry});
@@ -689,7 +898,12 @@ class EpisodeCard extends StatelessWidget {
             mainAxisSize: landscape ? MainAxisSize.min : MainAxisSize.max,
             children: [
               Flexible(
+                // heightFactor: 1 makes this hug the artwork instead of
+                // expanding to fill the cell. Without it the shrunken portrait
+                // artwork floats in the middle of the leftover space and the
+                // title is stranded at the bottom of the card.
                 child: Center(
+                  heightFactor: 1,
                   child: ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: imgW),
                     child: AspectRatio(
