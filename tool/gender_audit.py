@@ -40,15 +40,19 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           "Ifrit", "Magallan", "Closure", "Simone", "Vermeil", "Projekt Red",
           "Heavyrain",
           # Partial Necrosis (main_6)
-          "GreyThroat", "Sasha", "Lin Yühsia", "Petrova", "Rosmontis"}
+          "GreyThroat", "Lin Yühsia", "Petrova", "Rosmontis",
+          "Censor"}  # "Madam Censor" — 06-04_beg
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
         # Operational Intelligence (act4d0)
         "Patriot", "Hellagur", "Flamebringer", "Executor", "Scout",
         "Old Huntsman", "Reunion Blademaster",
-        # Partial Necrosis (main_6)
-        "Eno", "Elderly Male Voice"}
+        # Partial Necrosis (main_6). "Sasha" is Faust's real name (Mephisto
+        # calls him that in 06-06_beg; Faust answers "Goodbye, Eno") — MALE,
+        # i.e. Александр, not Александра. The name is unisex in Russian and the
+        # EN flashback never marks gender, so this is easy to get backwards.
+        "Eno", "Sasha", "Elderly Male Voice"}
 
 # Masculine first-person markers (explicit verb/adjective list = low false-positive).
 MASC = re.compile(r"\b(понял|готов(?!а)|уверен(?!а)|должен|виноват(?!а)|благодарен|"
