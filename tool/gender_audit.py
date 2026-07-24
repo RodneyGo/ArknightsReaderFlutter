@@ -38,13 +38,17 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           "Swire", "Blaze", "Fumizuki",
           # Operational Intelligence (act4d0)
           "Ifrit", "Magallan", "Closure", "Simone", "Vermeil", "Projekt Red",
-          "Heavyrain"}
+          "Heavyrain",
+          # Partial Necrosis (main_6)
+          "GreyThroat", "Sasha", "Lin Yühsia", "Petrova", "Rosmontis"}
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
         # Operational Intelligence (act4d0)
         "Patriot", "Hellagur", "Flamebringer", "Executor", "Scout",
-        "Old Huntsman", "Reunion Blademaster"}
+        "Old Huntsman", "Reunion Blademaster",
+        # Partial Necrosis (main_6)
+        "Eno", "Elderly Male Voice"}
 
 # Masculine first-person markers (explicit verb/adjective list = low false-positive).
 MASC = re.compile(r"\b(понял|готов(?!а)|уверен(?!а)|должен|виноват(?!а)|благодарен|"
