@@ -41,7 +41,7 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           "Heavyrain",
           # Partial Necrosis (main_6)
           "GreyThroat", "Lin Yühsia", "Petrova", "Rosmontis",
-          "Censor"}  # "Madam Censor" — 06-04_beg
+          "Censor", "Nine"}  # "Madam Censor" — 06-04_beg; Nine (ex-L.G.D.) F
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
