@@ -21,3 +21,6 @@ pubspec.lock
 
 # Misc
 .DS_Store
+
+# gender_audit.py story-source cache
+tool/.src_cache/

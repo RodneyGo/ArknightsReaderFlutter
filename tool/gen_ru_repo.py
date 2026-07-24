@@ -25,14 +25,11 @@ import json
 import os
 import shutil
 
-# Legacy source: the original web app's ru folder, which is still where the
-# overlays are authored. It lives inside the ArknightsStoryTextReader checkout
-# next to this project; override with --src if that checkout moves.
+# Authoring source: flat overlays keyed by their internal `path` field, plus the
+# glossary and the rules/style docs. Edit these; `translations/ru/` below is
+# generated from them and is wiped on every run.
 DEFAULT_SRC = os.path.join(
-    os.path.dirname(__file__),
-    "..", "..",
-    "ArknightsReaderAPK", "ArknightsStoryTextReader",
-    "BetterPhoneReader", "src", "data", "ru",
+    os.path.dirname(__file__), "..", "translations", "ru_src",
 )
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
