@@ -25,10 +25,13 @@ import json
 import os
 import shutil
 
-# Legacy source: the original web app's ru folder.
+# Legacy source: the original web app's ru folder, which is still where the
+# overlays are authored. It lives inside the ArknightsStoryTextReader checkout
+# next to this project; override with --src if that checkout moves.
 DEFAULT_SRC = os.path.join(
     os.path.dirname(__file__),
     "..", "..",
+    "ArknightsReaderAPK", "ArknightsStoryTextReader",
     "BetterPhoneReader", "src", "data", "ru",
 )
 
