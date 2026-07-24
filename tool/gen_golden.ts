@@ -6,9 +6,17 @@
 // Run from anywhere with tsx (Node): `npx tsx tool/gen_golden.ts`
 // Requires the original TS project checked out at TS_PARSE below.
 //
-// NOTE: paths are absolute to this machine's layout. Update TS_PARSE / CACHE if
-// the original project moves. The canonical `canon()` shape MUST stay in sync
-// with `canon()` in test/golden_test.dart.
+// RETIRED: the Vue app this reads from is obsolete — the port is finished and
+// Flutter is the only reader. The fixtures in test/fixtures/ are committed, and
+// test/golden_test.dart reads ONLY those, so the suite does not need the TS
+// checkout and nothing breaks if it is deleted. This script exists to document
+// how the goldens were produced; it can only be re-run while that checkout is
+// still on disk. Treat the fixtures as frozen regression goldens: if Dart
+// behaviour must change, hand-edit them and say why, rather than restoring the
+// old app to regenerate.
+//
+// NOTE: paths are absolute to this machine's layout. The canonical `canon()`
+// shape MUST stay in sync with `canon()` in test/golden_test.dart.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 

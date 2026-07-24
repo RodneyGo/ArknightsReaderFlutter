@@ -3,10 +3,16 @@
 //   npx tsx tool/gen_guide_golden.ts
 //
 // Outputs:
-//   assets/guide_data.json            = { arcs: ARCS, noteRu: NOTE_RU } (source of truth)
+//   assets/guide_data.json            = { arcs: ARCS, noteRu: NOTE_RU }
 //   test/fixtures/guide_categories.json = categories input (built from the real table)
 //   test/fixtures/guide_build.golden.json = buildGuide(categories) canonicalized
 //   test/fixtures/guide_locations.golden.json = describeGuideLocation for sample txts
+//
+// RETIRED: the Vue app GUIDE_TS reads from is obsolete — the port is finished.
+// assets/guide_data.json is therefore now the SOURCE OF TRUTH for the reading
+// guide (arcs, entries, notes): edit that JSON directly. It is no longer a
+// generated mirror of guide.ts, and re-running this script would overwrite such
+// edits with whatever the retired app still contains.
 //
 // guide.ts imports menu.ts only as `import type`, so it loads standalone here.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
