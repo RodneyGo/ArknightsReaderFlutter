@@ -181,6 +181,40 @@ void main() {
             '(was ~180px when the artwork expanded to fill the cell)');
   });
 
+  testWidgets('portrait episodes sit close together, not a screen apart',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.reset);
+
+    final gc = GuideController()..setGuide(_guide());
+    await tester.pumpWidget(_app(gc));
+    await tester.pump(const Duration(milliseconds: 16));
+
+    // Measure ARTWORK to ARTWORK. EpisodeCard fills the whole cell, so adjacent
+    // cards are always flush no matter how much dead space is inside them — the
+    // empty space the user sees lives within each cell.
+    //
+    // Cell height was a fixed 0.72 of the viewport while the card only needs
+    // its artwork + caption, so shrinking the artwork to 70% width opened a
+    // ~315px void between episodes. The cell now hugs the card.
+    final cards = find.byType(EpisodeCard);
+    expect(tester.widgetList(cards).length, greaterThanOrEqualTo(2));
+
+    Rect artOf(int i) => tester.getRect(
+        find.descendant(of: cards.at(i), matching: find.byType(AspectRatio)).first);
+
+    final art0 = artOf(0);
+    final pitch = artOf(1).top - art0.top;
+    // Everything the card actually draws: artwork + title + bar + padding.
+    final content = art0.height + 72;
+    final gap = pitch - content;
+
+    expect(gap, greaterThanOrEqualTo(-1.0), reason: 'cards must not overlap');
+    expect(gap, lessThan(40.0),
+        reason: 'episodes must sit close together; dead space was $gap');
+  });
+
   testWidgets('backdrop is fully swapped once settled on the next card',
       (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);

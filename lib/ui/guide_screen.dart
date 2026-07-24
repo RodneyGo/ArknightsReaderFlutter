@@ -59,6 +59,16 @@ const _headerBottomPad = 20.0;
 const _landscapeCardWidth = 158.0;
 const _landscapeCardGap = 20.0;
 
+// Portrait card geometry. The scroller sizes its cell from these so the cell
+// hugs the card: a fixed fraction of the viewport left a ~125px void between
+// episodes once the artwork was shrunk to 70% width. EpisodeCard uses the same
+// constants, so the two can't drift apart.
+const _cardAspect = 0.84; // artwork w/h
+const _portraitCardHPad = 16.0; // per side
+const _portraitArtFraction = 0.7; // artwork width as a share of the card
+/// Title + gaps + progress bar + the card's vertical padding, under the art.
+const _portraitCardChrome = 72.0;
+
 /// Fling damping for the landscape scroller — it keeps a sense of throw while
 /// pulling the reach back to portrait's. The narrow landscape pitch made raw
 /// momentum overshoot badly (measured cards crossed per flick):
@@ -669,7 +679,13 @@ class _GuideScreenState extends State<GuideScreen> {
         } else {
           final h = constraints.maxHeight;
           final visibleH = h - headerH; // area below the overlaid header
-          itemExtent = visibleH * 0.72;
+          // Cell = the card's natural height, so consecutive episodes sit close
+          // together instead of floating in a tall empty cell.
+          final artW =
+              (constraints.maxWidth - _portraitCardHPad * 2) *
+                  _portraitArtFraction;
+          itemExtent =
+              (artW / _cardAspect + _portraitCardChrome).clamp(120.0, visibleH);
           // Centre the focused card in the VISIBLE area (below the header); a
           // card still scrolls up into the header band as it exits.
           final topPad = headerH + (visibleH - itemExtent) / 2;
@@ -885,13 +901,15 @@ class EpisodeCard extends StatelessWidget {
       child: Padding(
       padding: landscape
           ? const EdgeInsets.symmetric(horizontal: _landscapeCardGap / 2, vertical: 8)
-          : const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          : const EdgeInsets.symmetric(
+              horizontal: _portraitCardHPad, vertical: 8),
       child: LayoutBuilder(
         builder: (context, cons) {
           // Portrait shrinks the artwork ~30% (it filled too much of the cell);
           // landscape keeps its fixed card width. The bar tracks the artwork
           // width, a touch narrower.
-          final imgW = landscape ? cons.maxWidth : cons.maxWidth * 0.7;
+          final imgW =
+              landscape ? cons.maxWidth : cons.maxWidth * _portraitArtFraction;
           final barW = imgW * 0.94;
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -907,7 +925,7 @@ class EpisodeCard extends StatelessWidget {
                   child: ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: imgW),
                     child: AspectRatio(
-                      aspectRatio: 0.84,
+                      aspectRatio: _cardAspect,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: DecoratedBox(
@@ -1209,6 +1227,17 @@ class _NotesPanel extends StatelessWidget {
   final VoidCallback onClose;
   const _NotesPanel({required this.node, required this.onClose});
 
+  /// The chapter a sub-story points at, or null when the guide's name couldn't
+  /// be matched to one (SubStory.txt is null then) — those chips stay inert.
+  Story? _storyFor(SubStory ss) {
+    final txt = ss.txt;
+    if (txt == null) return null;
+    for (final s in node.event?.stories ?? const <Story>[]) {
+      if (s.txt == txt) return s;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Guide notes have bundled Russian (NOTE_RU); localize them by UI language.
@@ -1257,11 +1286,10 @@ class _NotesPanel extends StatelessWidget {
                     runSpacing: 8,
                     children: [
                       for (final ss in subs)
-                        Chip(
-                          label: Text('▸ ${ss.name}',
-                              style: const TextStyle(fontSize: 12)),
-                          backgroundColor: Colors.white10,
-                          side: BorderSide.none,
+                        _SubStoryChip(
+                          name: ss.name,
+                          story: _storyFor(ss),
+                          onOpen: onClose,
                         ),
                     ],
                   ),
@@ -1274,6 +1302,65 @@ class _NotesPanel extends StatelessWidget {
                   child: TextButton(
                       onPressed: onClose, child: Text(context.l('close'))),
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A sub-story shortcut in the notes panel: tap to jump straight to that
+/// chapter. Chips whose guide name didn't resolve to a chapter ([story] null)
+/// are dimmed and inert, so they don't read as broken buttons.
+class _SubStoryChip extends StatelessWidget {
+  final String name;
+  final Story? story;
+
+  /// Closes the notes panel before navigating, so returning from the reader
+  /// doesn't land back under the overlay.
+  final VoidCallback onOpen;
+
+  const _SubStoryChip({
+    required this.name,
+    required this.story,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final target = story;
+    final enabled = target != null;
+    final status = enabled
+        ? context.watch<ProgressStore>().statusOf(target.txt)
+        : ReadStatus.unread;
+    return Opacity(
+      opacity: enabled ? 1 : 0.45,
+      child: Material(
+        color: Colors.white10,
+        shape: const StadiumBorder(),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: enabled
+              ? () {
+                  onOpen();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => ReaderScreen(story: target)),
+                  );
+                }
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('▸ ',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: enabled ? _statusColor(status) : Colors.white38)),
+                Text(name, style: const TextStyle(fontSize: 12)),
               ],
             ),
           ),
