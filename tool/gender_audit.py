@@ -119,7 +119,10 @@ def main():
         "Роудс": "Rhodes Island", "Айленд": "Rhodes Island",
         "Урсус": "Ursus", "Казимеж": "Kazimierz", "Лунмен": "Lungmen",
         "Виктори": "Victoria", "Пингвин": "Penguin Logistics",
-        "Блэкстил": "Blacksteel", "Рейн": "Rhine Lab",
+        "Блэкстил": "Blacksteel", "Рейн Лаб": "Rhine Lab",
+        # NB: the Rhine Lab stem is "Рейн Лаб", not a bare "Рейн" — the latter
+        # is a substring of the operator name "Рейнджеры" (Rangers) and fired a
+        # false positive on main_6 06-14. Rhine Lab is always kept Latin anyway.
     }
 
     gender, gloss, place, token = [], [], [], []
