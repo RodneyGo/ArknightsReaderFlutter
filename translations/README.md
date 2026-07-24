@@ -25,11 +25,33 @@ python tool/gen_ru_repo.py --bump
 ```
 
 `--bump` increments the index `version`. **Pass it whenever any overlay changed**
-— that's what makes already-installed clients revalidate. Without it the version
-is kept, so edits can go unnoticed by clients that cached the old index.
+— that's what makes already-installed clients revalidate. `refreshIndex()` bails
+out on `idx.version == _index.version`, so without a bump clients fetch the new
+index, see the same version and *discard it* — the work never reaches anyone.
 
-Commit `ru_src/`, `ru/`, `ru_index.json` and `assets/ru_index.json` together, or
-the index hashes won't match the overlays being served.
+4. Commit `ru_src/`, `ru/`, `ru_index.json` and `assets/ru_index.json` together
+   (or the index hashes won't match the overlays being served) and push to `main`.
+5. **Purge the CDN — publishing is not finished without this:**
+
+```bash
+python tool/purge_ru_cdn.py
+```
+
+## Why the purge step exists
+
+The app fetches from jsDelivr (`cdn.jsdelivr.net/gh/<repo>@main/translations`), so
+pushing to `main` is what "publishes" — there is no CI and no app release needed.
+But **jsDelivr caches `@main` URLs for hours**, and the two failure modes are
+asymmetric:
+
+- a **brand-new overlay** is served immediately (nothing cached to be stale);
+- **`ru_index.json` is served from cache**, still listing the old set.
+
+Since the index is the switch — `overlayFor()` returns null for any path the index
+doesn't list — a stale index makes the new chapters invisible even though their
+files are already downloadable. The push looks successful and nothing appears.
+`purge_ru_cdn.py` clears the index plus the overlays changed in HEAD, then
+verifies the live index version matches the local one.
 
 ## Coverage
 
