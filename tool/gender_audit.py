@@ -41,7 +41,9 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           "Heavyrain",
           # Partial Necrosis (main_6)
           "GreyThroat", "Lin Yühsia", "Petrova", "Rosmontis",
-          "Censor", "Nine"}  # "Madam Censor" — 06-04_beg; Nine (ex-L.G.D.) F
+          "Censor", "Nine",  # "Madam Censor" — 06-04_beg; Nine (ex-L.G.D.) F
+          # Darknights Memoir (act9d0)
+          "Ines", "Theresa", "Disheveled Sarkaz Woman"}  # last = W in disguise
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
@@ -52,7 +54,9 @@ MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captai
         # calls him that in 06-06_beg; Faust answers "Goodbye, Eno") — MALE,
         # i.e. Александр, not Александра. The name is unisex in Russian and the
         # EN flashback never marks gender, so this is easy to get backwards.
-        "Eno", "Sasha", "Elderly Male Voice"}
+        "Eno", "Sasha", "Elderly Male Voice",
+        # Darknights Memoir (act9d0)
+        "Hoederer", "Confessarius"}
 
 # Masculine first-person markers (explicit verb/adjective list = low false-positive).
 MASC = re.compile(r"\b(понял|готов(?!а)|уверен(?!а)|должен|виноват(?!а)|благодарен|"
