@@ -43,7 +43,9 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           "GreyThroat", "Lin Yühsia", "Petrova", "Rosmontis",
           "Censor", "Nine",  # "Madam Censor" — 06-04_beg; Nine (ex-L.G.D.) F
           # Darknights Memoir (act9d0)
-          "Ines", "Theresa", "Disheveled Sarkaz Woman"}  # last = W in disguise
+          "Ines", "Theresa", "Disheveled Sarkaz Woman",  # last = W in disguise
+          # The Birth of Tragedy (main_7)
+          "Warfarin", "Tatiana", "Firewatch", "Greytail", "Daughter", "Wife"}
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
@@ -60,13 +62,15 @@ MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captai
 
 # Masculine first-person markers (explicit verb/adjective list = low false-positive).
 MASC = re.compile(r"\b(понял|готов(?!а)|уверен(?!а)|должен|виноват(?!а)|благодарен|"
-                  r"обязан(?!а)|рад(?!а)|ждал|хотел|сказал|думал|решил|пришёл|пришел|"
+                  r"обязан(?!а)|рад(?!а)|ждал|хотел|сказал|говорил|думал|решил|пришёл|пришел|"
                   r"вернулся|вспомнил|разглядел|разозлил|закончил|увидел|доверил|"
-                  r"просил|потерял|видел(?!а)|свидетелем|полон|напугал(?!а)|испугал(?!а))\b")
+                  r"просил|потерял|видел(?!а)|свидетелем|полон|напугал(?!а)|испугал(?!а)|"
+                  r"впечатлён|впечатлен|признателен|намерен(?!а)|вынужден(?!а))\b")
 FEM = re.compile(r"\b(поняла|готова|уверена|должна|виновата|благодарна|обязана|рада|"
-                 r"ждала|хотела|сказала|думала|решила|пришла|вернулась|вспомнила|"
+                 r"ждала|хотела|сказала|говорила|думала|решила|пришла|вернулась|вспомнила|"
                  r"разглядела|разозлила|закончила|увидела|доверила|просила|потеряла|"
-                 r"видела|свидетельницей|полна|напугала|испугала)\b")
+                 r"видела|свидетельницей|полна|напугала|испугала|"
+                 r"впечатлена|признательна|намерена|вынуждена)\b")
 
 
 def sex(name):
