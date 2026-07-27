@@ -1,4 +1,4 @@
-// Widget smoke test for the guide screen. Uses a seeded GuideController (no
+// Widget smoke test for the main menu screen. Uses a seeded MainMenuController (no
 // network); the ember layer animates forever so we pump fixed frames.
 
 import 'package:flutter/material.dart';
@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'dart:io';
 
-import 'package:ak_reader/data/guide.dart';
+import 'package:ak_reader/data/main_menu.dart';
 import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/data/offline.dart';
 import 'package:ak_reader/data/ru.dart';
@@ -20,11 +20,11 @@ import 'package:ak_reader/stores/progress_store.dart';
 import 'package:ak_reader/stores/settings_store.dart';
 import 'package:ak_reader/ui/ash_fx.dart';
 import 'package:ak_reader/ui/download_queue.dart';
-import 'package:ak_reader/ui/guide_controller.dart';
-import 'package:ak_reader/ui/guide_screen.dart';
+import 'package:ak_reader/ui/main_menu_controller.dart';
+import 'package:ak_reader/ui/main_menu_screen.dart';
 import 'package:ak_reader/ui/reader_screen.dart';
 
-Guide _fakeGuide() {
+MainMenu _fakeMainMenu() {
   EventGroup ev(String n) => EventGroup(
         id: n,
         name: n,
@@ -38,7 +38,7 @@ Guide _fakeGuide() {
         episodeIndex: 0,
         forceOptional: false,
       );
-  return Guide(
+  return MainMenu(
     mainArcs: [
       Storyline(
         name: 'Arc 1',
@@ -51,10 +51,10 @@ Guide _fakeGuide() {
   );
 }
 
-/// The guide screen under the same provider tree main() builds. [offline] is
+/// The main menu screen under the same provider tree main() builds. [offline] is
 /// null by default (download UI hidden — as on web), so tests that don't care
 /// about downloads stay focused.
-Widget _app(GuideController gc,
+Widget _app(MainMenuController gc,
         {Offline? offline, ProgressStore? progress, TrailerStore? trailers}) =>
     MultiProvider(
       providers: [
@@ -82,13 +82,13 @@ Widget _app(GuideController gc,
             ctx.read<OfflineStore>(),
           ),
         ),
-        ChangeNotifierProvider<GuideController>.value(value: gc),
+        ChangeNotifierProvider<MainMenuController>.value(value: gc),
       ],
-      child: const MaterialApp(home: GuideScreen()),
+      child: const MaterialApp(home: MainMenuScreen()),
     );
 
-/// Guide tree with an explicit language + RU index, for the marker tests.
-Widget _ruApp(GuideController gc,
+/// Main-menu tree with an explicit language + RU index, for the marker tests.
+Widget _ruApp(MainMenuController gc,
     {required String server, required List<String> translated}) {
   final settings = SettingsStore(MemoryKeyValueStore())
     ..set(const SettingsState().copyWith(server: server));
@@ -106,9 +106,9 @@ Widget _ruApp(GuideController gc,
           create: (_) => ProgressStore(MemoryKeyValueStore())),
       ChangeNotifierProvider<OfflineStore>(
           create: (_) => OfflineStore(MemoryKeyValueStore())),
-      ChangeNotifierProvider<GuideController>.value(value: gc),
+      ChangeNotifierProvider<MainMenuController>.value(value: gc),
     ],
-    child: const MaterialApp(home: GuideScreen()),
+    child: const MaterialApp(home: MainMenuScreen()),
   );
 }
 
@@ -117,7 +117,7 @@ void main() {
     // 'Evil Time' -> chapter 'Evil Time-1'; 'Roaring Flare' -> 'Roaring Flare-1'.
     testWidgets('shows on a fully-translated episode in Russian',
         (tester) async {
-      final gc = GuideController()..setGuide(_fakeGuide());
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
       await tester.pumpWidget(_ruApp(gc,
           server: 'ru', translated: ['Evil Time-1', 'Roaring Flare-1']));
       await tester.pump(const Duration(milliseconds: 16));
@@ -125,7 +125,7 @@ void main() {
     });
 
     testWidgets('hidden when the language is not Russian', (tester) async {
-      final gc = GuideController()..setGuide(_fakeGuide());
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
       await tester.pumpWidget(_ruApp(gc,
           server: 'en_US', translated: ['Evil Time-1', 'Roaring Flare-1']));
       await tester.pump(const Duration(milliseconds: 16));
@@ -134,7 +134,7 @@ void main() {
 
     testWidgets('hidden when the episode is only partially translated',
         (tester) async {
-      final gc = GuideController()..setGuide(_fakeGuide());
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
       // Only 'Evil Time' translated; 'Roaring Flare-1' missing.
       await tester.pumpWidget(
           _ruApp(gc, server: 'ru', translated: ['Evil Time-1']));
@@ -146,7 +146,7 @@ void main() {
 
   group('UI localization', () {
     testWidgets('the menu is Russian when the language is ru', (tester) async {
-      final gc = GuideController()..setGuide(_fakeGuide());
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
       await tester.pumpWidget(_ruApp(gc, server: 'ru', translated: const []));
       await tester.pump(const Duration(milliseconds: 16));
       // '☰ Story List' -> '☰ Список историй'
@@ -155,16 +155,16 @@ void main() {
     });
 
     testWidgets('the menu is English for other languages', (tester) async {
-      final gc = GuideController()..setGuide(_fakeGuide());
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
       await tester.pumpWidget(_ruApp(gc, server: 'en_US', translated: const []));
       await tester.pump(const Duration(milliseconds: 16));
       expect(find.text('☰ Story List'), findsOneWidget);
     });
   });
 
-  testWidgets('guide screen renders episode cards + ambient layer',
+  testWidgets('main menu screen renders episode cards + ambient layer',
       (tester) async {
-    final gc = GuideController()..setGuide(_fakeGuide());
+    final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
     await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
     await tester.pump(const Duration(milliseconds: 16));
@@ -183,7 +183,7 @@ void main() {
 
   testWidgets('the episode reading bar fill reflects saved progress',
       (tester) async {
-    final gc = GuideController()..setGuide(_fakeGuide());
+    final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
     final progress = ProgressStore(MemoryKeyValueStore());
     // 'Evil Time' has one chapter 'Evil Time-1'; half-read -> a 0.5 fill.
     progress.savePercent('Evil Time-1', 0.5);
@@ -203,9 +203,9 @@ void main() {
           ChangeNotifierProvider<ProgressStore>.value(value: progress),
           ChangeNotifierProvider<OfflineStore>(
               create: (_) => OfflineStore(MemoryKeyValueStore())),
-          ChangeNotifierProvider<GuideController>.value(value: gc),
+          ChangeNotifierProvider<MainMenuController>.value(value: gc),
         ],
-        child: const MaterialApp(home: GuideScreen()),
+        child: const MaterialApp(home: MainMenuScreen()),
       ),
     );
     await tester.pump(const Duration(milliseconds: 16));
@@ -221,7 +221,7 @@ void main() {
 
   testWidgets('tapping a card opens the chapter drill-down; back closes it',
       (tester) async {
-    final gc = GuideController()..setGuide(_fakeGuide());
+    final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
     await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -244,7 +244,7 @@ void main() {
     // Time') but not the second ('Roaring Flare').
     final trailers = TrailerStore(store: null)
       ..setIndexForTest(const TrailerIndex(1, {'Evil Time': 'dQw4w9WgXcQ'}));
-    final gc = GuideController()..setGuide(_fakeGuide());
+    final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
     await tester.pumpWidget(_app(gc, trailers: trailers));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -262,7 +262,7 @@ void main() {
 
   testWidgets('no trailer button when the event has no trailer',
       (tester) async {
-    final gc = GuideController()..setGuide(_fakeGuide());
+    final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
     await tester.pumpWidget(_app(gc)); // default: empty trailer index
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -274,7 +274,7 @@ void main() {
   });
 
   testWidgets('tapping a chapter row opens the reader', (tester) async {
-    final gc = GuideController()..setGuide(_fakeGuide());
+    final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
     await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -315,7 +315,7 @@ void main() {
 
     testWidgets('an undownloaded episode shows the download icon',
         (tester) async {
-      final gc = GuideController()..setGuide(_fakeGuide());
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
       await tester.pumpWidget(_app(gc, offline: offline));
       await tester.pump(const Duration(milliseconds: 16));
 
@@ -324,7 +324,7 @@ void main() {
 
     testWidgets('long-pressing an episode opens the verify sheet',
         (tester) async {
-      final gc = GuideController()..setGuide(_fakeGuide());
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
       await tester.pumpWidget(_app(gc, offline: offline));
       await tester.pump(const Duration(milliseconds: 16));
 
@@ -340,7 +340,7 @@ void main() {
     });
 
     testWidgets('the sheet can mark the episode read', (tester) async {
-      final gc = GuideController()..setGuide(_fakeGuide());
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
       final progress = ProgressStore(MemoryKeyValueStore());
       await tester.pumpWidget(_app(gc, offline: offline, progress: progress));
       await tester.pump(const Duration(milliseconds: 16));

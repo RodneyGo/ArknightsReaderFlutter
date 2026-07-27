@@ -1,18 +1,18 @@
-// Guide screen state: fetches the chapter menu, builds the reading guide, and
+// Main-menu screen state: fetches the chapter menu, builds the main menu, and
 // tracks the selected storyline / arc / focused episode. A ChangeNotifier so the
 // screen rebuilds on change; the menu fetch is injectable so tests don't hit the
 // network.
 
 import 'package:flutter/foundation.dart';
 
-import '../data/guide.dart';
+import '../data/main_menu.dart';
 import '../data/menu.dart';
 
-class GuideController extends ChangeNotifier {
+class MainMenuController extends ChangeNotifier {
   final Future<Menu> Function(String server) _fetchMenu;
   final Future<Menu?> Function(String server) _refreshMenu;
 
-  GuideController({
+  MainMenuController({
     Future<Menu> Function(String server)? fetchMenu,
     Future<Menu?> Function(String server)? refreshMenu,
   })  : _fetchMenu = fetchMenu ?? getMenu,
@@ -21,21 +21,21 @@ class GuideController extends ChangeNotifier {
   /// Default background revalidator (tear-off wrapper so the field can name it).
   static Future<Menu?> refreshMenu_(String server) => refreshMenu(server);
 
-  Guide? _guide;
+  MainMenu? _mainMenu;
   Object? _error;
   bool _loading = false;
   int _storyline = 0; // 0 = Main Story; else sideStorylines[_storyline - 1]
   int _arc = 0; // active main-story arc (only when Main Story is selected)
   int _focused = 0; // focused episode within the current node list
 
-  Guide? get guide => _guide;
+  MainMenu? get mainMenu => _mainMenu;
   Object? get error => _error;
   bool get loading => _loading;
   int get storylineIndex => _storyline;
   int get arcIndex => _arc;
   int get focusedIndex => _focused;
   bool get isMainStory => _storyline == 0;
-  int get arcCount => _guide?.mainArcs.length ?? 0;
+  int get arcCount => _mainMenu?.mainArcs.length ?? 0;
 
   Future<void> load(String server) async {
     _loading = true;
@@ -43,9 +43,9 @@ class GuideController extends ChangeNotifier {
     notifyListeners();
     try {
       // Cache-first: this returns instantly from disk when available, so the
-      // guide renders offline; the network revalidation runs behind it.
+      // main menu renders offline; the network revalidation runs behind it.
       final menu = await _fetchMenu(server);
-      _guide = buildGuide(menu.categories);
+      _mainMenu = buildMainMenu(menu.categories);
     } catch (e) {
       _error = e;
     } finally {
@@ -61,7 +61,7 @@ class GuideController extends ChangeNotifier {
     try {
       final fresh = await _refreshMenu(server);
       if (fresh == null) return; // nothing new
-      _guide = buildGuide(fresh.categories);
+      _mainMenu = buildMainMenu(fresh.categories);
       notifyListeners();
     } catch (_) {
       // offline / transient — keep the rendered cache
@@ -69,8 +69,8 @@ class GuideController extends ChangeNotifier {
   }
 
   @visibleForTesting
-  void setGuide(Guide g) {
-    _guide = g;
+  void setMainMenu(MainMenu g) {
+    _mainMenu = g;
     _error = null;
     _loading = false;
     notifyListeners();
@@ -78,13 +78,13 @@ class GuideController extends ChangeNotifier {
 
   /// Bottom-selector labels: one "Main Story" item + each side storyline.
   List<String> get selectorLabels {
-    final g = _guide;
+    final g = _mainMenu;
     if (g == null) return const [];
     return ['Main Story', for (final s in g.sideStorylines) s.name];
   }
 
   List<EpisodeNode> get currentNodes {
-    final g = _guide;
+    final g = _mainMenu;
     if (g == null) return const [];
     if (_storyline == 0) {
       if (g.mainArcs.isEmpty) return const [];

@@ -39,7 +39,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/guide_data.json
+    - assets/main_menu_data.json
+    - assets/Music/
     # RU translation index only (fallback for first-run-offline); the overlays
     # themselves are fetched from GitHub — see lib/data/ru.dart.
     - assets/ru_index.json

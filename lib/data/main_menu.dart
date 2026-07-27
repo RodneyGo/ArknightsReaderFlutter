@@ -1,9 +1,9 @@
-// Story Guide structure (Method 3 — arc/storyline order) from the community
+// Main-menu structure (Method 3 — arc/storyline order) from the community
 // reading guide. Ported from BetterPhoneReader/src/data/guide.ts.
 //
 // The large static data (the `ARCS` reading order + the `NOTE_RU` Russian note
 // translations) is NOT hand-transcribed — it's generated straight from the TS
-// into assets/guide_data.json by tool/gen_guide_golden.ts and parsed here, so
+// into assets/main_menu_data.json by tool/gen_mainMenu_golden.ts and parsed here, so
 // there's zero transcription risk. Only the matching/annotation LOGIC is ported.
 //
 // Entries are matched to in-game events by normalized name at runtime; unmatched
@@ -16,17 +16,17 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import 'menu.dart';
 
-// --- static guide data (loaded from the generated asset) ---
+// --- static main menu data (loaded from the generated asset) ---
 
-class GuideEntry {
+class MainMenuEntry {
   final String title;
   final bool optional;
   final bool isIS; // Integrated Strategies — informational node only (TS `is`)
   final String? lead; // reading-order recommendation shown above the entry
-  final String? note; // guide note shown under the entry
+  final String? note; // main menu note shown under the entry
   final List<String> stories; // named sub-stories worth reading
 
-  const GuideEntry({
+  const MainMenuEntry({
     required this.title,
     this.optional = false,
     this.isIS = false,
@@ -35,7 +35,7 @@ class GuideEntry {
     this.stories = const [],
   });
 
-  factory GuideEntry.fromJson(Map<String, dynamic> j) => GuideEntry(
+  factory MainMenuEntry.fromJson(Map<String, dynamic> j) => MainMenuEntry(
         title: j['title'] as String,
         optional: j['optional'] == true,
         isIS: j['is'] == true,
@@ -45,62 +45,62 @@ class GuideEntry {
       );
 }
 
-class GuideArc {
+class MainMenuArc {
   final String name;
   final bool main;
   final String status; // "ongoing" | "complete"
-  final List<GuideEntry> entries;
+  final List<MainMenuEntry> entries;
 
-  const GuideArc({
+  const MainMenuArc({
     required this.name,
     this.main = false,
     required this.status,
     required this.entries,
   });
 
-  factory GuideArc.fromJson(Map<String, dynamic> j) => GuideArc(
+  factory MainMenuArc.fromJson(Map<String, dynamic> j) => MainMenuArc(
         name: j['name'] as String,
         main: j['main'] == true,
         status: j['status'] as String,
         entries: [
           for (final e in (j['entries'] as List))
-            GuideEntry.fromJson((e as Map).cast<String, dynamic>()),
+            MainMenuEntry.fromJson((e as Map).cast<String, dynamic>()),
         ],
       );
 }
 
-/// Loaded guide data. Populated by [loadGuide] (app) or [setGuideData] (tests).
-List<GuideArc> guideArcs = const [];
-Map<String, String> guideNoteRu = const {};
+/// Loaded main menu data. Populated by [loadMainMenu] (app) or [setMainMenuData] (tests).
+List<MainMenuArc> mainMenuArcs = const [];
+Map<String, String> mainMenuNoteRu = const {};
 
-/// Parse the generated guide_data.json into (arcs, noteRu).
-(List<GuideArc>, Map<String, String>) parseGuideData(Map<String, dynamic> json) {
+/// Parse the generated main_menu_data.json into (arcs, noteRu).
+(List<MainMenuArc>, Map<String, String>) parseMainMenuData(Map<String, dynamic> json) {
   final arcs = [
     for (final a in (json['arcs'] as List))
-      GuideArc.fromJson((a as Map).cast<String, dynamic>()),
+      MainMenuArc.fromJson((a as Map).cast<String, dynamic>()),
   ];
   final ru = (json['noteRu'] as Map).map((k, v) => MapEntry('$k', '$v'));
   return (arcs, ru);
 }
 
-void setGuideData((List<GuideArc>, Map<String, String>) data) {
-  guideArcs = data.$1;
-  guideNoteRu = data.$2;
+void setMainMenuData((List<MainMenuArc>, Map<String, String>) data) {
+  mainMenuArcs = data.$1;
+  mainMenuNoteRu = data.$2;
 }
 
-/// Load the guide data asset (call once at startup).
-Future<void> loadGuide() async {
-  final s = await rootBundle.loadString('assets/guide_data.json');
-  setGuideData(parseGuideData(jsonDecode(s) as Map<String, dynamic>));
+/// Load the main menu data asset (call once at startup).
+Future<void> loadMainMenu() async {
+  final s = await rootBundle.loadString('assets/main_menu_data.json');
+  setMainMenuData(parseMainMenuData(jsonDecode(s) as Map<String, dynamic>));
 }
 
-/// Localize a guide note for the given UI language.
+/// Localize a main menu note for the given UI language.
 String? localizeNote(String? note, String lang) {
   if (note == null) return note;
-  return lang == 'ru' ? (guideNoteRu[note] ?? note) : note;
+  return lang == 'ru' ? (mainMenuNoteRu[note] ?? note) : note;
 }
 
-// --- resolved / v2 guide models ---
+// --- resolved / v2 main menu models ---
 
 class SubStory {
   final String name;
@@ -108,7 +108,7 @@ class SubStory {
   const SubStory(this.name, this.txt);
 }
 
-class GuideNode {
+class MainMenuNode {
   final String title;
   final bool optional;
   final bool isIS;
@@ -117,7 +117,7 @@ class GuideNode {
   final EventGroup? event;
   final List<SubStory>? subStories;
 
-  const GuideNode({
+  const MainMenuNode({
     required this.title,
     this.optional = false,
     this.isIS = false,
@@ -132,7 +132,7 @@ class ResolvedArc {
   final String name;
   final bool main;
   final String status;
-  final List<GuideNode> nodes;
+  final List<MainMenuNode> nodes;
   const ResolvedArc({
     required this.name,
     required this.main,
@@ -141,8 +141,8 @@ class ResolvedArc {
   });
 }
 
-/// A guide node enriched for the v2 guide screen.
-class EpisodeNode extends GuideNode {
+/// A main menu node enriched for the v2 main menu screen.
+class EpisodeNode extends MainMenuNode {
   /// The matched event is a Main Story (maintheme) episode.
   final bool isEpisode;
 
@@ -180,10 +180,10 @@ class Storyline {
   });
 }
 
-class Guide {
+class MainMenu {
   final List<Storyline> mainArcs;
   final List<Storyline> sideStorylines;
-  const Guide({required this.mainArcs, required this.sideStorylines});
+  const MainMenu({required this.mainArcs, required this.sideStorylines});
 }
 
 class ChapterLocation {
@@ -201,7 +201,7 @@ class ChapterLocation {
   });
 }
 
-// --- matching guide titles to in-game events ---
+// --- matching main menu titles to in-game events ---
 
 final _prefix =
     RegExp(r'^(prologue|episode\s*\d+)\s*[:\-]\s*', caseSensitive: false);
@@ -219,7 +219,7 @@ String _norm(String s) {
   return out.trim();
 }
 
-List<ResolvedArc> resolveGuide(List<Category> categories) {
+List<ResolvedArc> resolveMainMenu(List<Category> categories) {
   final index = <String, EventGroup>{};
   for (final cat in categories) {
     for (final ev in cat.events) {
@@ -243,12 +243,12 @@ List<ResolvedArc> resolveGuide(List<Category> categories) {
   }
 
   final result = <ResolvedArc>[];
-  for (final arc in guideArcs) {
-    final nodes = <GuideNode>[];
+  for (final arc in mainMenuArcs) {
+    final nodes = <MainMenuNode>[];
     for (final entry in arc.entries) {
       if (entry.isIS) {
         // Integrated Strategies: informational only (not in story data).
-        nodes.add(GuideNode(
+        nodes.add(MainMenuNode(
             title: entry.title, isIS: true, lead: entry.lead, note: entry.note));
         continue;
       }
@@ -261,7 +261,7 @@ List<ResolvedArc> resolveGuide(List<Category> categories) {
             SubStory(name, _matchSubStory(event, name)),
         ];
       }
-      nodes.add(GuideNode(
+      nodes.add(MainMenuNode(
         title: entry.title,
         optional: entry.optional,
         lead: entry.lead,
@@ -285,10 +285,10 @@ String? _matchSubStory(EventGroup event, String name) {
   return null;
 }
 
-/// Build the v2 guide: resolve arcs to events, then annotate each node with its
+/// Build the v2 main menu: resolve arcs to events, then annotate each node with its
 /// episode index (for backgrounds) and whether to force the Optional tag.
-Guide buildGuide(List<Category> categories) {
-  final resolved = resolveGuide(categories);
+MainMenu buildMainMenu(List<Category> categories) {
+  final resolved = resolveMainMenu(categories);
 
   // Maintheme events are pre-sorted by episode order, so array position = index.
   Category? mainCat;
@@ -330,7 +330,7 @@ Guide buildGuide(List<Category> categories) {
         ],
       );
 
-  return Guide(
+  return MainMenu(
     mainArcs: [
       for (final a in resolved)
         if (a.main) annotate(a, true),
@@ -342,9 +342,9 @@ Guide buildGuide(List<Category> categories) {
   );
 }
 
-/// Locate a chapter (storyTxt) within the guide for the "continue reading"
-/// label. Returns null if the chapter isn't part of any guide storyline.
-ChapterLocation? describeGuideLocation(Guide guide, String txt, String mainLabel) {
+/// Locate a chapter (storyTxt) within the main menu for the "continue reading"
+/// label. Returns null if the chapter isn't part of any main menu storyline.
+ChapterLocation? describeMainMenuLocation(MainMenu mainMenu, String txt, String mainLabel) {
   ChapterLocation? search(List<EpisodeNode> nodes, String storyline, bool main) {
     var ordinal = 0;
     for (final node in nodes) {
@@ -370,10 +370,10 @@ ChapterLocation? describeGuideLocation(Guide guide, String txt, String mainLabel
     return null;
   }
 
-  final mainNodes = [for (final a in guide.mainArcs) ...a.nodes];
+  final mainNodes = [for (final a in mainMenu.mainArcs) ...a.nodes];
   final inMain = search(mainNodes, mainLabel, true);
   if (inMain != null) return inMain;
-  for (final s in guide.sideStorylines) {
+  for (final s in mainMenu.sideStorylines) {
     final hit = search(s.nodes, s.name, false);
     if (hit != null) return hit;
   }

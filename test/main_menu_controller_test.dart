@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ak_reader/data/guide.dart';
+import 'package:ak_reader/data/main_menu.dart';
 import 'package:ak_reader/data/menu.dart';
-import 'package:ak_reader/ui/guide_controller.dart';
+import 'package:ak_reader/ui/main_menu_controller.dart';
 
 EpisodeNode _node(String t) => EpisodeNode(
     title: t, event: null, isEpisode: false, episodeIndex: null, forceOptional: false);
@@ -15,11 +15,11 @@ Storyline _line(String name, List<String> titles, {bool main = false}) =>
     );
 
 void main() {
-  group('selection logic (seeded guide)', () {
-    late GuideController gc;
+  group('selection logic (seeded main menu)', () {
+    late MainMenuController gc;
     setUp(() {
-      gc = GuideController()
-        ..setGuide(Guide(
+      gc = MainMenuController()
+        ..setMainMenu(MainMenu(
           mainArcs: [
             _line('Arc 1', ['A1', 'A2'], main: true),
             _line('Arc 2', ['B1'], main: true),
@@ -56,15 +56,15 @@ void main() {
   });
 
   group('load()', () {
-    test('builds the guide from a fetched menu', () async {
-      // Minimal guide data so buildGuide can resolve a title to an event.
-      setGuideData((
+    test('builds the main menu from a fetched menu', () async {
+      // Minimal main menu data so buildMainMenu can resolve a title to an event.
+      setMainMenuData((
         [
-          const GuideArc(
+          const MainMenuArc(
             name: 'Arc 1',
             main: true,
             status: 'complete',
-            entries: [GuideEntry(title: 'Reunion')],
+            entries: [MainMenuEntry(title: 'Reunion')],
           ),
         ],
         <String, String>{},
@@ -77,18 +77,18 @@ void main() {
         ],
         flat: [],
       );
-      final gc = GuideController(fetchMenu: (_) async => menu);
+      final gc = MainMenuController(fetchMenu: (_) async => menu);
       await gc.load('en_US');
       expect(gc.error, isNull);
-      expect(gc.guide, isNotNull);
-      expect(gc.guide!.mainArcs.single.nodes.single.title, 'Reunion');
+      expect(gc.mainMenu, isNotNull);
+      expect(gc.mainMenu!.mainArcs.single.nodes.single.title, 'Reunion');
     });
 
     test('captures errors instead of throwing', () async {
-      final gc = GuideController(fetchMenu: (_) async => throw Exception('offline'));
+      final gc = MainMenuController(fetchMenu: (_) async => throw Exception('offline'));
       await gc.load('en_US');
       expect(gc.error, isNotNull);
-      expect(gc.guide, isNull);
+      expect(gc.mainMenu, isNull);
     });
   });
 }

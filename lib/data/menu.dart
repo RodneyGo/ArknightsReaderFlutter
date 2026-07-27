@@ -3,7 +3,7 @@
 //
 // The pure transform (classify / mainOrder / buildMenu / neighbor lookup) is
 // ported faithfully. Persistence is cache-first: the table is read from the
-// on-disk meta copy (written by Offline._ensureMeta), so the guide opens with no
+// on-disk meta copy (written by Offline._ensureMeta), so the main menu opens with no
 // network; refreshMenu revalidates in the background and merges any new events.
 
 import 'localstore.dart';

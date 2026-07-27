@@ -1,5 +1,5 @@
-// Minimal settings screen (opened from the guide top bar). Reads/writes the
-// SettingsStore; changing the story language reloads the guide.
+// Minimal settings screen (opened from the main menu top bar). Reads/writes the
+// SettingsStore; changing the story language reloads the main menu.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../data/i18n.dart';
 import '../data/servers.dart';
 import '../stores/settings_store.dart';
-import 'guide_controller.dart';
+import 'main_menu_controller.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -62,7 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (v) {
               if (v == null) return;
               store.set(s.copyWith(server: v));
-              context.read<GuideController>().load(v);
+              context.read<MainMenuController>().load(v);
             },
           ),
           SwitchListTile(

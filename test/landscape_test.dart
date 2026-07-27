@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:ak_reader/data/guide.dart';
+import 'package:ak_reader/data/main_menu.dart';
 import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/data/models.dart';
 import 'package:ak_reader/data/resolved.dart';
@@ -16,8 +16,8 @@ import 'package:ak_reader/data/trailers.dart';
 import 'package:ak_reader/stores/offline_store.dart';
 import 'package:ak_reader/stores/progress_store.dart';
 import 'package:ak_reader/stores/settings_store.dart';
-import 'package:ak_reader/ui/guide_controller.dart';
-import 'package:ak_reader/ui/guide_screen.dart';
+import 'package:ak_reader/ui/main_menu_controller.dart';
+import 'package:ak_reader/ui/main_menu_screen.dart';
 import 'package:ak_reader/ui/reader_audio.dart';
 import 'package:ak_reader/ui/reader_screen.dart';
 import 'package:ak_reader/ui/vn_reader.dart';
@@ -31,8 +31,8 @@ Future<void> _setSize(WidgetTester tester, Size size) async {
   addTearDown(tester.view.reset);
 }
 
-/// A Main Story guide with two arcs, so the arc rail renders.
-Guide _fakeGuide() {
+/// A Main Story main menu with two arcs, so the arc rail renders.
+MainMenu _fakeMainMenu() {
   EventGroup ev(String n) => EventGroup(
         id: n,
         name: n,
@@ -52,7 +52,7 @@ Guide _fakeGuide() {
         status: 'complete',
         nodes: [for (final t in titles) node(t)],
       );
-  return Guide(
+  return MainMenu(
     mainArcs: [
       arc('Arc 1', ['Evil Time', 'Roaring Flare', 'Under Tides']),
       arc('Arc 2', ['Ideal City']),
@@ -61,7 +61,7 @@ Guide _fakeGuide() {
   );
 }
 
-Widget _guideApp(GuideController gc) {
+Widget _mainMenuApp(MainMenuController gc) {
   final kv = MemoryKeyValueStore();
   return MultiProvider(
     providers: [
@@ -75,9 +75,9 @@ Widget _guideApp(GuideController gc) {
       ChangeNotifierProvider<SettingsStore>(create: (_) => SettingsStore(kv)),
       ChangeNotifierProvider<ProgressStore>(create: (_) => ProgressStore(kv)),
       ChangeNotifierProvider<OfflineStore>(create: (_) => OfflineStore(kv)),
-      ChangeNotifierProvider<GuideController>.value(value: gc),
+      ChangeNotifierProvider<MainMenuController>.value(value: gc),
     ],
-    child: const MaterialApp(home: GuideScreen()),
+    child: const MaterialApp(home: MainMenuScreen()),
   );
 }
 
@@ -92,10 +92,10 @@ Axis _scrollerAxis(WidgetTester tester) {
 }
 
 void main() {
-  group('guide', () {
+  group('main menu', () {
     testWidgets('portrait scrolls episodes vertically', (tester) async {
       await _setSize(tester, _portrait);
-      await tester.pumpWidget(_guideApp(GuideController()..setGuide(_fakeGuide())));
+      await tester.pumpWidget(_mainMenuApp(MainMenuController()..setMainMenu(_fakeMainMenu())));
       await tester.pump(const Duration(milliseconds: 16));
       expect(_scrollerAxis(tester), Axis.vertical);
     });
@@ -103,14 +103,14 @@ void main() {
     testWidgets('landscape swaps the episode scroller to horizontal',
         (tester) async {
       await _setSize(tester, _landscape);
-      await tester.pumpWidget(_guideApp(GuideController()..setGuide(_fakeGuide())));
+      await tester.pumpWidget(_mainMenuApp(MainMenuController()..setMainMenu(_fakeMainMenu())));
       await tester.pump(const Duration(milliseconds: 16));
       expect(_scrollerAxis(tester), Axis.horizontal);
     });
 
     testWidgets('portrait arc buttons are labelled "Arc I"', (tester) async {
       await _setSize(tester, _portrait);
-      await tester.pumpWidget(_guideApp(GuideController()..setGuide(_fakeGuide())));
+      await tester.pumpWidget(_mainMenuApp(MainMenuController()..setMainMenu(_fakeMainMenu())));
       await tester.pump(const Duration(milliseconds: 16));
       expect(find.text('Arc I'), findsOneWidget);
       expect(find.text('Arc II'), findsOneWidget);
@@ -119,7 +119,7 @@ void main() {
     testWidgets('landscape arc rail drops the word, keeping bare numerals',
         (tester) async {
       await _setSize(tester, _landscape);
-      await tester.pumpWidget(_guideApp(GuideController()..setGuide(_fakeGuide())));
+      await tester.pumpWidget(_mainMenuApp(MainMenuController()..setMainMenu(_fakeMainMenu())));
       await tester.pump(const Duration(milliseconds: 16));
       expect(find.text('Arc I'), findsNothing);
       expect(find.text('I'), findsOneWidget);
@@ -128,8 +128,8 @@ void main() {
 
     testWidgets('the arc rail still switches arcs in landscape', (tester) async {
       await _setSize(tester, _landscape);
-      final gc = GuideController()..setGuide(_fakeGuide());
-      await tester.pumpWidget(_guideApp(gc));
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
+      await tester.pumpWidget(_mainMenuApp(gc));
       await tester.pump(const Duration(milliseconds: 16));
 
       expect(gc.arcIndex, 0);
@@ -141,8 +141,8 @@ void main() {
     testWidgets('rotating keeps the focused episode rather than jumping',
         (tester) async {
       await _setSize(tester, _portrait);
-      final gc = GuideController()..setGuide(_fakeGuide());
-      await tester.pumpWidget(_guideApp(gc));
+      final gc = MainMenuController()..setMainMenu(_fakeMainMenu());
+      await tester.pumpWidget(_mainMenuApp(gc));
       await tester.pump(const Duration(milliseconds: 16));
 
       gc.setFocused(2);
@@ -150,7 +150,7 @@ void main() {
 
       // Rotate: the retained pixel offset means nothing on the new axis.
       await _setSize(tester, _landscape);
-      await tester.pumpWidget(_guideApp(gc));
+      await tester.pumpWidget(_mainMenuApp(gc));
       await tester.pump(const Duration(milliseconds: 16));
       await tester.pump(const Duration(milliseconds: 16)); // post-frame re-centre
 
@@ -160,8 +160,8 @@ void main() {
 
     testWidgets('a side storyline has no arc rail in either orientation',
         (tester) async {
-      final gc = GuideController()
-        ..setGuide(const Guide(
+      final gc = MainMenuController()
+        ..setMainMenu(const MainMenu(
           mainArcs: [],
           sideStorylines: [
             Storyline(
@@ -182,7 +182,7 @@ void main() {
           ],
         ));
       await _setSize(tester, _landscape);
-      await tester.pumpWidget(_guideApp(gc));
+      await tester.pumpWidget(_mainMenuApp(gc));
       await tester.pump(const Duration(milliseconds: 16));
       expect(find.text('I'), findsNothing);
     });

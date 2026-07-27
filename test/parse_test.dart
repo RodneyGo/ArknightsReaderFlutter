@@ -65,8 +65,9 @@ void main() {
 
   group('normalizeStory — speaker model', () {
     test('old "character" format resolves the focused portrait', () {
+      // Real story data ships focus as a float ("2.0"), not "2".
       final items = normalizeStory([
-        line(0, 'Character', {'name': 'char_010_chen_1', 'name2': 'char_002_amiya_1', 'focus': '2'}),
+        line(0, 'Character', {'name': 'char_010_chen_1', 'name2': 'char_002_amiya_1', 'focus': 2.0}),
         line(1, 'name', {'name': 'Amiya', 'content': 'Hello.'}),
       ], 'Dr');
       expect(items, hasLength(1));
@@ -91,6 +92,62 @@ void main() {
         line(1, 'name', {'name': 'X', 'content': 'Hi.'}),
       ], 'Dr');
       expect((items.single as DialogItem).portrait, 'char_solo');
+    });
+
+    test('keeps both on-stage characters, flagging only the focused one', () {
+      // focus 1.0 lights the left (name) slot; 2.0 lights name2. Using floats
+      // here mirrors the real data and guards the num-parse of focus.
+      final left = normalizeStory([
+        line(0, 'Character', {
+          'name': 'char_002_amiya_1',
+          'name2': 'char_130_doberm_ex',
+          'focus': 1.0,
+        }),
+        line(1, 'name', {'name': 'Amiya', 'content': "I'm aware of the risk."}),
+      ], 'Dr');
+      expect((left.single as DialogItem).stage, const [
+        StagePortrait('char_002_amiya_1', active: true),
+        StagePortrait('char_130_doberm_ex', active: false),
+      ]);
+
+      final right = normalizeStory([
+        line(0, 'Character', {
+          'name': 'char_002_amiya_1',
+          'name2': 'char_130_doberm_ex',
+          'focus': 2.0,
+        }),
+        line(1, 'name', {'name': 'Dobermann', 'content': 'Understood.'}),
+      ], 'Dr');
+      final d = right.single as DialogItem;
+      // Ordered left-to-right (name before name2); focus 2 lights name2.
+      expect(d.stage, const [
+        StagePortrait('char_002_amiya_1', active: false),
+        StagePortrait('char_130_doberm_ex', active: true),
+      ]);
+      // portrait convenience field still points at the speaker.
+      expect(d.portrait, 'char_130_doberm_ex');
+    });
+
+    test('a lone character with no focus is marked active on stage', () {
+      final items = normalizeStory([
+        line(0, 'charslot', {'slot': 'middle', 'name': 'char_solo'}),
+        line(1, 'name', {'name': 'X', 'content': 'Hi.'}),
+      ], 'Dr');
+      final d = items.single as DialogItem;
+      expect(d.stage, const [StagePortrait('char_solo', active: true)]);
+    });
+
+    test('charslot focus lights the right slot while both stay on stage', () {
+      final items = normalizeStory([
+        line(0, 'charslot', {'slot': 'left', 'name': 'char_a'}),
+        line(1, 'charslot', {'slot': 'right', 'name': 'char_b', 'focus': 'right'}),
+        line(2, 'name', {'name': 'B', 'content': 'Line.'}),
+      ], 'Dr');
+      final d = items.single as DialogItem;
+      expect(d.stage, const [
+        StagePortrait('char_a', active: false),
+        StagePortrait('char_b', active: true),
+      ]);
     });
 
     test('empty name renders as narration (no portrait)', () {

@@ -1,6 +1,6 @@
-// App entry point. Loads the guide data + image asset lookups, wires the
-// persisted stores + the guide controller via Provider, and shows the reading
-// guide (the landing screen).
+// App entry point. Loads the main menu data + image asset lookups, wires the
+// persisted stores + the main menu controller via Provider, and shows the reading
+// main menu (the landing screen).
 
 import 'dart:io' show Platform;
 
@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:provider/provider.dart';
 
-import 'data/guide.dart';
+import 'data/main_menu.dart';
 import 'data/image_assets.dart';
 import 'data/offline.dart';
 import 'data/resolved.dart';
@@ -20,8 +20,9 @@ import 'stores/offline_store.dart';
 import 'stores/progress_store.dart';
 import 'stores/settings_store.dart';
 import 'ui/download_queue.dart';
-import 'ui/guide_controller.dart';
-import 'ui/guide_screen.dart';
+import 'ui/main_menu_controller.dart';
+import 'ui/main_menu_screen.dart';
+import 'ui/menu_music.dart' show routeObserver;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +41,7 @@ Future<void> main() async {
   final ru = await RuStore.create(); // RU index cache-first (saved -> bundled)
   final trailers = await TrailerStore.create(); // trailer index (disk cache)
   await loadImageAssets(); // chapter-image + background lookups
-  await loadGuide(); // ARCS + NOTE_RU from the bundled asset
+  await loadMainMenu(); // ARCS + NOTE_RU from the bundled asset
   runApp(AkReaderApp(
       kv: kv,
       resolved: resolved,
@@ -106,7 +107,7 @@ class AkReaderApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (ctx) =>
-              GuideController()..load(ctx.read<SettingsStore>().state.server),
+              MainMenuController()..load(ctx.read<SettingsStore>().state.server),
         ),
       ],
       child: MaterialApp(
@@ -115,9 +116,10 @@ class AkReaderApp extends StatelessWidget {
         theme: ThemeData.dark(useMaterial3: true).copyWith(
           scaffoldBackgroundColor: const Color(0xFF0D0D0F),
         ),
+        navigatorObservers: [routeObserver],
         builder: (context, child) =>
             _OrientationChrome(child: child ?? const SizedBox.shrink()),
-        home: const GuideScreen(),
+        home: const MainMenuScreen(),
       ),
     );
   }
@@ -127,7 +129,7 @@ class AkReaderApp extends StatelessWidget {
 /// status bar (the immersive reading surface the user asked for) while keeping
 /// the nav bar; portrait shows both, edge-to-edge, so the scene stays seamless
 /// behind their transparent backgrounds. Wraps every route via MaterialApp's
-/// builder, so it covers the guide and the reader alike.
+/// builder, so it covers the main menu and the reader alike.
 class _OrientationChrome extends StatefulWidget {
   final Widget child;
   const _OrientationChrome({required this.child});

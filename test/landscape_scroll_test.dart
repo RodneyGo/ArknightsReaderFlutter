@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:ak_reader/data/guide.dart';
+import 'package:ak_reader/data/main_menu.dart';
 import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/data/offline.dart';
 import 'package:ak_reader/data/resolved.dart';
@@ -18,14 +18,14 @@ import 'package:ak_reader/stores/kv_store.dart';
 import 'package:ak_reader/stores/offline_store.dart';
 import 'package:ak_reader/stores/progress_store.dart';
 import 'package:ak_reader/stores/settings_store.dart';
-import 'package:ak_reader/ui/guide_controller.dart';
-import 'package:ak_reader/ui/guide_screen.dart';
+import 'package:ak_reader/ui/main_menu_controller.dart';
+import 'package:ak_reader/ui/main_menu_screen.dart';
 
 const _titles = [
   'Ep0', 'Ep1', 'Ep2', 'Ep3', 'Ep4', 'Ep5', 'Ep6', 'Ep7',
 ];
 
-Guide _guide() {
+MainMenu _mainMenu() {
   EventGroup ev(String n) => EventGroup(
         id: n,
         name: n,
@@ -39,7 +39,7 @@ Guide _guide() {
         episodeIndex: i,
         forceOptional: false,
       );
-  return Guide(
+  return MainMenu(
     mainArcs: [
       Storyline(
         name: 'Arc 1',
@@ -52,7 +52,7 @@ Guide _guide() {
   );
 }
 
-Widget _app(GuideController gc) {
+Widget _app(MainMenuController gc) {
   final kv = MemoryKeyValueStore();
   return MultiProvider(
     providers: [
@@ -65,9 +65,9 @@ Widget _app(GuideController gc) {
       ChangeNotifierProvider<SettingsStore>(create: (_) => SettingsStore(kv)),
       ChangeNotifierProvider<ProgressStore>(create: (_) => ProgressStore(kv)),
       ChangeNotifierProvider<OfflineStore>(create: (_) => OfflineStore(kv)),
-      ChangeNotifierProvider<GuideController>.value(value: gc),
+      ChangeNotifierProvider<MainMenuController>.value(value: gc),
     ],
-    child: const MaterialApp(home: GuideScreen()),
+    child: const MaterialApp(home: MainMenuScreen()),
   );
 }
 
@@ -101,12 +101,12 @@ Future<void> _swipe(
   await g.up(timeStamp: t);
 }
 
-/// Mount a FRESH guide screen. Pumping the app twice in a row reuses the State
+/// Mount a FRESH main menu screen. Pumping the app twice in a row reuses the State
 /// (same widget type), so the scroll offset would carry over and inflate the
 /// next measurement — tear the tree down first.
-Future<GuideController> _freshApp(WidgetTester tester) async {
+Future<MainMenuController> _freshApp(WidgetTester tester) async {
   await tester.pumpWidget(const SizedBox.shrink());
-  final gc = GuideController()..setGuide(_guide());
+  final gc = MainMenuController()..setMainMenu(_mainMenu());
   await tester.pumpWidget(_app(gc));
   await tester.pump(const Duration(milliseconds: 16));
   return gc;
@@ -127,7 +127,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    final gc = GuideController()..setGuide(_guide());
+    final gc = MainMenuController()..setMainMenu(_mainMenu());
     await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -329,7 +329,7 @@ void main() {
         const FakeViewPadding(left: 44, top: 0, right: 0, bottom: 0);
     addTearDown(tester.view.reset);
 
-    final gc = GuideController()..setGuide(_guide());
+    final gc = MainMenuController()..setMainMenu(_mainMenu());
     await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
 

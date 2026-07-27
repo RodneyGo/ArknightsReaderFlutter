@@ -108,13 +108,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
   double _lastScroll = 0;
   int _lastSavedIndex = -1;
 
-  /// Landscape only: whether the header is hidden. Driven by vertical swipes —
-  /// swipe up to hide, swipe down to reveal — rather than a toggle button, since a
-  /// full-width bar eats too much of a short viewport. Portrait uses the
+  /// Landscape only: whether the header is hidden. Starts hidden every time the
+  /// reader enters landscape (see [build]) and stays out of the way in that
+  /// short viewport until brought out by a downward swipe or the back button; a
+  /// swipe up (or scrolling forward) hides it again. Portrait uses the
   /// scroll-direction auto-hide instead.
   ///
-  /// Seeded from [_rememberedBarCollapsed] so the choice carries across chapters
-  /// (prev/next spins up a fresh screen).
+  /// Seeded from [_rememberedBarCollapsed], but [build] forces it hidden on the
+  /// first landscape frame regardless, so horizontal always opens hidden.
   late bool _barCollapsed = _rememberedBarCollapsed;
 
   /// Last bar state, shared across reader instances so hiding it stays hidden
@@ -150,9 +151,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
     // Not awaited: the sound map only gates audio, and a chapter should render
     // (and be readable) whether or not it arrives.
     _audio.loadSoundMap();
-    // Record the last-opened chapter before the fetch, so the guide's
+    // Record the last-opened chapter before the fetch, so the main menu's
     // return-to-episode centring is right even if you back out mid-load.
-    // Deferred a frame: this notifies ProgressStore, and the guide rows we were
+    // Deferred a frame: this notifies ProgressStore, and the main menu rows we were
     // pushed over are listening — touching it now would dirty them mid-build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -277,7 +278,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       _lastScroll = top;
     }
     // Reaching the bottom marks the chapter finished; otherwise record how far
-    // through it we've scrolled, for the guide's per-episode reading bar.
+    // through it we've scrolled, for the main menu's per-episode reading bar.
     final pos = _scroll.position;
     if (top >= pos.maxScrollExtent - 80 && _path.isNotEmpty) {
       context.read<ProgressStore>().markRead(_path);
@@ -392,6 +393,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Widget build(BuildContext context) {
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
+    // Horizontal always opens hidden: force the bar collapsed on the frame the
+    // reader enters landscape, so it stays out of the way until deliberately
+    // brought out (back button or a downward swipe). Only on the transition, so
+    // an in-progress reveal isn't clobbered on every rebuild.
+    if (landscape && !_landscape) _barCollapsed = true;
     _landscape = landscape;
     // Landscape back press: reveal the hidden bar first, and only exit the
     // chapter once it's already shown. Portrait exits straight away.

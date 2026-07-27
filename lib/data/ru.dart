@@ -9,7 +9,7 @@
 // translated and when it changed. The app loads the index cache-first (saved
 // copy → bundled fallback), revalidates in the background, and fetches each
 // chapter's overlay on demand — local-first for downloaded chapters, so offline
-// reading keeps working. [RuStore] is a ChangeNotifier so the guide's RU marker
+// reading keeps working. [RuStore] is a ChangeNotifier so the main menu's RU marker
 // updates when a refresh lands new translations.
 //
 // Overlay application is unchanged from the bundled version: rebuild only the

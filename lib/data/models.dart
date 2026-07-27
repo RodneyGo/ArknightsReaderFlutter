@@ -109,6 +109,28 @@ class TextRun {
   String toString() => 'TextRun("$text", $color)';
 }
 
+/// One character portrait standing on stage for a dialog line.
+///
+/// A line can have several: the game keeps every placed character visible and
+/// only lights the speaker. [active] marks that speaker (`focus`); the rest are
+/// drawn dimmed. Entries are ordered left-to-right for rendering.
+class StagePortrait {
+  final String id;
+  final bool active;
+
+  const StagePortrait(this.id, {this.active = false});
+
+  @override
+  bool operator ==(Object other) =>
+      other is StagePortrait && other.id == id && other.active == active;
+
+  @override
+  int get hashCode => Object.hash(id, active);
+
+  @override
+  String toString() => 'StagePortrait($id, active: $active)';
+}
+
 /// A normalized, render-ready story item.
 ///
 /// [bg]/[bgImage] are mutable because [normalizeStory] backfills the opening
@@ -135,13 +157,21 @@ sealed class StoryItem {
 class DialogItem extends StoryItem {
   final String name;
   final List<TextRun> runs;
+
+  /// The speaking character's portrait id (the active one on [stage]), or null.
+  /// Kept as a convenience for callers that only draw one figure.
   final String? portrait;
+
+  /// Every character on stage for this line, ordered left-to-right, with the
+  /// speaker flagged [StagePortrait.active]. Empty when no one is on stage.
+  final List<StagePortrait> stage;
 
   DialogItem({
     required super.id,
     required this.name,
     required this.runs,
     this.portrait,
+    this.stage = const [],
     super.bg,
     super.bgImage,
     super.alt,

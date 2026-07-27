@@ -124,7 +124,7 @@ class ProgressStore extends ChangeNotifier {
   /// Record how far through a chapter you've read (scroll depth). Only saves on a
   /// meaningful change so a scroll doesn't re-encode the whole map every tick;
   /// the exact tail doesn't matter since finishing sets status=read (=100%).
-  /// No notifyListeners: the guide isn't visible while reading and rereads this
+  /// No notifyListeners: the main menu isn't visible while reading and rereads this
   /// when you return, so avoiding it keeps the reader from rebuilding per scroll.
   void savePercent(String txt, double fraction) {
     if (_status[txt] == 'read') return; // already 100% via percentOf

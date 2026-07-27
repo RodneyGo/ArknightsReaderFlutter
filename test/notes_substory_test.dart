@@ -1,4 +1,4 @@
-// The sub-story chips in the guide's notes panel are shortcuts into a chapter.
+// The sub-story chips in the main menu's notes panel are shortcuts into a chapter.
 // They rendered as plain Chips with no tap handler — they looked like buttons
 // but did nothing.
 
@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:ak_reader/data/guide.dart';
+import 'package:ak_reader/data/main_menu.dart';
 import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/data/offline.dart';
 import 'package:ak_reader/data/resolved.dart';
@@ -16,13 +16,13 @@ import 'package:ak_reader/stores/kv_store.dart';
 import 'package:ak_reader/stores/offline_store.dart';
 import 'package:ak_reader/stores/progress_store.dart';
 import 'package:ak_reader/stores/settings_store.dart';
-import 'package:ak_reader/ui/guide_controller.dart';
-import 'package:ak_reader/ui/guide_screen.dart';
+import 'package:ak_reader/ui/main_menu_controller.dart';
+import 'package:ak_reader/ui/main_menu_screen.dart';
 import 'package:ak_reader/ui/reader_screen.dart';
 
 /// One episode carrying a note plus two sub-stories: one that resolves to a
 /// real chapter, one that never matched (txt null).
-Guide _guide() {
+MainMenu _mainMenu() {
   const stories = [
     Story(txt: 'level_main_01', code: '1-1', name: 'Lonetrail', tag: ''),
     Story(txt: 'level_main_02', code: '1-2', name: 'Nightfall', tag: ''),
@@ -33,7 +33,7 @@ Guide _guide() {
     startTime: 0,
     stories: stories,
   );
-  return const Guide(
+  return const MainMenu(
     mainArcs: [
       Storyline(
         name: 'Arc 1',
@@ -59,7 +59,7 @@ Guide _guide() {
   );
 }
 
-Widget _app(GuideController gc, ProgressStore progress) {
+Widget _app(MainMenuController gc, ProgressStore progress) {
   final kv = MemoryKeyValueStore();
   return MultiProvider(
     providers: [
@@ -72,9 +72,9 @@ Widget _app(GuideController gc, ProgressStore progress) {
       ChangeNotifierProvider<SettingsStore>(create: (_) => SettingsStore(kv)),
       ChangeNotifierProvider<ProgressStore>.value(value: progress),
       ChangeNotifierProvider<OfflineStore>(create: (_) => OfflineStore(kv)),
-      ChangeNotifierProvider<GuideController>.value(value: gc),
+      ChangeNotifierProvider<MainMenuController>.value(value: gc),
     ],
-    child: const MaterialApp(home: GuideScreen()),
+    child: const MaterialApp(home: MainMenuScreen()),
   );
 }
 
@@ -90,7 +90,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    final gc = GuideController()..setGuide(_guide());
+    final gc = MainMenuController()..setMainMenu(_mainMenu());
     await tester.pumpWidget(_app(gc, ProgressStore(MemoryKeyValueStore())));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -111,7 +111,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    final gc = GuideController()..setGuide(_guide());
+    final gc = MainMenuController()..setMainMenu(_mainMenu());
     await tester.pumpWidget(_app(gc, ProgressStore(MemoryKeyValueStore())));
     await tester.pump(const Duration(milliseconds: 16));
 

@@ -159,6 +159,33 @@ List<StoryItem> normalizeStory(List<RawLine> list, String doctorName) {
     return (id != null && id.isNotEmpty && id != 'char_empty') ? id : null;
   }
 
+  // Slot render order: charslot uses l/m/r, character uses name/name2/…
+  const slotOrder = ['l', 'm', 'r', 'name', 'name2', 'name3'];
+  int slotRank(String k) {
+    final i = slotOrder.indexOf(k);
+    return i < 0 ? slotOrder.length : i;
+  }
+
+  /// The full on-stage cast for the current line, ordered left-to-right, with
+  /// the speaking slot flagged active. Mirrors [activePortrait]'s fallback so a
+  /// lone character with no resolved focus is still marked active.
+  List<StagePortrait> stageList() {
+    final entries = chars.entries
+        .where((e) => e.value.isNotEmpty && e.value != 'char_empty')
+        .toList()
+      ..sort((a, b) {
+        final d = slotRank(a.key).compareTo(slotRank(b.key));
+        return d != 0 ? d : a.key.compareTo(b.key);
+      });
+    var out = [
+      for (final e in entries) StagePortrait(e.value, active: e.key == activeSlot),
+    ];
+    if (out.length == 1 && !out.first.active) {
+      out = [StagePortrait(out.first.id, active: true)];
+    }
+    return out;
+  }
+
   void flushBreak() {
     if (pendingBreak && items.isNotEmpty) {
       // Carry the current background so a scene-break row at the top of the
@@ -198,7 +225,10 @@ List<StoryItem> normalizeStory(List<RawLine> list, String doctorName) {
     }
     if (_eq(p, 'character')) {
       chars = {};
-      final parsed = int.tryParse(_s(a['focus']));
+      // `focus` picks the name slot (1 -> name, 2 -> name2). The data ships it
+      // as a float ("2.0"), so parse via num — int.tryParse("2.0") is null and
+      // would wrongly fall back to slot 1, freezing the highlight on the left.
+      final parsed = num.tryParse(_s(a['focus']))?.toInt();
       final f = (parsed == null || parsed == 0) ? 1 : parsed;
       var any = false;
       for (final k in a.keys) {
@@ -263,6 +293,7 @@ List<StoryItem> normalizeStory(List<RawLine> list, String doctorName) {
           name: name,
           runs: runs,
           portrait: activePortrait(),
+          stage: stageList(),
           bg: sceneId(),
           bgImage: sceneImg(),
           alt: line.alt,

@@ -1,4 +1,4 @@
-// Download controls for the guide. Two entry points, one pipeline:
+// Download controls for the main menu. Two entry points, one pipeline:
 //  - [DownloadButton]        a single chapter row in the drill-down
 //  - [EpisodeDownloadButton] the whole event, overlaid on an episode card
 //

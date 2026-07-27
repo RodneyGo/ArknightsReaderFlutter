@@ -1,4 +1,4 @@
-// The reading-guide hub — the app's landing screen (the "main menu"). Backdrop
+// The main-menu hub — the app's landing screen (the "main menu"). Backdrop
 // (focused episode's background) + ambient embers, a vertical snap-scroller of
 // episode cards (Flutter PageView gives the snap + focus-scaling for free), an
 // arc rail for Main Story, and a bottom storyline selector.
@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 
 import '../data/backgrounds.dart';
 import '../data/chapter_images.dart';
-import '../data/guide.dart';
+import '../data/main_menu.dart';
 import '../data/i18n.dart';
 import '../data/menu.dart';
 import '../data/ru.dart';
@@ -21,7 +21,8 @@ import 'ash_fx.dart';
 import 'download_button.dart';
 import 'verify_sheet.dart';
 import 'fps_meter.dart';
-import 'guide_controller.dart';
+import 'main_menu_controller.dart';
+import 'menu_music.dart';
 import 'reader_screen.dart';
 import 'settings_screen.dart';
 import 'trailer_screen.dart';
@@ -95,12 +96,12 @@ bool _isLandscape(BuildContext context) =>
     MediaQuery.orientationOf(context) == Orientation.landscape;
 
 /// True when the arc rail should be shown at all (only Main Story has arcs).
-bool _hasArcs(GuideController gc) => gc.isMainStory && gc.arcCount > 1;
+bool _hasArcs(MainMenuController gc) => gc.isMainStory && gc.arcCount > 1;
 
 /// Header height — the header is pinned to this and the scroller reserves it, so
 /// the two can't drift apart. In landscape the arcs aren't in the header, so it's
 /// just the control bar.
-double _headerHeight(GuideController gc, bool landscape) =>
+double _headerHeight(MainMenuController gc, bool landscape) =>
     _topBarHeight +
     (!landscape && _hasArcs(gc) ? _arcRailHeight : 0) +
     _headerBottomPad;
@@ -198,15 +199,22 @@ class _SnapScrollPhysics extends ScrollPhysics {
   bool get allowImplicitScrolling => false;
 }
 
-class GuideScreen extends StatefulWidget {
-  const GuideScreen({super.key});
+class MainMenuScreen extends StatefulWidget {
+  const MainMenuScreen({super.key});
 
   @override
-  State<GuideScreen> createState() => _GuideScreenState();
+  State<MainMenuScreen> createState() => _MainMenuScreenState();
 }
 
-class _GuideScreenState extends State<GuideScreen> {
+class _MainMenuScreenState extends State<MainMenuScreen> with RouteAware {
   final _scroll = ScrollController();
+
+  /// Looping background music, playing while the main menu is the foreground
+  /// route. [_settings] is watched imperatively so toggling music / volume in
+  /// settings takes effect at once.
+  final MenuMusic _music = MenuMusic();
+  SettingsStore? _settings;
+
   EpisodeNode? _openEpisode; // chapter drill-down target (null = closed)
   bool _notesVisible = false;
   bool _lightbox = false;
@@ -231,13 +239,51 @@ class _GuideScreenState extends State<GuideScreen> {
   @override
   void initState() {
     super.initState();
-    // Revalidate the RU translation index once per app run (the guide is the
+    // Revalidate the RU translation index once per app run (the main menu is the
     // home and mounts once). New/changed translations light up the markers.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<RuStore>().refreshIndex();
       context.read<TrailerStore>().refreshIndex();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe once for push/pop callbacks (RouteObserver dedupes). This lets
+    // the music pause when the reader/settings cover the menu, and resume back.
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) routeObserver.subscribe(this, route);
+    // (Re)bind the settings listener and reconcile playback.
+    final settings = context.read<SettingsStore>();
+    if (!identical(settings, _settings)) {
+      _settings?.removeListener(_applyMusic);
+      _settings = settings;
+      settings.addListener(_applyMusic);
+    }
+    _applyMusic();
+  }
+
+  /// Reconcile menu music with the current settings + foreground state.
+  void _applyMusic() {
+    final s = _settings?.state;
+    if (s == null) return;
+    _music.apply(enabled: s.musicEnabled, volume: s.musicVolume);
+  }
+
+  @override
+  void didPushNext() {
+    // Another screen covered the menu — stop the loop (the reader has its own).
+    _music.foreground = false;
+    _applyMusic();
+  }
+
+  @override
+  void didPopNext() {
+    // Back on the menu — resume if music is still enabled.
+    _music.foreground = true;
+    _applyMusic();
   }
 
   /// The one live scroll position, or null. During an orientation swap the old
@@ -283,6 +329,9 @@ class _GuideScreenState extends State<GuideScreen> {
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
+    _settings?.removeListener(_applyMusic);
+    _music.dispose();
     _scroll.dispose();
     _scrollPos.dispose();
     super.dispose();
@@ -356,7 +405,7 @@ class _GuideScreenState extends State<GuideScreen> {
         if (!didPop) _handleBack();
       },
       child: Scaffold(
-        body: Consumer<GuideController>(
+        body: Consumer<MainMenuController>(
           builder: (context, gc, _) {
             final nodes = gc.currentNodes;
             final focused = gc.focusedNode;
@@ -471,7 +520,7 @@ class _GuideScreenState extends State<GuideScreen> {
   /// gradually instead of hitting a hard edge (and the controls stay legible over
   /// the artwork). Height is pinned to [_headerHeight] so the scroller's
   /// reservation matches exactly.
-  Widget _header(GuideController gc, EpisodeNode? focused, String? bgPath) {
+  Widget _header(MainMenuController gc, EpisodeNode? focused, String? bgPath) {
     final landscape = _isLandscape(context);
     return SizedBox(
       height: _headerHeight(gc, landscape),
@@ -505,7 +554,7 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
-  Widget _topBar(GuideController gc, EpisodeNode? focused, String? bgPath) {
+  Widget _topBar(MainMenuController gc, EpisodeNode? focused, String? bgPath) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
       child: Row(
@@ -533,7 +582,7 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
-  Widget _arcRail(GuideController gc) {
+  Widget _arcRail(MainMenuController gc) {
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 4),
       child: Row(
@@ -559,7 +608,7 @@ class _GuideScreenState extends State<GuideScreen> {
 
   /// Landscape arc rail: a vertical stack of just the roman numerals. The serif
   /// face is deliberate — without it a bare "I" reads as a stray bar.
-  Widget _arcRailVertical(GuideController gc) {
+  Widget _arcRailVertical(MainMenuController gc) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -658,7 +707,7 @@ class _GuideScreenState extends State<GuideScreen> {
         _ => (t / 0.65).clamp(0.0, 1.0),
       };
 
-  Widget _scroller(GuideController gc, List<EpisodeNode> nodes) {
+  Widget _scroller(MainMenuController gc, List<EpisodeNode> nodes) {
     if (nodes.isEmpty) {
       return Center(
         child: Text(context.l('noEpisodes'),
@@ -770,7 +819,7 @@ class _GuideScreenState extends State<GuideScreen> {
     );
   }
 
-  Widget _selector(GuideController gc) {
+  Widget _selector(MainMenuController gc) {
     final labels = gc.selectorLabels;
     return SizedBox(
       height: 52,
@@ -1068,7 +1117,7 @@ class _ProgressBar extends StatelessWidget {
   }
 }
 
-/// Chapter drill-down: the tapped event's stories over the guide backdrop.
+/// Chapter drill-down: the tapped event's stories over the main menu backdrop.
 class ChaptersPanel extends StatelessWidget {
   final EpisodeNode node;
   final VoidCallback onBack;
@@ -1280,13 +1329,13 @@ class _TextBtn extends StatelessWidget {
       _Pill(label: label, active: false, onTap: onTap);
 }
 
-/// Floating notes panel for the focused guide node (lead / note / sub-stories).
+/// Floating notes panel for the focused main menu node (lead / note / sub-stories).
 class _NotesPanel extends StatelessWidget {
   final EpisodeNode node;
   final VoidCallback onClose;
   const _NotesPanel({required this.node, required this.onClose});
 
-  /// The chapter a sub-story points at, or null when the guide's name couldn't
+  /// The chapter a sub-story points at, or null when the main menu's name couldn't
   /// be matched to one (SubStory.txt is null then) — those chips stay inert.
   Story? _storyFor(SubStory ss) {
     final txt = ss.txt;
@@ -1299,7 +1348,7 @@ class _NotesPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Guide notes have bundled Russian (NOTE_RU); localize them by UI language.
+    // Main-menu notes have bundled Russian (NOTE_RU); localize them by UI language.
     final lang = context.select<SettingsStore, String>((s) => s.state.server);
     final lead = localizeNote(node.lead, lang);
     final note = localizeNote(node.note, lang);
@@ -1371,7 +1420,7 @@ class _NotesPanel extends StatelessWidget {
 }
 
 /// A sub-story shortcut in the notes panel: tap to jump straight to that
-/// chapter. Chips whose guide name didn't resolve to a chapter ([story] null)
+/// chapter. Chips whose main menu name didn't resolve to a chapter ([story] null)
 /// are dimmed and inert, so they don't read as broken buttons.
 class _SubStoryChip extends StatelessWidget {
   final String name;
@@ -1467,7 +1516,7 @@ class StoryListScreen extends StatelessWidget {
           padding: EdgeInsets.all(24),
           child: Text(
             'The full story browser is coming soon.\n\n'
-            'For now, tap an episode on the guide to open its chapter list.',
+            'For now, tap an episode on the main menu to open its chapter list.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white54, height: 1.5),
           ),

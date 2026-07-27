@@ -22,8 +22,8 @@ data layer matches the TS output do we start rebuilding screens.
 | `lib/data/servers.dart` | `settings.ts` | `servers` list + `baseServer` (server constants only) |
 | `lib/data/audio.dart` | `audio.ts` | `resolveSound` (pure) + `loadSoundMap` via `http` (offline fallback TODO) |
 | `lib/data/menu.dart` | `menu.ts` | `buildMenu`/`classify`/`mainOrder`/`neighborsIn` + fetch (persistent cache TODO) |
-| `lib/data/guide.dart` | `guide.ts` | matching logic (`norm`/`resolveGuide`/`buildGuide`/`describeGuideLocation`/`localizeNote`); data from `assets/guide_data.json` |
-| `assets/guide_data.json` | `guide.ts` `ARCS`+`NOTE_RU` | **generated** from the TS (no hand-transcription) |
+| `lib/data/main_menu.dart` | `guide.ts` | matching logic (`norm`/`resolveMainMenu`/`buildMainMenu`/`describeMainMenuLocation`/`localizeNote`); data from `assets/main_menu_data.json` |
+| `assets/main_menu_data.json` | `guide.ts` `ARCS`+`NOTE_RU` | **generated** from the TS (no hand-transcription) |
 | `lib/stores/kv_store.dart` | — | `KeyValueStore` abstraction (localStorage stand-in) + shared_preferences/in-memory impls |
 | `lib/stores/settings_store.dart` | `settings.ts` | `SettingsState` (immutable + copyWith) + `ChangeNotifier` store |
 | `lib/stores/progress_store.dart` | `progress.ts` | read status / scroll / last-read; `summarize` aggregation |
@@ -32,7 +32,7 @@ data layer matches the TS output do we start rebuilding screens.
 | `test/parse_test.dart` | — | Unit harness (speaker model, branching, scene breaks, URL builders) |
 | `test/stores_test.dart`, `test/localstore_test.dart` | — | Unit tests for the stores + the filesystem store (temp dir + fake fetcher) |
 | `test/menu_test.dart`, `test/audio_test.dart` | — | Unit tests for the menu transform + sound resolution |
-| `test/golden_test.dart`, `test/guide_test.dart` | — | **Parity tests** — Dart output vs the real TS on real data (parser: 962 items; guide: all 16 arcs) |
+| `test/golden_test.dart`, `test/main_menu_test.dart` | — | **Parity tests** — Dart output vs the real TS on real data (parser: 962 items; main menu: all 16 arcs) |
 
 Golden fixtures live in `test/fixtures/` (`*.input.json` = real story data,
 `*.golden.json` = canonical output captured from the original TypeScript
@@ -44,11 +44,11 @@ clean, all 19 tests pass (Flutter 3.44.6 / Dart 3.12.2).
 
 | File | What |
 |---|---|
-| `lib/main.dart` | App shell: `MultiProvider` wiring the stores + dark theme + `MenuScreen` |
+| `lib/main.dart` | App shell: `MultiProvider` wiring the stores + dark theme + `MainMenuScreen` |
 | `lib/ui/ash_fx.dart` | Ambient ember layer — native reimplementation of `AshFX.vue` (the FPS bottleneck): one `Ticker` → `CustomPainter` in a `RepaintBoundary` |
-| `lib/ui/guide_screen.dart` | The guide hub / landing: top control bar (settings / notes / background lightbox / story list) + backdrop + embers + arc rail + vertical `PageView` episode scroller + storyline selector + chapter drill-down (`ChaptersPanel`) + notes panel + `InteractiveViewer` lightbox |
-| `lib/ui/guide_controller.dart` | `ChangeNotifier`: fetches menu → `buildGuide`; tracks storyline/arc/focused episode (injectable fetch for tests) |
-| `lib/ui/settings_screen.dart` | Minimal settings (doctor name / story language→reloads guide / VN mode / font size) over `SettingsStore` |
+| `lib/ui/main_menu_screen.dart` | The main-menu hub / landing: top control bar (settings / notes / background lightbox / story list) + backdrop + embers + arc rail + vertical `PageView` episode scroller + storyline selector + chapter drill-down (`ChaptersPanel`) + notes panel + `InteractiveViewer` lightbox |
+| `lib/ui/main_menu_controller.dart` | `ChangeNotifier`: fetches menu → `buildMainMenu`; tracks storyline/arc/focused episode (injectable fetch for tests) |
+| `lib/ui/settings_screen.dart` | Minimal settings (doctor name / story language→reloads the main menu / VN mode / font size) over `SettingsStore` |
 | `lib/data/chapter_images.dart` | `chapterImages.ts` | banner lookup by normalized event name + aliases |
 | `lib/data/backgrounds.dart` | `backgrounds.ts` | episode/story backdrop lookup + banner fallback |
 | `lib/data/image_assets.dart` | (glob replacement) | loads bundled asset paths from `AssetManifest` → the two lookups |
@@ -59,7 +59,7 @@ State management = **`provider`** over the existing `ChangeNotifier` stores.
 **Not yet ported:** `offline.ts`
 (`downloadStory`/`preloadStory` — the download orchestrator that drives
 `localstore` + the download queue), i18n, and the rest of the **UI** (notes +
-downloads on the guide; the Story / VN reader that a chapter tap opens; Settings).
+downloads on the main menu; the Story / VN reader that a chapter tap opens; Settings).
 
 **Deferred TODOs (now unblocked — `localstore` exists, just need wiring):**
 `menu.fetchMenu` offline fallback → `localStore.readMeta`; `audio.loadSoundMap`
@@ -96,4 +96,4 @@ will be replaced by the real UI.
    persistence (`shared_preferences` / Hive).
 4. Rewrite the offline layer on `path_provider` + `dart:io` (much simpler than the
    Capacitor Filesystem + `convertFileSrc` approach).
-5. Build screens, reader core first (Story/VN), then Guide, then Home/Settings.
+5. Build screens, reader core first (Story/VN), then Main Menu, then Home/Settings.

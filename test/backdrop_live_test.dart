@@ -1,4 +1,4 @@
-// Diagnostic: does the guide backdrop blend BETWEEN episode backgrounds while
+// Diagnostic: does the main menu backdrop blend BETWEEN episode backgrounds while
 // the list is being dragged, or only once the scroll settles?
 //
 // The backgrounds are seeded with fake asset paths via initBackgrounds, so the
@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:ak_reader/data/backgrounds.dart';
-import 'package:ak_reader/data/guide.dart';
+import 'package:ak_reader/data/main_menu.dart';
 import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/data/offline.dart';
 import 'package:ak_reader/data/resolved.dart';
@@ -20,14 +20,14 @@ import 'package:ak_reader/stores/kv_store.dart';
 import 'package:ak_reader/stores/offline_store.dart';
 import 'package:ak_reader/stores/progress_store.dart';
 import 'package:ak_reader/stores/settings_store.dart';
-import 'package:ak_reader/ui/guide_controller.dart';
-import 'package:ak_reader/ui/guide_screen.dart';
+import 'package:ak_reader/ui/main_menu_controller.dart';
+import 'package:ak_reader/ui/main_menu_screen.dart';
 
 const _bg0 = 'assets/EpisodeBackgrounds/episode0.webp';
 const _bg1 = 'assets/EpisodeBackgrounds/episode1.webp';
 const _bg2 = 'assets/EpisodeBackgrounds/episode2.webp';
 
-Guide _guide() {
+MainMenu _mainMenu() {
   EventGroup ev(String n) => EventGroup(
         id: n,
         name: n,
@@ -41,7 +41,7 @@ Guide _guide() {
         episodeIndex: idx,
         forceOptional: false,
       );
-  return Guide(
+  return MainMenu(
     mainArcs: [
       Storyline(
         name: 'Arc 1',
@@ -54,7 +54,7 @@ Guide _guide() {
   );
 }
 
-Widget _app(GuideController gc) => MultiProvider(
+Widget _app(MainMenuController gc) => MultiProvider(
       providers: [
         Provider<ResolvedUrls>(
             create: (_) => ResolvedUrls(MemoryKeyValueStore())),
@@ -69,9 +69,9 @@ Widget _app(GuideController gc) => MultiProvider(
             create: (_) => ProgressStore(MemoryKeyValueStore())),
         ChangeNotifierProvider<OfflineStore>(
             create: (_) => OfflineStore(MemoryKeyValueStore())),
-        ChangeNotifierProvider<GuideController>.value(value: gc),
+        ChangeNotifierProvider<MainMenuController>.value(value: gc),
       ],
-      child: const MaterialApp(home: GuideScreen()),
+      child: const MaterialApp(home: MainMenuScreen()),
     );
 
 /// Opacity the backdrop is currently painting [path] at, or null if that image
@@ -111,7 +111,7 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
 
-    final gc = GuideController()..setGuide(_guide());
+    final gc = MainMenuController()..setMainMenu(_mainMenu());
     await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -160,7 +160,7 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
 
-    final gc = GuideController()..setGuide(_guide());
+    final gc = MainMenuController()..setMainMenu(_mainMenu());
     await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -190,7 +190,7 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
 
-    final gc = GuideController()..setGuide(_guide());
+    final gc = MainMenuController()..setMainMenu(_mainMenu());
     await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
 
@@ -224,7 +224,7 @@ void main() {
     tester.view.devicePixelRatio = 2.0;
     addTearDown(tester.view.reset);
 
-    final gc = GuideController()..setGuide(_guide());
+    final gc = MainMenuController()..setMainMenu(_mainMenu());
     await tester.pumpWidget(_app(gc));
     await tester.pump(const Duration(milliseconds: 16));
 

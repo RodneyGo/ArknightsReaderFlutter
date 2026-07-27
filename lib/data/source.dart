@@ -120,6 +120,11 @@ _ParsedId _parseId(String id) {
   return _ParsedId(baseId, face, body);
 }
 
+/// The character identity of a portrait id, dropping the `#face$body` suffix.
+/// Two portraits share a base id iff they are the same character (a change of
+/// expression), which lets the VN sprite swap in place instead of cross-fading.
+String portraitBaseId(String rawId) => _parseId(rawId.trim()).baseId;
+
 /// Build the avatar fallback chain for a story portrait id. Returns ordered
 /// candidates; each tagged whether it needs head-cropping (full character art)
 /// or fills the box as-is (square operator/mystery icon).

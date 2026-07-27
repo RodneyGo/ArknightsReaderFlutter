@@ -1,4 +1,4 @@
-// Backdrop images for the guide screen. Ported from
+// Backdrop images for the main menu screen. Ported from
 // BetterPhoneReader/src/data/backgrounds.ts.
 //
 // Main Story episodes use the curated EpisodeBackgrounds/episode{N} art
@@ -8,7 +8,7 @@
 // image_assets.dart).
 
 import 'chapter_images.dart';
-import 'guide.dart' show EpisodeNode;
+import 'main_menu.dart' show EpisodeNode;
 import 'name_norm.dart';
 
 final Map<int, String> _byEpisode = {}; // episode index -> asset path
@@ -42,7 +42,7 @@ String? _storyBackground(String name) {
   return null;
 }
 
-/// Resolve the full backdrop asset path for a guide node, or null if nothing
+/// Resolve the full backdrop asset path for a main menu node, or null if nothing
 /// matches. The "Open background" lightbox shows this same image uncropped.
 String? episodeBackground(EpisodeNode node) {
   final idx = node.episodeIndex;

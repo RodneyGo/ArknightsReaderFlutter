@@ -1,15 +1,15 @@
-// Generate the guide data asset + logic golden fixtures from the REAL TS guide.
+// Generate the main-menu data asset + logic golden fixtures from the REAL TS guide.
 //
-//   npx tsx tool/gen_guide_golden.ts
+//   npx tsx tool/gen_main_menu_golden.ts
 //
 // Outputs:
-//   assets/guide_data.json            = { arcs: ARCS, noteRu: NOTE_RU }
-//   test/fixtures/guide_categories.json = categories input (built from the real table)
-//   test/fixtures/guide_build.golden.json = buildGuide(categories) canonicalized
-//   test/fixtures/guide_locations.golden.json = describeGuideLocation for sample txts
+//   assets/main_menu_data.json            = { arcs: ARCS, noteRu: NOTE_RU }
+//   test/fixtures/main_menu_categories.json = categories input (built from the real table)
+//   test/fixtures/main_menu_build.golden.json = buildGuide(categories) canonicalized
+//   test/fixtures/main_menu_locations.golden.json = describeGuideLocation for sample txts
 //
 // RETIRED: the Vue app GUIDE_TS reads from is obsolete — the port is finished.
-// assets/guide_data.json is therefore now the SOURCE OF TRUTH for the reading
+// assets/main_menu_data.json is therefore now the SOURCE OF TRUTH for the reading
 // guide (arcs, entries, notes): edit that JSON directly. It is no longer a
 // generated mirror of guide.ts, and re-running this script would overwrite such
 // edits with whatever the retired app still contains.
@@ -88,19 +88,19 @@ const canonStoryline = (s: any) => ({
 
   // 1. data asset (source of truth for the Dart port)
   writeFileSync(
-    `${REPO}/assets/guide_data.json`,
+    `${REPO}/assets/main_menu_data.json`,
     JSON.stringify({ arcs: guide.ARCS, noteRu: guide.NOTE_RU }),
   );
 
   // 2. categories input (from real table)
   const table = await (await fetch(TABLE_URL)).json();
   const categories = buildMenu(table);
-  writeFileSync(`${REPO}/test/fixtures/guide_categories.json`, JSON.stringify(categories));
+  writeFileSync(`${REPO}/test/fixtures/main_menu_categories.json`, JSON.stringify(categories));
 
   // 3. buildGuide golden
   const built = guide.buildGuide(categories);
   writeFileSync(
-    `${REPO}/test/fixtures/guide_build.golden.json`,
+    `${REPO}/test/fixtures/main_menu_build.golden.json`,
     JSON.stringify({
       mainArcs: built.mainArcs.map(canonStoryline),
       sideStorylines: built.sideStorylines.map(canonStoryline),
@@ -119,10 +119,10 @@ const canonStoryline = (s: any) => ({
     txt,
     location: guide.describeGuideLocation(built, txt, "Main Story"),
   }));
-  writeFileSync(`${REPO}/test/fixtures/guide_locations.golden.json`, JSON.stringify(locations));
+  writeFileSync(`${REPO}/test/fixtures/main_menu_locations.golden.json`, JSON.stringify(locations));
 
   console.log(
-    `guide_data: ${guide.ARCS.length} arcs, ${Object.keys(guide.NOTE_RU).length} notes | ` +
+    `main_menu_data: ${guide.ARCS.length} arcs, ${Object.keys(guide.NOTE_RU).length} notes | ` +
       `categories: ${categories.length} | mainArcs: ${built.mainArcs.length}, ` +
       `side: ${built.sideStorylines.length} | locations: ${locations.length}`,
   );

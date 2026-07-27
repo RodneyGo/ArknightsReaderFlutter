@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 import '../stores/settings_store.dart';
 
 const Map<String, String> _en = {
-  // guide / menu
+  // main menu / menu
   'settings': 'Settings',
   'notes': 'Notes',
   'background': 'Background',
@@ -183,7 +183,7 @@ extension L10n on BuildContext {
   /// Localized UI string. Uses a non-reactive read of the language so it can be
   /// called from State helper methods (not just a widget's own build); every
   /// screen already rebuilds when the language changes — settings watches it,
-  /// the guide reloads, the reader re-signs — so the strings still update.
+  /// the main menu reloads, the reader re-signs — so the strings still update.
   String l(String key, [Map<String, String>? params]) {
     final server = read<SettingsStore>().state.server;
     return trFor(server, key, params);

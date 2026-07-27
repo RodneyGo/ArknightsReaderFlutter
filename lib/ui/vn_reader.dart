@@ -136,7 +136,11 @@ class VnReaderState extends State<VnReader> {
   void _warmSprites() {
     final portraits = <String>{
       for (final it in widget.items)
-        if (it is DialogItem && (it.portrait?.isNotEmpty ?? false)) it.portrait!,
+        if (it is DialogItem) ...[
+          if (it.portrait?.isNotEmpty ?? false) it.portrait!,
+          for (final sp in it.stage)
+            if (sp.id.isNotEmpty) sp.id,
+        ],
     };
     _sprites.warmAll(portraits, context);
   }
@@ -182,7 +186,7 @@ class VnReaderState extends State<VnReader> {
     _startLine();
   }
 
-  /// How far through the chapter a line index is, for the guide's reading bar.
+  /// How far through the chapter a line index is, for the main menu's reading bar.
   double _fractionAt(int index) {
     final last = widget.items.length - 1;
     return last <= 0 ? 0 : index / last;
@@ -373,13 +377,97 @@ class VnReaderState extends State<VnReader> {
 
   Widget _sprite() {
     final it = _current;
-    final portrait = it is DialogItem ? (it.portrait ?? '') : '';
-    final url = portrait.isEmpty ? null : _sprites.urlFor(portrait);
-    // Hidden on narration, decisions, the end card, or a speaker who has left the
-    // stage — rather than leaving the previous character lingering.
-    final show = !_atEnd && !_isDecision && !_peeking && url != null;
+    final stage = it is DialogItem ? it.stage : const <StagePortrait>[];
+
+    // Resolve every on-stage portrait; drop the ones that haven't loaded yet.
+    // Keep the slot index so the horizontal placement stays left-to-right.
+    final shown = <({int slot, bool active, String id, String url})>[];
+    for (var i = 0; i < stage.length; i++) {
+      final sp = stage[i];
+      if (sp.id.isEmpty) continue;
+      final url = _sprites.urlFor(sp.id);
+      if (url == null) continue;
+      shown.add((slot: i, active: sp.active, id: sp.id, url: url));
+    }
+    // Fallback for items with no stage (older data / direct construction): use
+    // the single active portrait so nothing regresses.
+    if (shown.isEmpty && it is DialogItem && (it.portrait?.isNotEmpty ?? false)) {
+      final url = _sprites.urlFor(it.portrait!);
+      if (url != null) {
+        shown.add((slot: 0, active: true, id: it.portrait!, url: url));
+      }
+    }
+
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
+
+    // The multi-character stage (both figures, non-speaker dimmed) is a
+    // landscape-only feature — portrait is too narrow for two. Collapse to just
+    // the speaking sprite there, matching the old single-portrait behaviour.
+    if (!landscape && shown.length > 1) {
+      final active =
+          shown.firstWhere((s) => s.active, orElse: () => shown.first);
+      shown
+        ..clear()
+        ..add(active);
+    }
+
+    // Hidden on narration, decisions, the end card, or once everyone has left
+    // the stage — rather than leaving the previous character lingering.
+    final show = !_atEnd && !_isDecision && !_peeking && shown.isNotEmpty;
+
+    final n = shown.length;
+    // Spread the cast horizontally: one stays centred; two flank the middle;
+    // three-plus fan out evenly. Slot index (not draw order) drives position.
+    double xFor(int slot) {
+      if (n <= 1) return 0;
+      final t = slot / (n - 1); // 0..1 across the placed characters
+      final spread = n == 2 ? 0.58 : 0.82;
+      return (t * 2 - 1) * spread;
+    }
+
+    // Draw the dimmed (non-speaking) characters first so the speaker sits in
+    // front of them.
+    shown.sort((a, b) {
+      if (a.active != b.active) return a.active ? 1 : -1;
+      return a.slot.compareTo(b.slot);
+    });
+
+    // Key the crossfade on the *set* of characters on stage (base ids), not on
+    // focus or expression. So a character walking on/off fades, while a focus
+    // flip or an expression change updates in place. Sort the key so the same
+    // cast in a different draw order still counts as unchanged.
+    final setKey = (shown.map((s) => portraitBaseId(s.id)).toList()..sort())
+        .join('|');
+
+    final child = show
+        ? Stack(
+            key: ValueKey(setKey),
+            alignment: Alignment.bottomCenter,
+            children: [
+              for (final s in shown)
+                Align(
+                  alignment: Alignment(xFor(s.slot), 1),
+                  // Grow the sprite 15% about its bottom edge: the feet stay
+                  // pinned where they are, and the character gets taller/wider
+                  // (grows up, left, and right). Portrait only — landscape keeps
+                  // its original size.
+                  child: Transform.scale(
+                    scale: landscape ? 1.0 : 1.15,
+                    alignment: Alignment.bottomCenter,
+                    child: FractionallySizedBox(
+                      // Narrower in landscape, and narrower still when several
+                      // characters share the stage, so they don't overlap heavily.
+                      widthFactor: n <= 1
+                          ? (landscape ? 0.42 : 0.96)
+                          : (landscape ? 0.4 : 0.66),
+                      child: _stageSprite(s.url, s.active),
+                    ),
+                  ),
+                ),
+            ],
+          )
+        : const SizedBox.shrink();
 
     return Positioned(
       left: 0,
@@ -391,32 +479,50 @@ class VnReaderState extends State<VnReader> {
       // screen. Portrait keeps it clear of the taller box.
       bottom: landscape ? 0 : 128,
       child: IgnorePointer(
-        child: AnimatedOpacity(
-          opacity: show ? 1 : 0,
-          duration: const Duration(milliseconds: 220),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            child: url == null
-                ? const SizedBox.shrink()
-                : Align(
-                    key: ValueKey(url),
-                    alignment: Alignment.bottomCenter,
-                    child: FractionallySizedBox(
-                      // Narrower in landscape so the character doesn't span the
-                      // whole width.
-                      widthFactor: landscape ? 0.42 : 0.96,
-                      child: Image(
-                        image: readerImage(url, context.read<Offline?>()),
-                        fit: BoxFit.contain,
-                        alignment: Alignment.bottomCenter,
-                        gaplessPlayback: true,
-                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                      ),
-                    ),
-                  ),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 140),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          // Keep the outgoing and incoming sprites both pinned to the bottom
+          // centre during a fade, instead of the default centred stack.
+          layoutBuilder: (currentChild, previousChildren) => Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              ...previousChildren,
+              if (currentChild != null) currentChild,
+            ],
           ),
+          child: child,
         ),
       ),
+    );
+  }
+
+  /// One character on the stage. The non-speaking cast is pushed into shadow —
+  /// darkened and slightly faded — the way the game dims whoever isn't the
+  /// current `focus`, so the eye lands on the speaker.
+  Widget _stageSprite(String url, bool active) {
+    Widget img = Image(
+      image: readerImage(url, context.read<Offline?>()),
+      fit: BoxFit.contain,
+      alignment: Alignment.bottomCenter,
+      gaplessPlayback: true,
+      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+    );
+    if (!active) {
+      img = ColorFiltered(
+        colorFilter: const ColorFilter.mode(
+          Color(0x730A0A0C), // ~45% black, painted only over the sprite
+          BlendMode.srcATop,
+        ),
+        child: img,
+      );
+    }
+    // Animate the fade so a focus flip eases between lit and dim in place.
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 160),
+      opacity: active ? 1.0 : 0.9,
+      child: img,
     );
   }
 
