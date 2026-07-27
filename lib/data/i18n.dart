@@ -53,6 +53,8 @@ const Map<String, String> _en = {
   'fpsMeterDesc': 'Show measured frame rate + worst frame time',
   // reader
   'back': 'Back',
+  'trailer': 'Trailer',
+  'trailerUnavailable': "Couldn't load the trailer.",
   'markRead': 'Mark read',
   'markUnread': 'Mark unread',
   'novelMode': 'Novel mode',
@@ -128,6 +130,8 @@ const Map<String, String> _ru = {
   'fpsMeter': 'Счётчик FPS',
   'fpsMeterDesc': 'Показывать частоту кадров и худшее время кадра',
   'back': 'Назад',
+  'trailer': 'Трейлер',
+  'trailerUnavailable': 'Не удалось загрузить трейлер.',
   'markRead': 'Прочитано',
   'markUnread': 'Не прочитано',
   'novelMode': 'Режим новеллы',

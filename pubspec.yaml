@@ -27,6 +27,9 @@ dependencies:
   # setUrl() throws on a bad url, which turns resolveSound()'s candidate-url
   # fallback chain into a plain try/catch.
   just_audio: ^0.10.6
+  # In-app YouTube trailer playback via the official iFrame player (ToS-safe).
+  # Fetches the per-episode video id from the project repo (see data/trailers.dart).
+  youtube_player_iframe: ^6.0.0
 
 dev_dependencies:
   flutter_test:

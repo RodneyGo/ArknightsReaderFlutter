@@ -11,6 +11,7 @@ import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/data/offline.dart';
 import 'package:ak_reader/data/resolved.dart';
 import 'package:ak_reader/data/ru.dart';
+import 'package:ak_reader/data/trailers.dart';
 import 'package:ak_reader/stores/kv_store.dart';
 import 'package:ak_reader/stores/offline_store.dart';
 import 'package:ak_reader/stores/progress_store.dart';
@@ -66,6 +67,8 @@ Widget _app(GuideController gc, ProgressStore progress) {
       Provider<Offline?>(create: (_) => null),
       ChangeNotifierProvider<RuStore>(
           create: (_) => RuStore(store: null, fetch: (_) async => null)),
+      ChangeNotifierProvider<TrailerStore>(
+          create: (_) => TrailerStore(store: null, fetch: (_) async => null)),
       ChangeNotifierProvider<SettingsStore>(create: (_) => SettingsStore(kv)),
       ChangeNotifierProvider<ProgressStore>.value(value: progress),
       ChangeNotifierProvider<OfflineStore>(create: (_) => OfflineStore(kv)),

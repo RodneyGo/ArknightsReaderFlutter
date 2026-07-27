@@ -14,6 +14,7 @@ import '../data/guide.dart';
 import '../data/i18n.dart';
 import '../data/menu.dart';
 import '../data/ru.dart';
+import '../data/trailers.dart';
 import '../stores/progress_store.dart';
 import '../stores/settings_store.dart';
 import 'ash_fx.dart';
@@ -23,6 +24,7 @@ import 'fps_meter.dart';
 import 'guide_controller.dart';
 import 'reader_screen.dart';
 import 'settings_screen.dart';
+import 'trailer_screen.dart';
 
 Color _statusColor(ReadStatus s) => switch (s) {
       ReadStatus.read => const Color(0xFF5AA469),
@@ -232,7 +234,9 @@ class _GuideScreenState extends State<GuideScreen> {
     // Revalidate the RU translation index once per app run (the guide is the
     // home and mounts once). New/changed translations light up the markers.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<RuStore>().refreshIndex();
+      if (!mounted) return;
+      context.read<RuStore>().refreshIndex();
+      context.read<TrailerStore>().refreshIndex();
     });
   }
 
@@ -1101,6 +1105,7 @@ class ChaptersPanel extends StatelessWidget {
                 const SizedBox(width: 8),
               ],
             ),
+            if (node.event != null) _TrailerButton(event: node.event!),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.only(bottom: 24),
@@ -1109,6 +1114,60 @@ class ChaptersPanel extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Episode trailer entry, shown above the chapter list when [TrailerStore] has
+/// a video for this event. It is NOT a chapter — no progress, no download, no
+/// reader — just a tap that opens the in-app YouTube player. Renders nothing
+/// when the event has no trailer, so the list closes up as if it were absent.
+class _TrailerButton extends StatelessWidget {
+  final EventGroup event;
+  const _TrailerButton({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final videoId =
+        context.watch<TrailerStore>().videoIdFor(event.id);
+    if (videoId == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Material(
+        color: const Color(0xFF1A1A1F),
+        borderRadius: BorderRadius.circular(10),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => TrailerScreen(
+                videoId: videoId,
+                title: event.name,
+              ),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                const Icon(Icons.play_circle_outline, color: _gold, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    context.l('trailer'),
+                    style: const TextStyle(
+                      color: _gold,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: Colors.white38, size: 20),
+              ],
+            ),
+          ),
         ),
       ),
     );

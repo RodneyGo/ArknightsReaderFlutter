@@ -14,6 +14,7 @@ import 'data/image_assets.dart';
 import 'data/offline.dart';
 import 'data/resolved.dart';
 import 'data/ru.dart';
+import 'data/trailers.dart';
 import 'stores/kv_store.dart';
 import 'stores/offline_store.dart';
 import 'stores/progress_store.dart';
@@ -37,9 +38,15 @@ Future<void> main() async {
   final resolved = ResolvedUrls(kv);
   final offline = await Offline.create(resolved);
   final ru = await RuStore.create(); // RU index cache-first (saved -> bundled)
+  final trailers = await TrailerStore.create(); // trailer index (disk cache)
   await loadImageAssets(); // chapter-image + background lookups
   await loadGuide(); // ARCS + NOTE_RU from the bundled asset
-  runApp(AkReaderApp(kv: kv, resolved: resolved, offline: offline, ru: ru));
+  runApp(AkReaderApp(
+      kv: kv,
+      resolved: resolved,
+      offline: offline,
+      ru: ru,
+      trailers: trailers));
 }
 
 /// Android runs apps at 60Hz by default — Flutter renders to whatever mode the
@@ -61,6 +68,7 @@ class AkReaderApp extends StatelessWidget {
   final ResolvedUrls resolved;
   final Offline offline;
   final RuStore ru;
+  final TrailerStore trailers;
 
   const AkReaderApp({
     super.key,
@@ -68,6 +76,7 @@ class AkReaderApp extends StatelessWidget {
     required this.resolved,
     required this.offline,
     required this.ru,
+    required this.trailers,
   });
 
   @override
@@ -80,6 +89,7 @@ class AkReaderApp extends StatelessWidget {
         ),
         Provider<Offline?>(create: (_) => offline),
         ChangeNotifierProvider<RuStore>.value(value: ru),
+        ChangeNotifierProvider<TrailerStore>.value(value: trailers),
         ChangeNotifierProvider(create: (_) => SettingsStore(kv)),
         ChangeNotifierProvider(create: (_) => ProgressStore(kv)),
         ChangeNotifierProvider(

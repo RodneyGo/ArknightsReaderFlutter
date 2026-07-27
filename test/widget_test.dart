@@ -11,6 +11,7 @@ import 'package:ak_reader/data/guide.dart';
 import 'package:ak_reader/data/menu.dart';
 import 'package:ak_reader/data/offline.dart';
 import 'package:ak_reader/data/ru.dart';
+import 'package:ak_reader/data/trailers.dart';
 import 'package:ak_reader/data/localstore.dart';
 import 'package:ak_reader/data/resolved.dart';
 import 'package:ak_reader/stores/kv_store.dart';
@@ -53,7 +54,8 @@ Guide _fakeGuide() {
 /// The guide screen under the same provider tree main() builds. [offline] is
 /// null by default (download UI hidden — as on web), so tests that don't care
 /// about downloads stay focused.
-Widget _app(GuideController gc, {Offline? offline, ProgressStore? progress}) =>
+Widget _app(GuideController gc,
+        {Offline? offline, ProgressStore? progress, TrailerStore? trailers}) =>
     MultiProvider(
       providers: [
         Provider<ResolvedUrls>(
@@ -61,6 +63,10 @@ Widget _app(GuideController gc, {Offline? offline, ProgressStore? progress}) =>
         Provider<Offline?>(create: (_) => offline),
         ChangeNotifierProvider<RuStore>(
             create: (_) => RuStore(store: null, fetch: (_) async => null)),
+        ChangeNotifierProvider<TrailerStore>(
+            create: (_) =>
+                trailers ??
+                TrailerStore(store: null, fetch: (_) async => null)),
         ChangeNotifierProvider<SettingsStore>(
             create: (_) => SettingsStore(MemoryKeyValueStore())),
         ChangeNotifierProvider<ProgressStore>(
@@ -93,6 +99,8 @@ Widget _ruApp(GuideController gc,
       Provider<ResolvedUrls>(create: (_) => ResolvedUrls(MemoryKeyValueStore())),
       Provider<Offline?>(create: (_) => null),
       ChangeNotifierProvider<RuStore>.value(value: ru),
+      ChangeNotifierProvider<TrailerStore>(
+          create: (_) => TrailerStore(store: null, fetch: (_) async => null)),
       ChangeNotifierProvider<SettingsStore>.value(value: settings),
       ChangeNotifierProvider<ProgressStore>(
           create: (_) => ProgressStore(MemoryKeyValueStore())),
@@ -187,6 +195,9 @@ void main() {
           Provider<Offline?>(create: (_) => null),
           ChangeNotifierProvider<RuStore>(
               create: (_) => RuStore(store: null, fetch: (_) async => null)),
+          ChangeNotifierProvider<TrailerStore>(
+              create: (_) =>
+                  TrailerStore(store: null, fetch: (_) async => null)),
           ChangeNotifierProvider<SettingsStore>(
               create: (_) => SettingsStore(MemoryKeyValueStore())),
           ChangeNotifierProvider<ProgressStore>.value(value: progress),
@@ -225,6 +236,41 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(ChaptersPanel), findsNothing);
+  });
+
+  testWidgets('the trailer button shows only when the event has a trailer',
+      (tester) async {
+    // A store that knows a trailer for the first episode's event id ('Evil
+    // Time') but not the second ('Roaring Flare').
+    final trailers = TrailerStore(store: null)
+      ..setIndexForTest(const TrailerIndex(1, {'Evil Time': 'dQw4w9WgXcQ'}));
+    final gc = GuideController()..setGuide(_fakeGuide());
+    await tester.pumpWidget(_app(gc, trailers: trailers));
+    await tester.pump(const Duration(milliseconds: 16));
+
+    // Open the first episode's chapter list — its event has a trailer.
+    await tester.tap(find.byType(EpisodeCard).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(ChaptersPanel), findsOneWidget);
+    expect(find.text('Trailer'), findsOneWidget);
+
+    // The trailer is not a chapter: the one story row is still the only tappable
+    // chapter (its txt is 'Evil Time-1').
+    expect(find.text('Evil Time-1'), findsOneWidget);
+  });
+
+  testWidgets('no trailer button when the event has no trailer',
+      (tester) async {
+    final gc = GuideController()..setGuide(_fakeGuide());
+    await tester.pumpWidget(_app(gc)); // default: empty trailer index
+    await tester.pump(const Duration(milliseconds: 16));
+
+    await tester.tap(find.byType(EpisodeCard).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(ChaptersPanel), findsOneWidget);
+    expect(find.text('Trailer'), findsNothing);
   });
 
   testWidgets('tapping a chapter row opens the reader', (tester) async {
