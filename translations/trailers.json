@@ -1,6 +1,17 @@
 {
-  "version": 1,
+  "version": 2,
   "trailers": {
-    "main_6": "deiLxpx3s90"
+    "main_5":    { "id": "KSPYeLv3QBk", "title": "Necessary Solutions" },
+    "main_6":    { "id": "deiLxpx3s90", "title": "Partial Necrosis" },
+    "main_7":    { "id": "KHtbetKNc1U", "title": "The Birth of Tragedy" },
+    "main_8":    { "id": "eN5WVqcDVo4", "title": "Roaring Flare" },
+    "main_10":   { "id": "itFmgE3COEc", "title": "Shatterpoint" },
+    "act9d0":    { "id": "nHtUnZEBQR8", "title": "Darknights Memoir" },
+    "act7mini":  { "id": "KHMNyZ9GDmE", "title": "Preluding Lights" },
+    "act12side": { "id": "TZcL5LzEQP8", "title": "Dossoles Holiday" },
+    "act15d5":   { "id": "0Xes1hbYro8", "title": "Beyond Here" },
+    "act18d0":   { "id": "cClfa6VW_t0", "title": "A Walk in the Dust" },
+    "act10mini": { "id": "BJUfdPblHLE", "title": "A Light Spark in Darkness" },
+    "act8mini":  { "id": "6dw9YjpaW7k", "title": "Vigilo" }
   }
 }
