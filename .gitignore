@@ -21,6 +21,8 @@ pubspec.lock
 
 # Misc
 .DS_Store
+# Windows shortcuts (e.g. a desktop shortcut to the built APK)
+*.lnk
 
 # gender_audit.py story-source cache
 tool/.src_cache/
