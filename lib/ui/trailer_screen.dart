@@ -25,11 +25,12 @@ class _TrailerScreenState extends State<TrailerScreen> {
     super.initState();
     _controller = YoutubePlayerController.fromVideoId(
       videoId: widget.videoId,
-      autoPlay: true,
+      // No autoplay — the user taps play. Avoids a video starting under the
+      // menu and keeps data use opt-in.
+      autoPlay: false,
       params: const YoutubePlayerParams(
         showControls: true,
         showFullscreenButton: true,
-        // Privacy-friendly host; no related videos from other channels.
         enableCaption: true,
       ),
     );
@@ -59,6 +60,13 @@ class _TrailerScreenState extends State<TrailerScreen> {
         child: YoutubePlayer(
           controller: _controller,
           aspectRatio: 16 / 9,
+          // Don't let device rotation drive fullscreen: the app rotates freely,
+          // and auto-fullscreen fights the back button (exit-fullscreen loops
+          // straight back to fullscreen while the device is still landscape) and
+          // flashes the loading thumbnail on every rotation. Fullscreen stays
+          // available via the player's own button, whose back-to-exit is clean.
+          autoFullScreen: false,
+          enableFullScreenOnVerticalDrag: false,
         ),
       ),
     );
