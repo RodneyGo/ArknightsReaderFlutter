@@ -45,7 +45,11 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           # Darknights Memoir (act9d0)
           "Ines", "Theresa", "Disheveled Sarkaz Woman",  # last = W in disguise
           # The Birth of Tragedy (main_7)
-          "Warfarin", "Tatiana", "Firewatch", "Greytail", "Daughter", "Wife"}
+          "Warfarin", "Tatiana", "Firewatch", "Greytail", "Daughter", "Wife",
+          # Heart of Surging Flame, including the rerun's Seaside Serendipity.
+          "Ceylon", "Schwarz", "Skyfire", "Provence", "Eyjafjalla", "Sora",
+          "Vigna", "Croissant", "D.D.D.", "Alty", "Aya", "Frost", "Dan",
+          "Cutter", "Beeswax"}
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
@@ -58,7 +62,9 @@ MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captai
         # EN flashback never marks gender, so this is easy to get backwards.
         "Eno", "Sasha", "Elderly Male Voice",
         # Darknights Memoir (act9d0)
-        "Hoederer", "Confessarius"}
+        "Hoederer", "Confessarius",
+        # Heart of Surging Flame.
+        "Herman", "Cronin", "Emperor", "Thorns", "Elysium"}
 
 # Masculine first-person markers (explicit verb/adjective list = low false-positive).
 MASC = re.compile(r"\b(понял|готов(?!а)|уверен(?!а)|должен|виноват(?!а)|благодарен|"

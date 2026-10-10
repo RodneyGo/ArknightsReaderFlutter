@@ -96,6 +96,47 @@ as new episodes introduce characters (characterize first — phase 2).
 | Gummy       | Childlike, cheerful, simple; heavy interjections   | *Справлюсь. Намного легче щита.* `act10d5_st01 #101` |
 | W           | Sardonic, teasing, mock-affectionate               | *…мой дорогой кролик из Чернобога?* `04-09_beg #119` |
 | Doctor ({@nickname}) | Mostly addressed, rarely speaks; stays masculine | (addressed with Вы by operators) |
+| Ceylon | Educated and formal, earnest, stubborn; becomes direct when defending her choices | *Я не тепличный цветок и не маленькая несмышлёная принцесса!* `act3d0_06_beg #110` |
+| Schwarz | Laconic, disciplined; respectful distance masks attachment to Ceylon | *Госпожа, Вы моя подруга. Всегда ею были.* `act3d0_06_beg #129` |
+| Skyfire | Proud academic, impatient and theatrical; technical precision amid bickering | *Прованс, ты точно-точно уверена, что мне нельзя сжечь здесь всё дотла?* `act3d0_01_beg #10` |
+| Provence | Practical and friendly, gently teasing; firm about professional duty | *Ты уже в десятый раз за час жалуешься, принцесса.* `act3d0_01_beg #13` |
+| Eyjafjalla | Careful, clear scientific explanations; polite and modest | *По возможности я рекомендую как можно скорее начать эвакуацию.* `act3d0_st02 #10` |
+| Hellagur | Restrained veteran; measured observations, dry humour | *Теперь — Вы. Какая поэтичная справедливость, господин Кронин.* `act3d0_06_end #88` |
+| Herman | Courteous, reflective, pragmatic; controlled authority | *Я не ищу понимания, Доктор.* `act3d0_st05 #97` |
+| Cronin | Patronizing bureaucratic politeness that breaks into greed and rage | *Но Вы — особый случай, поэтому я готов всё Вам объяснить.* `act3d0_02_beg #91` |
+| Ifrit | Blunt and excitable; rough language conceals practical kindness | *Сама прибежала помогать — теперь не вздумай улизнуть!* `act11d7_st01 #421` |
+| Vigna | Energetic, frank, playful; music fan eager to act | *Хе-хе, давно хотела попробовать.* `act3d0_05_beg #122` |
+| Sora | Bright, conversational; enthusiastic about music | *Уж в музыке я разбираюсь — во всех жанрах!* `act3d0_st01 #157` |
+| D.D.D. | Female; exuberant stage patter, demanding of her own creative work | *Теперь, когда он мне понятнее, остаётся его раздвигать.* `act3d0_ex01_end #38` |
+| Emperor | Swagger, showmanship, teasing threats; occasional rhymed boasts | *Ты так бессилен, что вышел весь пар, или виной мой блистательный дар?* `act3d0_ex03_end #132` |
+| Elysium | Talkative, friendly, easily sidetracked; exuberant fan | *Наконец-то дозвонился...* `act11d7_st01 #18` |
+| Thorns | Literal, terse, analytical; helps without seeking gratitude | *Я просто шёл помочь другу разобраться с неприятностями. Немного отклонился от пути.* `act11d7_st01 #325` |
+| Cutter | Reserved, apologetic and self-doubting; practical when encouraged | *Я не сдаюсь, просто не хочу доставлять ещё больше неприятностей.* `act11d7_st01 #399` |
+| Beeswax | Gentle and contemplative; takes rough compliments literally | *Это место, куда я в конце концов должна вернуться, куда бы ни ушла.* `act11d7_st01 #485` |
+| Aya | Playful, elusive; casual chatter turns lyrical and unsettling | *Но это не море.* `act11d7_st01 #580` |
+| Alty | Informal, digressive and teasing, with unsettling insight beneath it | *Кстати, почему бы не поговорить о временах, когда мы ещё видели звёзды?* `act3d0_ex06_end #19` |
+
+### Heart of Surging Flame — relationship and continuity notes
+
+- Translate the entire `act3d0` chapter list, including the opening vote scene,
+  the EX scenes, and **OF-ST6** (`activities/act11d7/level_act11d7_st01`). The
+  latter belongs to this event despite being stored under a different activity.
+- Ceylon uses **ты** with Schwarz; Schwarz uses **Вы / госпожа** with Ceylon,
+  even while learning to accept their friendship. Their changing relationship
+  is not a reason to silently change every address to **ты**.
+- Skyfire and Provence, Thorns and Elysium, and Penguin Logistics colleagues
+  use **ты** among themselves. Doctor and Amiya retain **ты**. Formal strangers
+  and the Doctor's conversations with adult operators use **Вы**. Cronin's
+  collapse into threats and Emperor's taunts deliberately use a rougher register.
+- Skyfire's nickname for Provence is **Пушистый хвост**. The setting's proper
+  names, including Siesta and Alive Until Sunset, stay in Latin as in the glossary.
+- The self-narration and choices in OF-ST6 belong to **Thorns**, not the Doctor.
+  Check scene context rather than assuming every `decision` has the same speaker.
+- OF-ST6 #57 deliberately has **45 whitespace-separated words**: Thorns counts
+  them in #63 after setting a thirty-word limit. Preserve the joke when editing.
+- D.D.D. is female (explicitly referred to as *she* in `act3d0_ex03_end #12–16`).
+  Emperor's *Penguin from the West* epithet is **Пингвин с Запада**, referring to
+  him personally; it is not a translation of the company name Penguin Logistics.
 
 ---
 
