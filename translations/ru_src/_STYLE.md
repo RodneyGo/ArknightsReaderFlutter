@@ -116,6 +116,17 @@ as new episodes introduce characters (characterize first — phase 2).
 | Aya | Playful, elusive; casual chatter turns lyrical and unsettling | *Но это не море.* `act11d7_st01 #580` |
 | Alty | Informal, digressive and teasing, with unsettling insight beneath it | *Кстати, почему бы не поговорить о временах, когда мы ещё видели звёзды?* `act3d0_ex06_end #19` |
 
+### Doctor → FrostNova — address and continuity
+
+- The Doctor addresses FrostNova with **ты** throughout chapter 6, including
+  `level_st_06-02`, `level_main_06-13_end`, `level_main_06-14_beg` and
+  `level_main_06-15_end`. Example: *Ты победила.* (`06-13_end #200`).
+- Preserve feminine singular agreement: *ты говорила*, *ты не обещала*,
+  *ты не согласна*. Apply this to every answer option, not just speaker labels.
+- This rule is directional. Keep FrostNova's own register and other speakers'
+  addresses. Keep true group plurals: `06-14_beg #518` refers to those deceived
+  by Talulah; the greeting in `06-13_end #210` includes the Yeti squad.
+
 ### Heart of Surging Flame — relationship and continuity notes
 
 - Translate the entire `act3d0` chapter list, including the opening vote scene,

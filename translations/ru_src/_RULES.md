@@ -49,6 +49,9 @@ English "you" is genderless *and* register-less; Russian forces a choice. Pick
 deliberately and stay consistent within a relationship for the whole arc:
 - Operators/staff address **the Doctor** with **Вы** (respect for command); the
   Doctor and Amiya use **ты** with each other (close, familiar).
+- **Doctor → FrostNova: ты** throughout their conversations, including choices.
+  Agree verbs and adjectives with her feminine singular. This directional rule
+  does not change FrostNova's replies or plural references to her whole group.
 - Reunion ↔ captives, interrogations, threats → **ты** (contempt / dominance).
 - Children, close friends, squadmates in the field → **ты**.
 - Strangers, officials, formal briefings → **Вы**.
@@ -97,7 +100,7 @@ the only place the Doctor speaks. A chapter without them reads as if the player 
 mute (this happened to *Business as Usual*, act10d5 st06). Rules for them:
 - Options are **`;`-separated**; keep the separator and the **exact option count**.
 - A lone `......` option is the "say nothing" choice — leave it as `......`.
-- The Doctor is masculine and follows the T–V table above: **ты** with Amiya and
+- The Doctor is masculine and follows the T–V table above: **ты** with Amiya, FrostNova and
   with children/teens; **Вы** with adult operators, officers and outsiders.
 
 ### Verify ids, don't eyeball them
