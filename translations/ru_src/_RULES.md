@@ -49,9 +49,9 @@ English "you" is genderless *and* register-less; Russian forces a choice. Pick
 deliberately and stay consistent within a relationship for the whole arc:
 - Operators/staff address **the Doctor** with **Вы** (respect for command); the
   Doctor and Amiya use **ты** with each other (close, familiar).
-- **Doctor → FrostNova: ты** throughout their conversations, including choices.
-  Agree verbs and adjectives with her feminine singular. This directional rule
-  does not change FrostNova's replies or plural references to her whole group.
+- **Doctor ↔ FrostNova: ты** throughout their conversations, including choices.
+  Use feminine singular for FrostNova and masculine singular for the Doctor.
+  Keep plural references to groups, including Rhodes Island and the Yeti squad.
 - Reunion ↔ captives, interrogations, threats → **ты** (contempt / dominance).
 - Children, close friends, squadmates in the field → **ты**.
 - Strangers, officials, formal briefings → **Вы**.

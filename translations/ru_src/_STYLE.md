@@ -116,16 +116,20 @@ as new episodes introduce characters (characterize first — phase 2).
 | Aya | Playful, elusive; casual chatter turns lyrical and unsettling | *Но это не море.* `act11d7_st01 #580` |
 | Alty | Informal, digressive and teasing, with unsettling insight beneath it | *Кстати, почему бы не поговорить о временах, когда мы ещё видели звёзды?* `act3d0_ex06_end #19` |
 
-### Doctor → FrostNova — address and continuity
+### Doctor ↔ FrostNova — address and continuity
 
-- The Doctor addresses FrostNova with **ты** throughout chapter 6, including
+- The Doctor and FrostNova address each other with **ты** throughout chapter 6, including
   `level_st_06-02`, `level_main_06-13_end`, `level_main_06-14_beg` and
   `level_main_06-15_end`. Example: *Ты победила.* (`06-13_end #200`).
 - Preserve feminine singular agreement: *ты говорила*, *ты не обещала*,
   *ты не согласна*. Apply this to every answer option, not just speaker labels.
-- This rule is directional. Keep FrostNova's own register and other speakers'
-  addresses. Keep true group plurals: `06-14_beg #518` refers to those deceived
-  by Talulah; the greeting in `06-13_end #210` includes the Yeti squad.
+- FrostNova addresses the Doctor in masculine singular: *Ты не убил меня...*
+  (`st_06-02 #41`), *Возвращайся, Доктор, к своим.* (`06-13_end #241`).
+- Keep other speakers' addresses and true group plurals: `06-14_beg #518`
+  refers to those deceived by Talulah; `06-13_end #210` greets the Yeti squad.
+  FrostNova's `st_06-02 #273, #343-344` refer to Rhodes Island collectively;
+  `st_06-02 #404` threatens everyone, and `06-15_end #153` addresses both the
+  Doctor and Amiya. Invitations to fight the whole squad also remain plural.
 
 ### Heart of Surging Flame — relationship and continuity notes
 
