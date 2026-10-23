@@ -35,6 +35,14 @@ Boy's Voice, Young Man's Voice, Heavily-Armed Man.
 `Storyteller`, `Villager`, and `Greytail` need scene context; see the event notes
 in `_STYLE.md` for impersonation and shared-label exceptions.
 
+### Code of Brawl (act5d0)
+
+**Female:** Mostima, Waai Fu, Lappland; Suffering? / Chosen Overseer? /
+Treasure Guardian? are temporary duty names for the same woman.
+**Male:** Bison, Capone, Gambino, Jaye, Uncle Tung, Rat King / Lin, Yith,
+Eurill; Butler is male in this event.
+Anonymous `???` speakers require scene context; see `_STYLE.md`.
+
 ## Names & terminology — canonical glossary
 `_GLOSSARY.json` is the single source of truth. `gender_audit.py` reads it and
 flags any `ru/*.json` that disagrees, so **never invent a new spelling ad-hoc**:

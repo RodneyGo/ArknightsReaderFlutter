@@ -51,7 +51,10 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           "Vigna", "Croissant", "D.D.D.", "Alty", "Aya", "Frost", "Dan",
           "Cutter", "Beeswax",
           # Who Is Real. Shopkeeper is Dawn (act16d5_04_beg #487).
-          "Lava", "Kroos", "Nian", "Dusk", "Dawn", "Shopkeeper", "Saga", "Beagle"}
+          "Lava", "Kroos", "Nian", "Dusk", "Dawn", "Shopkeeper", "Saga", "Beagle",
+          # Code of Brawl. The three temporary duty names belong to one woman.
+          "Mostima", "Waai Fu", "Lappland", "Suffering?",
+          "Chosen Overseer?", "Treasure Guardian?"}
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
@@ -68,7 +71,10 @@ MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captai
         # Heart of Surging Flame.
         "Herman", "Cronin", "Emperor", "Thorns", "Elysium",
         # Who Is Real. Lin is the elderly man with a cane, not Lin Yuhsia.
-        "Mr. Nothing", "Lin"}
+        "Mr. Nothing", "Lin",
+        # Code of Brawl.
+        "Bison", "Capone", "Gambino", "Jaye", "Uncle Tung", "Rat King",
+        "Yith", "Eurill"}
 
 # Masculine first-person markers (explicit verb/adjective list = low false-positive).
 MASC = re.compile(r"\b(понял|готов(?!а)|уверен(?!а)|должен|виноват(?!а)|благодарен|"

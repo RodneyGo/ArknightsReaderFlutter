@@ -121,8 +121,6 @@ as new episodes introduce characters (characterize first — phase 2).
 | Beeswax | Gentle and contemplative; takes rough compliments literally | *Это место, куда я в конце концов должна вернуться, куда бы ни ушла.* `act11d7_st01 #485` |
 | Aya | Playful, elusive; casual chatter turns lyrical and unsettling | *Но это не море.* `act11d7_st01 #580` |
 | Alty | Informal, digressive and teasing, with unsettling insight beneath it | *Кстати, почему бы не поговорить о временах, когда мы ещё видели звёзды?* `act3d0_ex06_end #19` |
-
-
 | Lava | Direct, impatient, practical; warmth shows through short replies | *Всё хорошо. Я понимаю.* `act16d5_08_beg #100` |
 | Kroos | Relaxed and teasing until her experience demands precision; restrained grief | *Война изматывает. Нужно быть начеку.* `act16d5_08_beg #94` |
 | Nian | Irreverent, exuberant, fond of food and teasing; turns grave about her origins | *Страшное место этот Yan.* `act16d5_10_beg #652` |
@@ -133,6 +131,21 @@ as new episodes introduce characters (characterize first — phase 2).
 | Storyteller | Courteous, theatrical storyteller; fables use a measured literary register | *Разумеется, с картины.* `act16d5_01_beg #19` |
 | Beagle | Female; warm, cheerful and considerate toward her old squadmate | *Может, останешься ещё на несколько дней? Я о тебе позабочусь!* `act16d5_10_beg #346` |
 | Lin | Male elder, the man with a cane; laconic authority, not Lin Yühsia | *Встань. Я сам тебя вынудил. Незачем становиться на колени.* `act16d5_10_beg #182` |
+
+| Bison | Earnest young male courier; polite questions become decisive commands | *Просто раскидайте их.* `act5d0_10_beg #242` |
+| Mostima | Calm, teasing, elusive; philosophical without solemnity | *Я уважаю старших и забочусь о младших.* `act5d0_10_beg #176` |
+| Croissant | Warm, brisk, commercial-minded; colloquial without an invented regional accent | *Хе-хе. Реклама — важный источник дохода!* `act5d0_st03 #139` |
+| Gambino | Proud, explosive mafia boss; coarse speech and fixation on honour | *Я больше не стану трусом.* `act5d0_09_beg #182` |
+| Capone | Calculating, cynical; practical survival behind contempt | *Мы будем жить здесь, в Lungmen.* `act5d0_09_beg #213` |
+| Rat King / Lin | Measured paternal authority; dry humour turns into credible menace | *Крысиный король ещё жив. Твой черёд умирать не настал.* `act5d0_st02 #348` |
+| Jaye | Plain, laconic, helpful; unwittingly intimidating appearance | *Я не шучу.* `act5d0_st02 #41` |
+| Waai Fu | Direct, earnest sense of justice; practical student behind heroic diction | *Но когда у меня на глазах негодяи обижают невиновных, я не могу сидеть сложа руки...* `act5d0_st02 #48` |
+| Uncle Tung | Blunt old friend; affectionate barbs, mortality and everyday trade | *Честно говоря, рост цен на продукты для меня куда опаснее мафии.* `act5d0_st02 #305` |
+| Yith | Very formal, matter-of-fact, unperturbed by absurdity | *Мы привыкли к такому поведению.* `act5d0_10_end #50` |
+| Butler (act5d0) | Male; punctilious deference, controlled professionalism | *Благодарю за понимание. А Вы берегите себя, молодой господин.* `act5d0_10_end #360` |
+| Eurill | Genial businessman and Bison's father; cheerful calculation | *Разве это на меня похоже?* `act5d0_ex01_end #151` |
+| Suffering? / Chosen Overseer? / Treasure Guardian? | One woman; exasperated professional, sharp banter with Mostima | *Откуда мне знать!* `act5d0_st03 #280` |
+| Lappland | Mocking, gleefully menacing; short instructions after long provocations | *Я досчитаю до десяти. / Бегите.* `act5d0_ex02_end #106–107` |
 
 ### Doctor ↔ FrostNova — address and continuity
 
@@ -213,6 +226,67 @@ as new episodes introduce characters (characterize first — phase 2).
 - Audit false positive: `level_act16d5_06_end #209` is spoken by Mr. Nothing
   (*Я уже смирился...*); *она сказала* refers to his female teacher. Both
   agreements are intentional. Do not rewrite the line just to silence the lint.
+
+---
+
+### Code of Brawl — relationships, aliases and continuity
+
+- Coverage: all 27 `act5d0` scenes (2,921 visible texts), including ENTRY,
+  CB-ST1–3 and CB-EX1–3. `story_review_meta_table.json` adds no other scenes.
+  The opening first-person recollection in CB-ST1 is **Bison**, not the Doctor.
+  Both live EN sources match the supplied archive's visible IDs and content
+  except `09_end #5`: the archive has `00:38 A.M.`, the mirrors `0:38 A.M.`.
+  Both denote the same time; the RU caption is `00:38`.
+- Bison uses **Вы** with the adult couriers, Emperor and his butler; the crew
+  uses **ты** with him. The butler returns **Вы / молодой господин**. Penguin
+  Logistics colleagues use **ты** among themselves, including Emperor.
+  Exusiai and Mostima are old friends; keep their intimate, teasing **ты**.
+- Opponents normally use **ты**, including Bison facing the mafia. Exceptions
+  are deliberate: Mostima keeps **Вы** with the Rat King during their poised
+  negotiation and duel (`08_end #53–79`, `10_beg #145–175`). He uses **ты**.
+  Capone and initially Gambino use **Вы** when formally paying their respects
+  in the earlier meeting (`10_beg #47–78`); Gambino breaks into **ты** at #65.
+  The later confrontation (`09_beg`) uses **ты**. This is chronology and intent,
+  not an automatic switch for elders or enemies.
+- Mafia subordinates use **Вы** to their bosses and the Rat King. Jaye uses
+  **Вы** to Uncle Tung and the Rat King, **ты** with Waai Fu. Uncle Tung, Lin
+  and Wei speak as old acquaintances using **ты**. Eurill and Wei retain
+  businesslike **Вы**; Emperor is familiarly irreverent with everyone.
+- Yith maintains professional **Вы**, including with the sharp anonymous
+  Laterano visitor (`08_end #17–23`, `10_end #58–62`). Mostima uses **Вы** to
+  Yith. Her visitor uses **ты**, as she does with Mostima. In `08_end`,
+  `10_end`, and the later conversation in CB-ST3, this visitor is a woman.
+  Do not assign that sex to every `???` label: EX3 has multiple anonymous fans.
+- `Suffering?`, `Chosen Overseer?`, and `Treasure Guardian?` are the same
+  visitor's deliberately absurd **temporary duty titles**, not her personal
+  name (`st03 #256–301, #370`). Translate their meanings as **Страдание**,
+  **Избранная надзирательница**, **Хранительница сокровищ**, with the source's
+  question marks in speaker labels. Likewise **Рыцарь гробниц** and
+  **Суперприлипала**. This preserves the jokes at #287 and #372 without
+  inventing or revealing a personal name absent from this scenario.
+- The bar is **The Ends of the Earth**: retain Latin under the place-name
+  rule, including the earlier rendezvous clue (`04_end #31`, `st01 #189–195`).
+  **Notarial Hall** remains Latin as an institution. The nonexistent
+  **Treasure Guardians** organization in the joke at `st03 #292` also remains
+  Latin. Family as kinship/mafia structure is **Семья**, not a new place name.
+- **White Horse Kohl** (`06_beg #104`) is the exact material name from the EN
+  item table, item 30074, named for its producer. Keep that name rather than
+  inventing a chemical identity or interpreting it as a beverage brand.
+  **А-Фил** is Jaye's nickname; **А-Фат** is the deceased boy. Preserve the
+  distinction. Rat King's **Линь Грей** is not Lin Yühsia.
+- Mostima's running disappearance joke becomes **Смостимилась** (`08_end #188`).
+  Emperor's apparent deaths are intentional; do not soften them into injuries.
+  His survival and the Rat King's staged shooting are explained in the ending.
+- One EN speaker is literally `Mafioso `, with a trailing space (`09_beg #250`).
+  The overlay and glossary include that exact alias because `applyRu` looks up
+  names without trimming. Its translation is the ordinary **Мафиози**.
+- New audit false positives, all intentional: `08_beg #77` (*он сказал*) is
+  Exusiai referring to Emperor; `10_beg #14` (*дядя Хо сказал*) is the little
+  girl quoting a man; `st03 #72` (*ты решил*) is Mostima addressing Bison.
+  The place heuristic flags **Пингвины** as a nickname (`07_beg #157`,
+  `st02 #116`) and **пингвин на двери** as the literal sign (`st01 #410`).
+  None replaces an occurrence of the proper company name Penguin Logistics.
+  Filenames here use the prefix `level_act5d0_` and suffix `.json`.
 
 ---
 
