@@ -55,6 +55,12 @@ of the behaviour scan, not out of any single line.
 ### 3. Lock the maps before translating
 - New names → add to `_GLOSSARY.json` first, so they're consistent from line 1.
 - Draw the **ты/Вы grid** for everyone present (who defers to whom, who's close).
+- For opponents, start with **ты** in both directions, including the Doctor.
+  If a character deliberately retains **Вы** during a confrontation, record
+  why and anchor it to a line. For example, Hellagur's restrained, pointed
+  courtesy to Cronin (*Теперь — Вы. Какая поэтичная справедливость, господин
+  Кронин.*, `act3d0_06_end #88`) is a deliberate exception. Do not switch
+  registers solely because a character belongs to an opposing faction.
 - Decide recurring-gag / catchphrase handling once.
 
 ### 4. Translate
@@ -116,6 +122,18 @@ as new episodes introduce characters (characterize first — phase 2).
 | Aya | Playful, elusive; casual chatter turns lyrical and unsettling | *Но это не море.* `act11d7_st01 #580` |
 | Alty | Informal, digressive and teasing, with unsettling insight beneath it | *Кстати, почему бы не поговорить о временах, когда мы ещё видели звёзды?* `act3d0_ex06_end #19` |
 
+
+| Lava | Direct, impatient, practical; warmth shows through short replies | *Всё хорошо. Я понимаю.* `act16d5_08_beg #100` |
+| Kroos | Relaxed and teasing until her experience demands precision; restrained grief | *Война изматывает. Нужно быть начеку.* `act16d5_08_beg #94` |
+| Nian | Irreverent, exuberant, fond of food and teasing; turns grave about her origins | *Страшное место этот Yan.* `act16d5_10_beg #652` |
+| Mr. Nothing | Male; florid courtesy, proverbs and comic evasions; plain anger about his master | *«Правила»! Да это убийство!* `act16d5_06_end #227` |
+| Saga | Female; warm, candid Buddhist traveller; lightly archaic but readable | *Если поступать от чистого сердца и жить свободно, в согласии с собой, нечего бояться.* `act16d5_08_end #282` |
+| Dusk | Aloof, terse, proud; sustained philosophical arguments, sharp banter with Nian | *Если у тебя уже есть свои мысли, зачем спрашивать меня?* `act16d5_08_end #149` |
+| Dawn / Shopkeeper | Female; quiet, perceptive, cryptic, later intimate and frail | *Как думаешь... счастливую я прожила жизнь?* `act16d5_st03 #90` |
+| Storyteller | Courteous, theatrical storyteller; fables use a measured literary register | *Разумеется, с картины.* `act16d5_01_beg #19` |
+| Beagle | Female; warm, cheerful and considerate toward her old squadmate | *Может, останешься ещё на несколько дней? Я о тебе позабочусь!* `act16d5_10_beg #346` |
+| Lin | Male elder, the man with a cane; laconic authority, not Lin Yühsia | *Встань. Я сам тебя вынудил. Незачем становиться на колени.* `act16d5_10_beg #182` |
+
 ### Doctor ↔ FrostNova — address and continuity
 
 - The Doctor and FrostNova address each other with **ты** throughout chapter 6, including
@@ -152,6 +170,49 @@ as new episodes introduce characters (characterize first — phase 2).
 - D.D.D. is female (explicitly referred to as *she* in `act3d0_ex03_end #12–16`).
   Emperor's *Penguin from the West* epithet is **Пингвин с Запада**, referring to
   him personally; it is not a translation of the company name Penguin Logistics.
+
+
+### Who Is Real — relationship and continuity notes
+
+- Cover all 17 `act16d5` entries, WR-ST-1 through WR-ST-3: 2,278 visible
+  lines. There are no additional `act16d5` entries in the supplied archive meta
+  table. The supplied `ArknightsStoryJson-main/en_US` files are the EN source.
+- Lava, Kroos and Nian use **ты** with one another; Lava and Saga also use
+  **ты** as companions. Mr. Nothing addresses his benefactors with **Вы**;
+  Lava and Kroos keep **Вы** with him. His *благодетельница* and proverb-heavy
+  courtesy persist even when the others challenge his honesty (`06_end #194–201`).
+- Saga uses **Вы** with Mr. Nothing and Dusk (deference to the master), **ты**
+  with Dawn. Dusk uses **ты** with Saga. Dawn and Lava use **Вы** mutually.
+  Dawn and Dusk, and the two sisters, use **ты**. Keep actual group plurals.
+- Mr. Nothing keeps respectful **Вы** to Lin even under threat (`10_beg #141`),
+  because his teacher specifically forbade disrespecting Lin. Lin uses **ты**.
+  Kroos initially addresses an unidentified Dusk with **Вы** (`10_beg #679–683`),
+  then **ты** once the hostile encounter is clear (`#695`). Mr. Nothing retains
+  his ingratiating courtesy in the same confrontation (`#689`). These are
+  deliberate voice/scene exceptions to the opponents' default **ты** rule.
+- Storyteller is a male persona; Dusk can speak through that persona. Dawn's
+  **Вы / сударь** to Storyteller in WR-ST-2 (`#84–99`) maintains that persona
+  while she makes her point. Do not force feminine agreement into every line
+  under this label, or infer that every appearance is the same encounter.
+- **Shopkeeper is Dawn**, a woman (`04_beg #487`); check earlier anonymous
+  appearances too. The opening unlabelled recollection in `05_end` belongs to
+  Dawn. `Villager` covers different people, including Ah Jan's mother and the
+  grieving wife in `05_end #78–80`; determine agreement from each scene.
+- The `Greytail` in Mr. Nothing's dream is male (`10_beg #292`: *big guy*),
+  unlike the female character with the same EN label in chapter 7. The glossary
+  speaker label stays **Грейтейл**; the gang's name **Greytails** stays Latin.
+- Dawn's name is **Доун**, with its meaning explained in `04_beg #487` and
+  `05_beg #130`; do not replace the personal name with a translated noun.
+  Mr. Nothing's comic alias splits into **«Ни» да «что»** (`01_beg #147`), with
+  **брат Ни** in `02_beg #117`. Storyteller's descriptive pen name is
+  **Отшельник, варящий зонты**. Titles of tales and paintings are translated;
+  named places, including Mt. Sky and Elegant Garden, remain Latin.
+- Dreams in `10_beg` are hypothetical lives, not confirmations of historical
+  events. Keep the sequence and transitions intact. Repeated mountain, water,
+  moon and painting imagery links the fables to the ending; preserve it.
+- Audit false positive: `level_act16d5_06_end #209` is spoken by Mr. Nothing
+  (*Я уже смирился...*); *она сказала* refers to his female teacher. Both
+  agreements are intentional. Do not rewrite the line just to silence the lint.
 
 ---
 

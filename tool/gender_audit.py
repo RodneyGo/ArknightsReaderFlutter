@@ -49,7 +49,9 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           # Heart of Surging Flame, including the rerun's Seaside Serendipity.
           "Ceylon", "Schwarz", "Skyfire", "Provence", "Eyjafjalla", "Sora",
           "Vigna", "Croissant", "D.D.D.", "Alty", "Aya", "Frost", "Dan",
-          "Cutter", "Beeswax"}
+          "Cutter", "Beeswax",
+          # Who Is Real. Shopkeeper is Dawn (act16d5_04_beg #487).
+          "Lava", "Kroos", "Nian", "Dusk", "Dawn", "Shopkeeper", "Saga", "Beagle"}
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
@@ -64,7 +66,9 @@ MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captai
         # Darknights Memoir (act9d0)
         "Hoederer", "Confessarius",
         # Heart of Surging Flame.
-        "Herman", "Cronin", "Emperor", "Thorns", "Elysium"}
+        "Herman", "Cronin", "Emperor", "Thorns", "Elysium",
+        # Who Is Real. Lin is the elderly man with a cane, not Lin Yuhsia.
+        "Mr. Nothing", "Lin"}
 
 # Masculine first-person markers (explicit verb/adjective list = low false-positive).
 MASC = re.compile(r"\b(понял|готов(?!а)|уверен(?!а)|должен|виноват(?!а)|благодарен|"
@@ -79,7 +83,11 @@ FEM = re.compile(r"\b(поняла|готова|уверена|должна|ви
                  r"впечатлена|признательна|намерена|вынуждена)\b")
 
 
-def sex(name):
+def sex(name, path=""):
+    # This shared label is a male gang member in Mr. Nothing's dream,
+    # not chapter 7's female Greytail (act16d5_10_beg #292: "big guy").
+    if name == "Greytail" and path.startswith("activities/act16d5/"):
+        return "M"
     return "F" if name in FEMALE else "M" if name in MALE else "?"
 
 
@@ -156,7 +164,7 @@ def main():
             continue
         for lid, txt in (d.get("lines") or {}).items():
             sp = src.get(lid, {}).get("name", "")
-            g = sex(sp)
+            g = sex(sp, d["path"])
             has1p = bool(re.search(r"\b[Яя]\b", txt))
             # (1) gender agreement
             if g == "F" and has1p and MASC.search(txt) and not FEM.search(txt):

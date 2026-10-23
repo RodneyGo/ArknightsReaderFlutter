@@ -28,6 +28,13 @@ Crownslayer, Little Girl, Girl's Voice, Another Girl's Voice.
 **Male:** Skullshatterer, Mephisto, Faust, Wei Yenwu, Ace, Ursus Captain,
 Boy's Voice, Young Man's Voice, Heavily-Armed Man.
 
+### Who Is Real (act16d5)
+
+**Female:** Lava, Kroos, Nian, Saga, Dusk, Dawn / Shopkeeper, Beagle.
+**Male:** Mr. Nothing, Lin (the elder with a cane, not Lin Yühsia).
+`Storyteller`, `Villager`, and `Greytail` need scene context; see the event notes
+in `_STYLE.md` for impersonation and shared-label exceptions.
+
 ## Names & terminology — canonical glossary
 `_GLOSSARY.json` is the single source of truth. `gender_audit.py` reads it and
 flags any `ru/*.json` that disagrees, so **never invent a new spelling ad-hoc**:
@@ -53,8 +60,16 @@ deliberately and stay consistent within a relationship for the whole arc:
   Use feminine singular for FrostNova and masculine singular for the Doctor.
   Keep plural references to groups, including Rhodes Island and the Yeti squad.
 - Reunion ↔ captives, interrogations, threats → **ты** (contempt / dominance).
+- **Opponents addressing each other → ты by default**, including the Doctor
+  addressing an enemy and an enemy addressing the Doctor. In a hostile exchange,
+  the other person's age, rank or unfamiliarity alone does not require **Вы**.
+  Keep **Вы** only when the scene or established voice supports deliberate
+  formality, negotiation etiquette, genuine respect or pointed/mock politeness;
+  record the exception with a concrete line reference in `_STYLE.md`.
+  Judge the relationship in the scene, not faction membership alone. Preserve
+  genuine group plurals and explicitly documented rules for named pairs.
 - Children, close friends, squadmates in the field → **ты**.
-- Strangers, officials, formal briefings → **Вы**.
+- Strangers and officials in non-hostile exchanges, formal briefings → **Вы**.
 When dumping EN lines to translate, annotate the register alongside sex (below).
 
 ## Direct address (vocative) — do not turn into an object
@@ -100,8 +115,9 @@ the only place the Doctor speaks. A chapter without them reads as if the player 
 mute (this happened to *Business as Usual*, act10d5 st06). Rules for them:
 - Options are **`;`-separated**; keep the separator and the **exact option count**.
 - A lone `......` option is the "say nothing" choice — leave it as `......`.
-- The Doctor is masculine and follows the T–V table above: **ты** with Amiya, FrostNova and
-  with children/teens; **Вы** with adult operators, officers and outsiders.
+- The Doctor is masculine and follows the T–V table above: **ты** with Amiya,
+  FrostNova, children/teens and opponents (subject to the documented exceptions);
+  **Вы** with adult operators, officers and outsiders in non-hostile exchanges.
 
 ### Verify ids, don't eyeball them
 Always diff the RU `lines` keys against the EN source ids programmatically before
