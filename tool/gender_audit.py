@@ -54,7 +54,10 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           "Lava", "Kroos", "Nian", "Dusk", "Dawn", "Shopkeeper", "Saga", "Beagle",
           # Code of Brawl. The three temporary duty names belong to one woman.
           "Mostima", "Waai Fu", "Lappland", "Suffering?",
-          "Chosen Overseer?", "Treasure Guardian?"}
+          "Chosen Overseer?", "Treasure Guardian?",
+          # Il Siracusano. Caterina is Giovanna's literary pseudonym.
+          "Lavinia", "Giovanna", "Caterina", "Lunacub", "Lyudmila",
+          "Signora Sicilia"}
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
@@ -74,7 +77,10 @@ MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captai
         "Mr. Nothing", "Lin",
         # Code of Brawl.
         "Bison", "Capone", "Gambino", "Jaye", "Uncle Tung", "Rat King",
-        "Yith", "Eurill"}
+        "Yith", "Eurill",
+        # Il Siracusano. Ben is Benthonexigios; Danbrown runs the carwash.
+        "Leontuzzo", "Bernardo", "Demetri", "Wallach", "Rubio", "Alberto",
+        "Agenir", "Ben", "Zaaro", "Danbrown"}
 
 # Masculine first-person markers (explicit verb/adjective list = low false-positive).
 MASC = re.compile(r"\b(понял|готов(?!а)|уверен(?!а)|должен|виноват(?!а)|благодарен|"
@@ -90,6 +96,12 @@ FEM = re.compile(r"\b(поняла|готова|уверена|должна|ви
 
 
 def sex(name, path=""):
+    # Event-local identities: the female court secretary and Danbrown.
+    if path.startswith("activities/act21side/"):
+        if name == "Court Clerk":
+            return "F"
+        if name == "Carwash Worker":
+            return "M"
     # This shared label is a male gang member in Mr. Nothing's dream,
     # not chapter 7's female Greytail (act16d5_10_beg #292: "big guy").
     if name == "Greytail" and path.startswith("activities/act16d5/"):

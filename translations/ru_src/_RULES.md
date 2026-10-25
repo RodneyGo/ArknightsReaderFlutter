@@ -43,6 +43,17 @@ Treasure Guardian? are temporary duty names for the same woman.
 Eurill; Butler is male in this event.
 Anonymous `???` speakers require scene context; see `_STYLE.md`.
 
+### Il Siracusano (act21side)
+
+**Female:** Lavinia, Giovanna / Caterina, Lunacub, Lyudmila, Signora Sicilia;
+Agnese and Projekt Red's Grandmother are female wolves. Sora and Exusiai may
+play a male character on stage: agreement follows the performed role.
+**Male:** Leontuzzo, Bernardo, Demetri, Wallach, Rubio, Alberto, Agenir,
+Ben / Benthonexigios, Zaaro, Danbrown / Carwash Worker.
+Court Clerk is the woman shown by `avg_npc_697_1#1$1` in this event; do not
+apply her sex to every clerk elsewhere. Generic speakers and `???` still
+require scene context. See `_STYLE.md` for aliases and deliberate T–V changes.
+
 ## Names & terminology — canonical glossary
 `_GLOSSARY.json` is the single source of truth. `gender_audit.py` reads it and
 flags any `ru/*.json` that disagrees, so **never invent a new spelling ad-hoc**:

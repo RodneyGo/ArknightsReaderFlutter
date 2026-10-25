@@ -290,6 +290,124 @@ as new episodes introduce characters (characterize first — phase 2).
 
 ---
 
+### Il Siracusano — voices, relationships and continuity
+
+All references below use `level_act21side_` and `.json`. Coverage is the 24
+`act21side` review-table scenes, IS-ST-1 through IS-ST-4: 6,244 visible texts.
+The supplied archive has no extra `act21side` meta-table scenes.
+
+| Recurring speaker | Voice | RU anchor |
+| --- | --- | --- |
+| Texas | Laconic, practical; guarded affection and a clear wish to return home | *Я вернусь в Lungmen. Меня там ждут.* `act21side_02_beg #182` |
+| Lavinia | Principled, precise; wounded conviction without inflated rhetoric | *Но пока ты не запер меня под замок, никто не остановит мой поиск убийцы.* `03_end #220` |
+| Leontuzzo | Controlled young strategist; courtesy gives way to concern | *Но как ты одна остановишь дождь?* `03_end #193` |
+| Bernardo | Cultivated director and measured patriarch; theatre and power share his vocabulary | *Но увы, синьорина Сора, действительность логике не подчиняется.* `01_beg #122` |
+| Demetri | Dry, efficient, ruthless; familiar banter with Leon | *Работаете на меня — получаете деньги. Лучше работа — больше платят. Всё просто.* `01_end #483` |
+| Wallach | Urbane bargaining conceals ambition and impatience | *Ваш звёздный час, не так ли?* `01_end #574` |
+| Giovanna / Caterina | Perceptive, theatrical and authoritative; personal grief behind the pose | *Люди редко бывают воплощённым злом, не правда ли?* `02_end #356` (before her alias is revealed) |
+| Alberto | Laconic, absolute paternal authority; refuses to acknowledge sentiment | *Ты испачкала мой стол, Лаппланд.* `st01 #1243` |
+| Rubio | Servile social polish; pragmatic, bitter arguments about ordinary lives | *Пусть мёртвые остаются мёртвыми.* `03_beg #459` |
+| Ben / Benthonexigios | Wry observer and theatrical mentor; expansive but clear | *Запрет налагает театр, а не сама пьеса.* `01_end #115` |
+| Zaaro | Imperious, ancient self-importance; promises and debts treated as natural law | *Пустоши всегда играют честно.* `st01 #182` |
+| Agenir | Genial elder whose calm survives violence | *Ха-ха-ха! Хорошо, хорошо. Присаживайтесь. Для разговора с молодёжью любой день хорош.* `08_beg #397` |
+| Danbrown / Carwash Worker | Plain everyday speech hiding old violence and resentment | *Вы не стали цивилизованнее. Вы стали лицемернее.* `09_beg #569, #673` |
+| Lunacub | Direct, literal, spare; wolfish judgments without ornate speeches | *Ты никогда не бываешь один. А я не умею сражаться сразу со многими.* `09_beg #857` |
+| Signora Sicilia | Unhurried authority; concise judgments and practical orders | *Всегда лучше выслушать и второе, и третье.* `09_end #787` |
+
+- Texas, Lappland and Leon use **ты** with one another. Lavinia and Texas
+  retain mutual **Вы**, including detention (`02_beg #765–767`), questioning
+  (`02_end #191–248`) and cooperation. This is professional respect, not an
+  automatic enemy/stranger rule. Lavinia and Leon/Bernardo use **ты**.
+- Demetri addresses Lavinia with **Вы**, she addresses him with **ты**
+  (`01_end #277–308`): his pointed courtesy resists her demand for cooperation.
+  Mafia subordinates normally use **Вы** to their dons; familiar private
+  exchanges and deliberate breaks in deference must follow scene context.
+- Lavinia uses **ты** with Lappland after the hostile court intrusion
+  (`04_end #442–453`). Lappland's **Вы / Ваша честь** back to her is pointed
+  mockery (`st02 #101–112`), not deference to an opponent's rank.
+- Bernardo and Rubio keep mutual **Вы** in formal negotiation, including the
+  implied threat (`07_end #20–88`). Danbrown keeps **Вы** to Lavinia even in
+  his threat (`07_end #157, #178`); she uses **ты**. His courtesy is deliberate.
+- Texas and Giovanna use **ты**. Wallach uses **Вы** to Giovanna until the
+  betrayal makes the break explicit: *донна. Нет... Ты... Джованна*
+  (`08_beg #748`). Keep **ты** after that. Young visitors use **Вы** to Agenir,
+  who uses **ты** back; this remains negotiation, including `07_end #280`.
+- Rubio's unlabelled diary and his Radio speech are masculine. His second-person
+  hypothetical (`08_end #253–283`) recounts his own past to Lavinia; it is not
+  her biography. His daughter uses **Вы** to Lavinia, who uses **ты** to her.
+- Sora and Bernardo/Caterina use mutual **Вы**. The couriers keep **ты** with
+  one another. Texas and Zaaro, Emperor and Zaaro, and Lappland and Alberto
+  use **ты**. A father/daughter confrontation is not formal deference.
+- Wallach and Leon start their bargaining with **Вы** (`04_beg #115–156`),
+  then Wallach's *брат* marks a move to **ты** (`#161–162`). Rubio keeps
+  ingratiating **Вы** to powerful visitors; his exchange with Wallach is a
+  veiled business threat, not a reason to replace every courtesy with **ты**.
+- Lavinia first addresses the hitman as **ты**, then recognises her former
+  colleague Bortolotti and switches to **Вы** (`03_beg #788–809`). He retains
+  bitter **ты**. Preserve this deliberate appeal to the judge he used to be.
+- Court Clerk is female in this event (portrait `avg_npc_697_1#1$1`, first
+  shown at `01_beg #364`). Carwash Worker is Danbrown, male (`02_beg #340`).
+  Caterina is Giovanna's pseudonym (`02_end #437`); retain each source label.
+  The unnamed `???` speakers are not all the same person or the same sex.
+- Sora plays Vivienne, while Exusiai reads the brother's male role in rehearsal
+  (`01_end #15–35`). Use the character's performed role for agreement in the
+  play, and the actress's own gender outside it. The ordinary play title is
+  **«Смерть Техас»**; Croissant mangles it deliberately in `st02 #672`.
+- Family names as organisations remain Latin: **семья Bellone / Saluzzo /
+  Rossati**. Personal surnames are transliterated (**Бернардо Беллоне**,
+  **Альберто Салуццо**, **Джованна Россати**, **Лаппланд Салуццо**). Preserve
+  the distinction from kinship references such as **род Техас**, and from the
+  proper organisation label **Famiglia Texas**. Cities, Grey Hall, theatres,
+  the carwash and named institutions follow the keep-Latin glossary.
+- **Владыка / Владычица / Владыки волков**, **Клык**, **район резервного ядра**
+  and **командная башня** are stable terms. Red's **Бабушка** is a wolf's
+  title/nickname, not proof of literal kinship. Lyudmila's mentor is a woman.
+- Bernardo and Agenir retain mutual **Вы** in their final philosophical
+  conversation (`09_end #325–336, #538, #572–604`), even though Agenir has a
+  mission to end him: a deliberate courtesy between elders and a spiritual
+  confidant. Bernardo initially addresses Zaaro as **Вы / дон**, then unmasks
+  him and moves to **ты** (`09_end #666–679`). Sicilia welcomes Emperor with
+  **Вы** (`10_end #388–392`); he keeps his irreverent **ты**. Leon uses **Вы**
+  to Sicilia during negotiation (`10_end #416–426`).
+- The final unlabelled funeral dialogue (`st04 #245–273`) alternates Demetri
+  and Leon, not the Doctor. The old mentor in Lyudmila's recollection is female
+  (`st04 #98, #119–120`); do not infer a man from **Maestro**.
+- **Ни пуха ни пера / К чёрту** (`09_end #497–499`) localises the paired
+  *In bocca al lupo / Crepi* well-wishing; do not confuse it with the faction
+  Bocca di Lupo. Sicilia's **не мешай ходу событий** (`09_end #814`) preserves
+  the four-word plan: let the famiglie's bloodlust run its course.
+- Retain the recurring rain/shelter metaphor, the government/tablecloth image,
+  the reprise of Lavinia's words, and Danbrown's **цивилизованнее / лицемернее**
+  accusation when Leon turns it into a statement about **мы**. Do not smooth
+  away the different layers of performance, flashback and present action.
+- Both live EN sources (m31ns and ArknightsStoryJson main) were compared with
+  the archive. All visible IDs and text match except `10_end #521, #523`:
+  live **Bocca di Lupo** replaces archive **Bocca al Lupo**. The RU overlay
+  uses the current name **Bocca di Lupo**; the supplied archive is unchanged.
+
+- Audit review: the full run returns exit 1 with empty stderr: 46 gender
+  candidates and four pre-existing place candidates. Twelve gender candidates
+  belong to this arc and are false positives, explicitly reviewed below;
+  the other 38 candidates predate this translation. There are no new glossary,
+  place or token findings. Do not alter correct agreement just to silence lint.
+
+| File (same act21side prefix) | ID | Why the agreement is correct |
+| --- | --- | --- |
+| `01_beg` | 425 | Court Clerk refers to an ideal **судья**, *каким должен быть*, not herself. |
+| `02_end` | 94 | Demetri says **Техас должна**, describing a woman. |
+| `02_end` | 464 | Giovanna says **ты должен** to Wallach. |
+| `03_beg` | 24 | Exusiai asks **кто сказал**, then refers to herself as **слышала**; the heuristic is case-sensitive. |
+| `03_beg` | 472 | Rubio asks his daughter **ты готова**. |
+| `04_end` | 194 | Leon describes Texas with **она сказала / готова**; his own **не додумался** is masculine. |
+| `06_end` | 211 | Lappland's **кто сказал** is an indefinite question, not masculine self-reference. |
+| `08_beg` | 714 | Giovanna's **каким должен быть** modifies **финал**. |
+| `10_beg` | 333 | Lappland addresses her father: **ты думал**. |
+| `st01` | 757 | Bernardo's **Сора сама решила** refers to Sora. |
+| `st01` | 1067 | Capone quotes Lappland's **я вас привела**. |
+| `st02` | 497 | Alberto's **ты вернулась** addresses his daughter; **я выгнал** is masculine. |
+
+---
+
 ## Pitfalls the lint can't catch (semantic — stay vigilant)
 
 - **Trailing-name vocatives.** English `…, Amiya` at line end is usually direct
