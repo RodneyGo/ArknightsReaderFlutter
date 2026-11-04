@@ -57,7 +57,13 @@ FEMALE = {"Amiya", "Ch'en", "Kal'tsit", "Hoshiguma", "Texas", "Exusiai", "Franka
           "Chosen Overseer?", "Treasure Guardian?",
           # Il Siracusano. Caterina is Giovanna's literary pseudonym.
           "Lavinia", "Giovanna", "Caterina", "Lunacub", "Lyudmila",
-          "Signora Sicilia"}
+          "Signora Sicilia",
+          # Hortus de Escapismo and The Masses' Travels (shared Laterano cast).
+          "Arturia", "Lemuen", "Fiammetta", "Fortuna", "Delfina", "Serpilia",
+          "Caroline", "Estara", "Hyman", "Eileen", "Nina", "Tila", "Helena",
+          "Cecelia", "Nueda", "Aurela", "Velliv", "Hildegard", "Vannini",
+          "Ermengarde", "Ewigegnade", "Idida", "Patia", "Priestess", "Lemuel",
+          "Mon3tr", "Koshelna", "Hierda"}
 MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captain",
         "Boy's Voice", "Young Man's Voice", "Heavily-Armed Man",
         "Andrey", "Matterhorn", "Valery", "Man",
@@ -80,7 +86,11 @@ MALE = {"Skullshatterer", "Mephisto", "Faust", "Wei Yenwu", "Ace", "Ursus Captai
         "Yith", "Eurill",
         # Il Siracusano. Ben is Benthonexigios; Danbrown runs the carwash.
         "Leontuzzo", "Bernardo", "Demetri", "Wallach", "Rubio", "Alberto",
-        "Agenir", "Ben", "Zaaro", "Danbrown"}
+        "Agenir", "Ben", "Zaaro", "Danbrown",
+        # Hortus de Escapismo and The Masses' Travels.
+        "Federico", "Yvangelista XI", "Richele", "Andoain", "Oren", "Raimund",
+        "Gerald", "Clément", "Aulus", "Erendel", "Fernand", "Jori", "Julian",
+        "Woodrow", "Ezell", "Patrizion", "Amos", "Paganini", "Fremont", "Michael"}
 
 # Masculine first-person markers (explicit verb/adjective list = low false-positive).
 MASC = re.compile(r"\b(понял|готов(?!а)|уверен(?!а)|должен|виноват(?!а)|благодарен|"
@@ -96,6 +106,23 @@ FEM = re.compile(r"\b(поняла|готова|уверена|должна|ви
 
 
 def sex(name, path=""):
+    # These descriptive labels refer to known people only in these two events.
+    if path.startswith("activities/act26side/"):
+        if name in {"Twisted Monster", "'Twisted Monster'", "'Devouring Shadow'",
+                    "Sankta Girl", "Solemn Girl", "Shy Child", "Raggedly-Dressed Girl",
+                    "Sarkaz Resident", "Elderly Monastery Inhabitant",
+                    "'Gesandte des Kurfürsten'", "Female Monastery Inhabitant"}:
+            return "F"
+        if name in {"Abbot", "Gaunt Old Man", "Gentle Priest", "Weathered Hunter",
+                    "Gaunt Man", "Bulky Youth", "Lively Child", "Raggedly-Dressed Boy",
+                    "Apostolic Knight", "Male Monastery Inhabitant"}:
+            return "M"
+    if path.startswith("activities/act42side/"):
+        if name in {"Matriarch", "'Matriarch'", "'Saint'", "Extra",
+                    "Notarial Hall Employee", "Unknown Voice Over The Radio",
+                    "Midwife", "Sickly Woman", "Sankta Nun", "Nun", "Liberi Nun",
+                    "Alert Nun", "Busy Nun", "Panicked Nun", "Nervous Nun"}:
+            return "F"
     # Event-local identities: the female court secretary and Danbrown.
     if path.startswith("activities/act21side/"):
         if name == "Court Clerk":

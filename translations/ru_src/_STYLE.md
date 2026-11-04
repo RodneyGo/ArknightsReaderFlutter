@@ -419,3 +419,264 @@ The supplied archive has no extra `act21side` meta-table scenes.
   *X есть Y*.
 - **Ambiguous "you".** Resolve ты/Вы from the relationship, and singular/plural
   from who's being addressed — the English hides both.
+
+
+## Hortus de Escapismo / The Masses' Travels — shared translation map
+
+The two events share a cast and vocabulary. Their EN source is the supplied
+ArknightsStoryJson archive, compared against both live application mirrors
+(m31ns and 050644zf/ArknightsStoryJson) for all 43 scenes; displayed IDs, props
+and attributes match. HE has 19 scenes / 3920 texts; MT has 24 / 5726.
+The five MT challenge-book records in story_review_meta_table are separate
+`textId` resources, not storyTxt scenes in this application's catalog.
+
+### Shared terminology and relationships
+
+- Names follow `_GLOSSARY.json`, including mentions in prose. Organizations,
+  buildings and places in `places_keep_latin` remain Latin. Job titles translate:
+  executor → исполнитель, nuncio → нунций, Legatus/Legati → легат/легаты,
+  cardinal aide → помощник/помощница кардинала; the operator codename Executor
+  retains its canonical name. Senior/seniora → господин/госпожа (courtesy,
+  not a higher rank). Avus / Patruus / Amita → дедушка / дядюшка / тётушка.
+- patron firearm → личное оружие; guardian gun → оружие-хранитель (MT distinguishes
+  the wordings); Law → Закон, Empathy → эмпатия; sanctuary/sacrarium → святилище.
+  Nativity → Рождение, Transfiguration → Преображение, enlightenment → просвещение,
+  Nurturer → воспитатель, arborbeast → древозверь. Terms denote what the EN says;
+  do not add explanations of the Law or turn religious belief into established fact.
+- HE community friends/family use ты; residents address the abbot with Вы,
+  he addresses them with ты. Gerald ↔ Stefano and Aulus ↔ Stefano use ты.
+  Children address unfamiliar visiting adults with Вы; adults address children
+  with ты, groups with lower-case plural вы. Fortuna ↔ Clément and
+  Delfina ↔ Caroline are familiar ты. Fortuna → Serpilia is Вы; reverse is ты.
+- Federico ↔ Richele/Serpilia/Oren/Lemuen/Arturia use ты in HE. Pope → Federico
+  is ты, Federico → Pope is Вы. To unfamiliar adult residents Federico uses
+  service-formal Вы, including pressure and questioning: HE01_beg #218–246,
+  HE01_end #220–221, #417–419; HE03_beg #440–458 keeps the abbot's formal dispute.
+  Raimund/Gerald address Federico with ты. This is a deliberate exception to
+  default opponent ты: Federico states procedure and assessments rather than
+  threatening, and explicitly denies trying to provoke anyone (HE01_beg #242).
+- Richele retains conciliatory Вы toward Raimund and the abbot while negotiating
+  (HE01_beg #206–208, #381–388; HE02_beg #197). Arturia addresses the abbot,
+  Gerald and Clément with Вы; the abbot/Gerald use ты back. Her polite register
+  continues under Gerald's warning (HE01_beg #284–330). Arturia ↔ Aulus use Вы
+  in their theological exchange, including «достопочтенный епископ» (HE02_beg #91).
+- Lemuen initially uses pointedly courteous Вы to her monstrous visitor
+  (HE03_beg #514; HE03_end #13–89), then drops the courtesy in pursuit;
+  the shift follows the initial hospitality joke. Lemuen ↔ Aulus remain Вы
+  during combat and theological debate (HE05_beg #602–648, #775–787).
+- MT Federico ↔ Cardinal Lemuen use formal Вы when discussing command and
+  authority (MT09_beg #91); this does not retcon their familiar HE exchange.
+  Doctor is masculine, Mon3tr → Doctor and Doctor → Mon3tr use Вы.
+  Priestess addresses Doctor and Mon3tr with ты. Preserve genuine group plurals.
+
+### Voice anchors from HE
+
+| Character | Voice | Anchor |
+|---|---|---|
+| Federico | Literal, procedural, concise; does not invent emotion or jokes | «Это наиболее рациональное предположение.» `act26side_03_beg #52` |
+| Yvangelista XI | Warm authority, playful without abandoning responsibility | «Спокойнее, Джованни. Кто не рискует, тот ничего не добьётся.» `act26side_st01 #100` |
+| Arturia | Courteous, observant; describes feelings through music and growth | «М-м... Как сложны обертоны. Но в Вас скрыты и другие чувства...» `act26side_03_end #122` |
+| Stefano / Abbot | Pastoral gentleness breaking into moral anguish | «Куда податься верующему, если вера предала саму себя?» `act26side_st01 #416` |
+| Gerald | Worn, protective, plain-spoken; resists heroic rhetoric | «Клянусь, я не брошу ни одного из вас.» `act26side_03_end #315` |
+| Clément | Hesitant, caring; practical concerns express helplessness | «Что я ещё могу придумать? Грядущая зима слишком холодна.» `act26side_03_end #194` |
+| Raimund | Young, prickly, loyal; defensiveness masks attachment | «Неужели мы смиримся с тем, что сейчас происходит?» `act26side_st01 #495` |
+| Fortuna | Earnest, hopeful, concrete; fractured speech under shock | «Теперь я наконец... такая же, как Раймунд и Каролина...» `act26side_04_beg #150` |
+| Delfina | Blunt and passionate about belonging; avoid making her merely rude | «Это мой единственный дом. И моя единственная семья.» `act26side_02_beg #688` |
+| Richele | Conversational mediator, humour softens blunt colleagues | *Мог бы добавить к этому «да» ещё пару слов.* `act26side_01_end #339` |
+| Serpilia | Casual, sharp, wry; guilt disrupts her usual banter | «Если бы я не помогла тебе починить ружьё...» `act26side_04_beg #135` |
+| Lemuen | Gentle teasing with firm command underneath | «Крошечный совет: может, иногда тебе стоит доверять чутью.» `act26side_04_beg #259` |
+| Aulus | Patient theological persuasion, quiet and deliberate | «Но прежде всего я иду путём, который считаю верным.» `act26side_04_beg #54` |
+| Oren | Pragmatic, conspiratorial, treats danger as a tactical opportunity | «Выслушаешь — поможешь?» `act26side_03_beg #339` |
+| Estara | Shy, hesitant, seeks reassurance | «Он такой страшный...» `act26side_04_beg #354` |
+| Erendel | Bold child, direct judgments and excitement | «Ага, большой дядя нас сразу нашёл!» `act26side_04_beg #341` |
+
+The HE01 opening notebook is Andoain's male voice. Repeated memories preserve
+wording across scenes. HE ST01 #49–54 contain literal `\n\n`, not actual newline
+characters; keep their representation as well as their count. Exact punctuation-only
+markers remain unchanged. Foreground speeches to a crowd use plural вы, not Вы.
+
+
+Additional HE voices: Hyman's monster speech is fragmentary; once speech returns,
+her exhausted care for the children stays restrained: «Латеранцы будут хорошо
+обращаться с детьми?» (`act26side_st03 #282`). The Leithanien envoy remains
+courteous even amid danger: «Прошу извинить: мы пригласили Вас в гости, а я
+опоздала» (`act26side_08_end #261`). Aulus → Hyman is ты throughout, Hyman →
+Aulus Вы; the epilogue does not reset their relationship from the opening scene.
+
+Further HE narrator identities: 04_end opening, 08_beg #220–224 and 08_end
+opening are Clément; 05_end prayer is Stefano. Anonymous speakers are Aulus
+at 05_beg #294, Richele at 05_end #74, Oren at 06_beg #219, Lemuen at
+07_beg #183, Stefano at 07_end #214 and Arturia at 03_end #215–218.
+Reed is a male Sarkaz in this event, not the female operator. Leyla is female;
+Sural is male. These contextual identities must not change unrelated stories.
+
+HE audit review with the extended canonical cast (seven heuristic findings):
+- `level_act26side_02_end.json #160`: Fortuna's «говорил» refers to grandfather
+  Stefano; her own «я всегда знала» is feminine.
+- `level_act26side_03_beg.json #375`: Serpilia reports what Clément «сказал»;
+  her own «я не стала» is feminine.
+- `level_act26side_06_beg.json #354`: Lemuen's «я одержала» is feminine;
+  «тот гость хотел» refers to Aulus.
+- `level_act26side_06_end.json #198, #318`: Oren's «ты сказала / думала»
+  addresses Serpilia, not himself.
+- `level_act26side_st01.json #359`: «беда пришла» describes the disaster;
+  the abbot's own «я хоронил» is masculine.
+- `level_act26side_st01.json #649`: Fortuna's «никто ... не говорил» uses
+  grammatically masculine никто, not a masculine self-reference.
+No heuristic was weakened or suppressed to clear these findings. All source
+files are present; source-fetch failures in a preliminary run were resolved by
+populating the audit cache from the archive already verified against both mirrors.
+
+
+MT audit review (seventeen contextual gender-heuristic findings):
+- `level_act42side_02_beg.json #99`: Amos refers to Vannini («ученица ... должна»).
+- `level_act42side_02_beg.json #311`: Paganini addresses Exusiai («ты ... хотела»).
+- `level_act42side_02_beg.json #463`: Andoain refers to the Matriarch («хотела»).
+- `level_act42side_02_end.json #384`: Vannini describes Paganini («он думал»);
+  her own forms are «немая» and «я смогла».
+- `level_act42side_03_end.json #73`: Velliv's «должен» agrees with «Святой город».
+- `level_act42side_04_beg.json #175`: Arturia's «не сказал» refers to Federico.
+- `level_act42side_06_beg.json #108`: Lemuen refers to the male school director
+  («пришёл ... попросил»); her own «я очнулась» is feminine.
+- `level_act42side_06_end.json #344`: Amos refers to Fiammetta («вернулась»).
+- `level_act42side_08_beg.json #485`: Lemuen addresses Andoain in the old mission
+  flashback («ты подал ... решил»); the addressee is not Amos in the present.
+- `level_act42side_09_beg.json #84`: Andoain reports a woman's words («она сказала»).
+- `level_act42side_10_beg.json #785`: Aurela addresses her father («не пришёл»).
+- `level_act42side_10_end.json #245, #644`: Patrizion addresses Vannini
+  («ты должна»); the repeated recollection is intentionally identical.
+- `level_act42side_st03.json #177`: Yvangelista's «пришла» agrees with «мысль»;
+  his self-reference «я жевал» is masculine.
+- `level_act42side_st03.json #501`: Lemuen refers to Amos («не сказал»), while
+  her own «я подумала» is feminine.
+- `level_act42side_st04.json #179, #193`: Priestess refers to / addresses the
+  male Doctor («пришёл», «ты ... понял»), not herself.
+
+Final structural checks cover HE's 3837 name texts, 17 multiline texts,
+56 subtitles and 10 stickers, and MT's 5402 name texts, 45 multiline texts,
+69 subtitles, 97 stickers and 113 decisions with 177 ordered options.
+The only unchanged full texts are proper names: MT01_beg #341
+«Via Jovita, Pagus Stevonus», MT09_beg #345 «Laterano.» and MTst04 #306 «Mon3tr.».
+No dialogue is left in English. Canonical brace tokens, inline tags, actual
+and literal newline representations, punctuation-only markers, ID sets and
+paths are compared with EN. Existing v18 overlays remain semantically unchanged.
+
+
+### MT relationship map and scene-specific exceptions
+- Doctor↔Mon3tr and Doctor↔Exusiai mutual Вы per operator rules; all choices in owned scenes reviewed. Children are ты; adult replies to Doctor male. Priestess↔Doctor ты (intimate past and current personal conflict); Priestess→Mon3tr ты. Kal'tsit→Mon3tr ты in directive memory.
+- Federico↔Arturia ты; Arturia uses ironic title “Ваше Блаженство” without changing the relationship. Federico↔Andoain Вы in official investigation; Arturia↔Andoain Вы. Federico→Pope Вы, Pope→Federico ты.
+- Lemuen↔Mostima/Fiammetta/Andoain ты, including old mission flashbacks. 08_beg#485 “ты подал в отставку” addresses ANDOAIN (Captain#483, Andoain reply#488, name#500), not Amos.
+- Lemuen↔Amos mutual Вы in07_end and08_beg#608–675. Deliberate transition to ты at08_beg#686 (“ты отличный следователь, Амос”) and#688 (“ты ещё на связи, Лемуэн”): dying man's vulnerable private confession and Lemuen's personal reassurance replace their earlier mutual titles. This is not merely caused by using first names. Agreed with root, documented for consistency.
+- Federico↔Lemuen Вы in09_beg#90–95/#195: formal request to the saint exercising supreme emergency authority and his subsequent assignment to the cardinal. Root approved this situational register; earlier HE personal relationship stays ты.
+- Federico↔Aurela Вы in07_end official standoff/biography and nonviolent explanation#414–418; ordinary angry errari→Federico ты. This is a formal confrontation exception to enemy-default ты, not a polite enemy template.
+- Nurturer↔Andoain mutual Вы, aligned with B earlier scenes, no gratuitous change to ты. Matriarch→Andoain ты; Andoain→Matriarch Вы before his renunciation. Matriarch↔other adult staff Вы. At08_beg#956 Andoain's direct renunciation addresses Keph by name on ты (“я разрушу свою веру”), a deliberate break with her authority. In speaking-fledgling dialogue Andoain↔Arborbeast ты throughout (including10_end#1240/#1243).
+- Exusiai↔Saint ты (personal ideological confrontation). Saint→Patrizion Вы.
+- Aurela↔Nueda ты; Aurela↔Patrizion ты (former mentor and hostile pupil); Patrizion↔Paganini ты; Patrizion↔Fiammetta ты (family); Vannini→Patrizion/Paganini Вы, both→Vannini ты. Patrizion↔Velliv Вы, aligned with B.
+- Lemuen↔Aurela mutual Вы in st03 formal crime/contract conversation, Amos↔Aurela ты in marital flashback. Patia↔Andoain ты; Patia↔Fiammetta/Mostima/Nueda ты. Andoain→old Jaime Вы, Jaime→young Andoain ты. Adult unfamiliar nun↔Exusiai asymmetric Вы/ты consistent with adult nun and younger girl.
+
+
+### MT character voice anchors
+- **Mon3tr** (st04#373): Energetic, protective and practical; a person with her own choice, not merely a continuation of Kaltsit. «Психологическая консультация окончена, командир! У меня всё хорошо. Просто придумала, как выбраться из этого проклятого места. Нужна Ваша помощь!»
+- **Priestess** (st04#96): Quiet exactness, researcher language and intimate address; threatening certainty without theatrical villainy. ««Совершенство» подразумевает строгий верхний предел. «Изъян» же означает, что у нас ещё есть шанс на прорыв. Такова была позиция {@nickname}.»
+- **Matriarch / Saint / Keph** (08_end#356): Solemn measured theological claims; grave warmth survives monstrous form. «Веру формируют опыт бесчисленных поколений, испытания временем и следы несметного множества людей. Первые верующие не должны, не смеют вновь её менять.»
+- **Arborbeast / Law dialogue** (10_beg#332): Gentle but relentless questions exposing the Guide’s self-justification; not childish speech. «Скажи, воспитатель. Ты хочешь спасти всех или думаешь только о собственном утешении?»
+- **Patia** (08_end#299): Blunt, loyal and exasperated; direct practical concern beneath roughness. «Хоть переоденься, выглядишь ужасно. Или тебе <i>нравится</i> ходить в рясе, залитой кровью?»
+- **Aurela** (10_beg#818): Defiant, abrasive, hatred as a chosen bond; sharp emotional attacks, no gratuitous profanity. «Вот моя связь с Laterano! <i>Вот</i> моя вера!»
+- **Nueda** (10_beg#641): Patient warmth toward children; songs and prayer are practical care, not empty sermon. «На этот раз нам повезло, правда? Когда Аурела вернётся, как следует её отчитаем!»
+- **Idida** (08_beg#133): Childlike earnest conviction and excited sales pitch; stammer retained where meaningful. «Так что я буду подавать пример! Изменю привычки Laterano в еде и восстановлю наши связи силой мороженого без сахара!»
+- **Amos** (08_beg#644): Hesitant ordinary man; vulnerable candour, not a heroic speech. «Неужели я был <i>настолько</i> бесполезен?»
+- **Patrizion** (10_end#245): Older mentor/family warmth, authority confronting regret. «Это первый урок, который ты должна усвоить... А я буду рядом.»
+- **Paganini** (st03#359): Gruff elderly craftsman, curt affection and rough jokes. «Только не загуби мою репутацию...»
+- **Vannini** (st03#309): Halting speech with pauses, gradually more confidence; do not flatten into generic stuttering. «Он спросил, согласна ли я, стать объектом... исследования... нарушений речи? И нимбов... Я-я не уверена, что поняла...»
+- **Federico** (st03#72): Precise analytical language gaining an explicit appreciation for human fragility. «...драгоценную хрупкость человеческой жизни.»
+- **Arturia** (10_end#1564): Musical perception, poised irony; her help arises from expression, not repentance. «Это просто причина моего существования.»
+- **Andoain** (10_end#1251): Thoughtful religious cadence, then decisive refusal; owns his sins instead of asking to erase them. «Андоайн Агафангелос никогда не обретёт облегчения.»
+- **Exusiai** (10_end#693): Bright plainspoken practical humanity, even in confrontation with theology. «Разве Laterano не должен быть счастливым местом?»
+- **Hildegard** (10_end#330): Forthright cheerful competence, eager to represent her monastery. «Стрел у меня достаточно, глаз зоркий. Я помогу их сдержать!»
+- **Koshelna** (st04#654): Controlled resolve; collective hope in Ursus without softness. «Лишь кровь, горящая в наших сердцах, поможет Ursus пережить зимний холод.»
+- **Hierda** (st04#718): Gentle active hope, prayer as a bond rather than a miracle guarantee. «Но, молясь, мы будем думать друг о друге.»
+
+
+### Further recurring MT voices and early-scene conventions
+
+| Персонаж | Голос | Сцена и точная реплика |
+|---|---|---|
+| Веллив | Вежливая, холодная, умеет колоть комплиментом | 02_beg #475: «Так рассудительны, что почти скучно.» |
+| Экстра | Недоверчивая, язвительная, защищает ребёнка; имя не переводится словом «Лишняя» | 02_beg #267: «Мама тут ни при чём. Я сама взяла это имя, когда забеременела. Кто ещё кому лишний!» |
+| Эрменгарда | Учтивая, чуть игривая угроза; с ребёнком сразу мягче | 05_beg #38: «Если запутаются, можете перерезать нити рогами. Только кто знает, в какое измерение моя нить вас тогда утащит?» |
+| Эвигегнаде | Величаво, но лично и с лёгкой снисходительной иронией | 05_beg #213: «Пожалуй, не <i>совсем</i> немедленно.» |
+| Михаэль | Осторожная почтительность, сбивается перед императрицей | 05_beg #179: «В-Вы спрашиваете моё мнение?» |
+| Эзелл | Смущённая забота, без показного героизма | st01 #279: «Ни сливок, ни сахарной посыпки не нашлось, поэтому сверху сушёные овощи. Постарался выбрать покрасивее...» |
+| Сесилия | Детская прямота, благодарность, уважительное Вы к защитнику | st01 #287: «Но сегодня я хочу... задуть свечи вместе с Вами.» |
+| Тила | Сдержанная лояльность и твёрдая деловая уверенность | st01 #171: «Не радуйся раньше времени.» |
+| Вудро | Немолодой, упрямый, отмахивается от тревоги о себе | st01 #218: «Нельзя отдавать всё огню, когда здесь наконец жизнь налаживается... Всё со мной хорошо, правда...» |
+| Агнир | Усталое спокойствие, ироническая трезвость старого священника | st01 #97: «Мы пережитки ушедшей эпохи, Сицилия. Сама знаешь, у стариков бывает чутьё на некоторые вещи.» |
+
+The anonymous confessional voice in MT01_end and MT03_beg is the male Doctor,
+revealed in MT06_beg. Earlier agreement and Вы were reviewed after that reveal.
+The anonymous woman in MT04_end #400–488 is Patia (same figure_art as MT08_end).
+Do not infer Romya/Giselle's sex just from names, or assign a sex to the grieving
+Kuranta from a generic sprite. Neutral phrasing is used where EN gives no answer.
+Gia, Galena and Sister Gerain are female. Vannini/Vani is explicitly female;
+Arborbeast's fledgling is male and its mother female. The speaking fledgling later
+voices information from the Law through Andoain's mind, not a resurrected animal.
+The Presence, Rhine staff and the frantic youth do not acquire an invented sex.
+
+Additional named relationships:
+- Agenir ↔ Sicilia, Blacksteel colleagues, and Jessica/Helena/Woodrow use ты;
+  Blacksteel staff address Cliff with Вы. Ezell → Cecelia ты; she → Ezell Вы.
+- Patrizion → Lemuen uses formal Вы in MT01_beg, then familiar ты at the family
+  gathering (MT02_end #452); Lemuen continues Вы. Patrizion ↔ Amos uses Вы
+  in the interview/appointment (MT06_end). Mostima → Patrizion Вы, reverse ты.
+- Velliv ↔ Lemuen/Amos/Patrizion uses Вы. Administrative courtesy remains in
+  Velliv's conflict with Lemuen (MT05_end #138–171). Federico/Arturia ↔ Hildegard
+  uses Вы. Federico ↔ Richele is ты, except the explicitly official withdrawal
+  instruction at MTst02 #63; he is back to тобой at #179.
+- Paganini ↔ the unknown Gun-Knight uses Вы during official detention (MT05_end);
+  the unknown knight is not simply treated as his old friend Patrizion.
+- Extra → Matriarch ты, reverse Вы: patient pastoral persuasion, not a coercive
+  interrogation. Nurturer ↔ Hildegard keeps doctrinal, official Вы in MT07_beg.
+- Ermengarde → Cecelia ты, reverse Вы; Ermengarde → Fremont Вы/учитель,
+  reverse ты. Ewigegnade → Michael ты, reverse Вы.
+
+Fiammetta's assigned duty name Shimmering Vigil («Мерцающее бдение») and
+Austere Authority/Eternal Grace («Суровая власть»/«Вечная благодать») are
+translated titles; Grimmacht/Ewigegnade remain transliterated personal names.
+Cliff's nickname Clip is transliterated «Клип», not meaning-translated.
+Oracle is Оракл as a codename; machine identifier ORACLE stays literal.
+
+Nueda's repeated hymn uses identical wording across memories and present scenes:
+«Там земля не таит в себе бомб♪ / Там поля дарят золотую пшеницу♪ /
+Обитель Господа, источник родительской любви♪ / Он слышит молитвы, исполняет
+желания♪ / Каждого согреет Его любовь♪ / Даже безногого, даже безрукого♪»
+(MTst01 #424–429; the slashes here only mark separate source lines).
+Lord in the hymn is Господь; Law in doctrinal/technical speech is Закон.
+Understandable Latin greetings, farewells and insults are translated with their
+inline tags intact; their communicative meaning, not foreignness, matters here.
+
+
+### Final editorial and delivery verification for this addition
+
+All 9646 Russian texts were reread separately from EN; an independent reviewer
+also read all 24 MT scenes and the first eight HE scenes against the shared
+character/relationship map. Concrete grammar, omitted connective text, titles,
+inflections and interrupted speech were corrected. An extra review compared
+EN sentence-final interruption dashes with RU and surrounding dialogue: actual
+interruptions keep —, while narrative introductions may use a colon and breaths
+or nonverbal sounds retain natural punctuation. No lint requirement was relaxed.
+
+Documents used: `translations/README.md`, `_RULES.md`, `_STYLE.md`,
+`_GLOSSARY.json`, `docs/DATA_AND_CONTENT.md` and `docs/DEVELOPMENT.md`.
+`flutter test --no-pub test/ru_test.dart` passed all 15 tests. These tests and
+structural comparisons do not constitute a manual reader/VN/offline test;
+that device-level check was not performed in this translation task.
+
+
+Release data: generated index **v19**, 310 overlays in total (267 unchanged plus
+43 new). Both index copies and canonical SHA-1 values were verified against all
+authoring files and the generated tree. The full gender audit returns 1 with
+70 gender candidates and four old place-name candidates: 50 findings predate
+this addition; the 24 new findings (7 HE, 17 MT) are the contextual false positives
+listed above. No source is missing and stderr is empty. The status is not reported
+as an unqualified lint pass. Publishing requires pushing the complete data set,
+purging jsDelivr, and verifying the live index plus all 43 new overlay hashes.

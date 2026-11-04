@@ -54,9 +54,38 @@ Court Clerk is the woman shown by `avg_npc_697_1#1$1` in this event; do not
 apply her sex to every clerk elsewhere. Generic speakers and `???` still
 require scene context. See `_STYLE.md` for aliases and deliberate T–V changes.
 
+### Hortus de Escapismo (act26side) and The Masses' Travels (act42side)
+
+**Female:** Arturia, Lemuen, Exusiai / Lemuel (distinct from Lemuen), Fiammetta,
+Fortuna / Tuna, Delfina / Fina, Serpilia / Ria / Lia, Caroline, Estara / Sara,
+Hyman, Eileen, Nina, Tila, Helena, Cecelia, Nueda, Aurela, Velliv, Hildegard,
+Vannini / Vani, Ermengarde, Ewigegnade, Idida, Patia, Priestess, Mon3tr,
+Koshelna, Hierda; Gia is the deceased female friend mentioned in MT07_beg.
+Galena and Sister Gerain are also female.
+`Matriarch`, `'Matriarch'`, `'Saint'` and Keph refer to the same woman in MT;
+`Extra` is a female Sarkaz named Экстра, with the name's meaning explained in
+her dialogue rather than substituted for the name.
+
+**Male:** Federico Giallo, Yvangelista XI, Richele Colombo, Andoain Agathangelos,
+Oren Argiolas, Raimund, Gerald / Holst Tyfindale, Clément Dubois, Aulus,
+Stefano Torregrossa / Abbot, Erendel / Eren, Fernand, Jori, Julian, Woodrow,
+Ezell, Patrizion, Amos, Paganini, Fremont, Michael.
+
+HE aliases: `Gentle Priest` is Aulus; `Weathered Hunter` is Gerald;
+`Gaunt Old Man` is Stefano; `Gaunt Man` is Clément; `Sankta Girl` is Fortuna;
+`Solemn Girl` is Delfina; the lively boy is Erendel, the shy girl is Estara.
+`Twisted Monster`, `'Twisted Monster'` and `'Devouring Shadow'` are Hyman:
+agreement referring to her former person is feminine, while the noun
+«чудовище» takes neuter agreement. `Sarkaz Resident` is Caroline in HE;
+`Elderly Monastery Inhabitant` is Nina. Do not globalize generic labels.
+
+Other generic speakers still require scene context. In MT `Notarial Hall
+Employee` is a woman (seniora); `Unknown Voice Over The Radio` is Aurela.
+See `_STYLE.md` for relationship-specific T–V, voices and audit exceptions.
+
 ## Names & terminology — canonical glossary
 `_GLOSSARY.json` is the single source of truth. `gender_audit.py` reads it and
-flags any `ru/*.json` that disagrees, so **never invent a new spelling ad-hoc**:
+flags any `ru_src/*.json` that disagrees, so **never invent a new spelling ad-hoc**:
 - **`names`** — every EN speaker maps to exactly one RU form. Add new characters
   here first, then use them. (This is why `Ребёнок` must not also appear as
   `Ребенok` — same speaker, one form.)
@@ -157,7 +186,7 @@ shipping. Two failure modes the eye misses:
    it up front so they're consistent from line 1.
 3. Translate meaning-first in each character's voice (`_STYLE.md`).
 4. Coherence pass: re-read the RU against itself for voice drift and calques.
-5. Run the lint: `python tool/gender_audit.py` (joins each ru/*.json line to
+5. Run the lint: `python tool/gender_audit.py` (joins each ru_src/*.json line to
    its source speaker; flags first-person gender-agreement mismatches,
    glossary/name disagreements, place-name policy violations, and `{…}` token
    mismatches). Review + fix before building.
