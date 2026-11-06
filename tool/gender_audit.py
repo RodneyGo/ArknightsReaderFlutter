@@ -106,6 +106,20 @@ FEM = re.compile(r"\b(поняла|готова|уверена|должна|ви
 
 
 def sex(name, path=""):
+    # Guide Ahead: event-local aliases and explicitly identified speakers.
+    if path.startswith("activities/act16side/"):
+        if name in {"Sciurus", "Rosella", "Quiet Woman", "Sickly Mother",
+                    "Shimmering Vigil", "The Liberi Formerly Known As Shimmering Vigil",
+                    "Scathing Leithanian", "Intellectual Lateran Citizen",
+                    "Pious Sister", "Stoic Sister", "Serious Nurse", "Sister",
+                    "Blabbermouth Hospital Attendant", "Merry Peddler",
+                    "Sarkaz Woman", "Warm Prioress"}:
+            return "F"
+        if name == "Lateran Citizen" and path.endswith("_03_end"):
+            return "F"  # Cecelia calls the mourner a lady at #320.
+        if name in {"Yucatan", "Wasting Man", "The Pope", "Conscientious Doctor",
+                    "Notarial Hall Official", "Friar", "Apostolic Knight"}:
+            return "M"
     # These descriptive labels refer to known people only in these two events.
     if path.startswith("activities/act26side/"):
         if name in {"Twisted Monster", "'Twisted Monster'", "'Devouring Shadow'",

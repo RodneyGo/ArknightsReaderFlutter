@@ -680,3 +680,148 @@ this addition; the 24 new findings (7 HE, 17 MT) are the contextual false positi
 listed above. No source is missing and stderr is empty. The status is not reported
 as an unqualified lint pass. Publishing requires pushing the complete data set,
 purging jsDelivr, and verifying the live index plus all 43 new overlay hashes.
+
+
+## Guide Ahead (act16side) — translation map
+
+The supplied EN archive contains 18 storyTxt scenes and 3140 visible texts.
+All displayed IDs, props and attributes were compared with both live sources
+used by the application (m31ns and 050644zf/ArknightsStoryJson); they match.
+Authoring follows README, `_RULES.md`, this style guide, `_GLOSSARY.json`,
+`docs/DATA_AND_CONTENT.md` and `docs/DEVELOPMENT.md`.
+
+### Names, voices and recurring language
+
+Guide is Проводник, as already used for Andoain in MT. Astray and Pathfinders
+are group names and remain Latin; do not turn the plural Astray into a personal
+nickname. Proper places, institutions and the Caprinae label remain Latin.
+Commandments are Заповеди, Revelation is Откровение; the Law is Закон.
+Keep patron firearm (личное оружие) distinct from guardian gun (оружие-хранитель),
+including the child's use of the latter. Mister Friar is «брат монах» in Cecelia's
+respectful, childlike speech. Ordinary clergy are монах/сестра; no invented name.
+Shimmering Vigil and the three alternative temporary duty titles are translated
+as titles; Fiammetta's personal name remains Фиамметта.
+
+Sciurus and Yucatan are a married couple (st02 #63); Rus is her familiar short
+name, Рус. Feoria La Porta is Cecelia's mother. Lemuel / El is Exusiai, distinct
+from Lemuen. The Apostolic Knight label covers Giovanni, Talvadore and Paolario,
+not one unnamed speaker; the later Friar is not necessarily Andoain.
+Cecelia narrates 06_end #7–19; Ezell narrates the approach to the tower at
+#139–158 and the internal monologues in 02_beg/02_end/03_end. Andoain narrates
+05_end #537–539 and the long descent in 07_end. The unnamed perception at
+05_end #215–216 has no explicit speaker and uses neutral agreement. Fiammetta narrates
+her memory in 08_beg #204–232; the opening account of Andoain is Lemuen's.
+
+### Relationships and deliberate exceptions
+
+- Cecelia addresses adults with Вы; adults address her with ты. Her mother
+  and she use ты. Ezell addresses Fiammetta, Mostima and senior officials with
+  Вы; Fiammetta and Mostima address the trainee with ты. Avoid importing the
+  adult-operator/Doctor rule into conversations in which the Doctor is absent.
+- Fiammetta, Mostima, Lemuen and Andoain use ты with their former squadmates;
+  Fiammetta and Patia also use ты. Legati colleagues, Oren/Velliv and
+  Mostima/Velliv use ты in their sharp personal banter. The Pope addresses
+  individuals with ты, while they address him with Вы. Speeches to groups
+  use genuine plural вы.
+- Sciurus/Yucatan use ты with each other; they and Ezell use Вы.
+  The diplomatic quarrel with the duchess keeps official Вы despite hostility
+  (01_beg #67–100): forms of address and a formal demand for an apology are
+  the instruments of this dispute. Oren does not turn it into street threats.
+- Ezell and Andoain keep mutual Вы in the theological conversations
+  (04_beg #209–277, 05_beg #147–163, 06_beg #47–135). Suspicion coexists with
+  pastoral hospitality and reasoned disagreement; this is deliberate courtesy,
+  including Ezell's firm request to leave with Cecelia. Patia and Rosella
+  address their Guide with Вы; he addresses individuals with ты.
+- Oren initially uses mock-official Вы to Ezell in 02_end #333–350, then
+  shifts to patronizing ты at #356. Ezell initially addresses the purported
+  official with Вы; their open confrontation in 06_beg uses ты in both
+  directions. Ezell and Patia use ты after her disguise is exposed.
+- Federico addresses Oren with procedural Вы throughout the arrest
+  (06_beg #398–402, 07_beg #115–131); Oren uses ты back.
+  The unknown speaker in 04_beg #298–320 also receives procedural Вы; the
+  sprite differs from Oren, so no identity is assigned beyond the EN text.
+  This follows Federico's established official voice, as in HE. Their familiar
+  ты returns in the post-investigation exchange in st02. Velliv addresses
+  Federico/Ezell with ты; they address her with Вы. Velliv and Lemuen keep
+  mutual Вы, consistent with their professional relationship in MT.
+- Andoain addresses the Pope with Вы even in the confrontation in 07_end:
+  #83–84 and #235 deliberately enumerate the official titles in a pointed
+  theological challenge. The Pope keeps the fatherly ты. Their duel does not
+  reset these voices. This exception follows the scene, not rank alone.
+
+
+The event has no decisions or stickers: coverage consists of 3008 name/content
+texts (including unlabelled narration) and 132 subtitle texts. The only newline
+escape is literal `\n` in `01_beg #248`, not an actual newline. Preserve it.
+The exact Sarkaz song shared by the 05_end recollections and singers is:
+«Ветры высоких холмов...♪ За героем летят далеко...♪ По долгим дорогам...♪
+Сквозь терния и шипы...♪»; #531 and #533 divide the same lyrics between voices.
+Fiammetta and Richele initially use mutual Вы (02_beg #492 introduces him).
+Federico/Richele and Federico/Ezell use familiar ты outside formal detention.
+Laterano may refer to the country or the city. Keep the grammatical referent
+consistent within an exchange: the closing city imagery uses masculine
+«сам Laterano», «он стоит», «его двери», while «вся Laterano» may denote the
+country. Do not mechanically change pronouns across these different contexts.
+
+### Guide Ahead voice examples and final review
+
+The examples below are exact lines from the authoring overlays; scene names
+are relative to `level_act16side_*.json`.
+
+| Персонаж | Голос | Сцена и точная реплика |
+|---|---|---|
+| Сциурус | Прямая, нетерпеливая, ироничная; в дипломатическом споре сохраняет форму | 01_beg #17: «Но не до такой же степени, чтобы всё подряд было сладким!» |
+| Юкатан | Спокойный, дипломатичный; с женой мягкая ирония | 01_beg #26: «Что до меня, Рус, мне вполне достаточно видеть, как сияешь ты.» |
+| Феория | Угасающая, нежная мать; повторы и недоговорённость без взрослой риторики в устах ребёнка | st01 #84: «Как же маме не хочется тебя оставлять.» |
+| Элиза | Быстрая, болтливая, постоянно отвлекается; больничные сплетни без злобы | 01_beg #183: «На чём я остановилась? Приём у педиатра? Слушайте, на прошлой неделе...» |
+| Шэрон / герцогиня Фрэнсис | Высокомерная дипломатическая учтивость, презрение без уличного сленга | 01_beg #65: «Думаете, посланница ничтожной ледяной страны вправе дерзить мне, герцогине?» |
+| Розелла | Заботливая, сдерживает собственную горечь ради ребёнка | 04_end #144: «Сегодня ночью я побуду с тобой в маминой комнате, хорошо? Мы все будем рядом. Ты не останешься одна.» |
+| Эзелл | Обычный молодой сотрудник, смущённый и испуганный, но верный обещанию | 06_beg #83: «Стыдно признаться, но всё это время я строил перед ней героя. Говорил, что держу слово, что мне не страшно потерять работу...» |
+| Сесилия | Простые прямые вопросы; горе выражено конкретным желанием | 02_end #314: «Я ещё с ней не попрощалась.» |
+| Андоайн | Спокойная пастырская речь, конкретные истории вместо готовых ответов | 05_end #519: «Вопросы всегда задают живым.» |
+| Фиамметта | Резкая, практичная; заботу прячет за деловитостью и раздражением | st02 #241: «Думаешь, мир вокруг тебя вертится? Нам просто по дороге.» |
+
+All 18 EN scenarios were read in full before translation. Each translator
+reread the assigned RU separately; the integrating reviewer independently read
+all 3140 RU texts against the scene and relationship map. Repeated quotations,
+the song, interruption boundaries, short markers and unusually unequal EN/RU
+lengths were checked by ID. There are no missing or extra displayed IDs, no
+decision options, and no brace tokens or inline tags in these scenarios.
+The sole literal newline escape is preserved. Untranslated whole texts are
+the proper names `Kjerag?`, `Stevonus.` and `Astray.`. Generic NPCs without
+reliable textual sex evidence use neutral first-person constructions; a
+grammatical speaker label is not evidence of a character's biological sex.
+
+The full gender audit returns 1: 77 gender candidates and four older place-name
+candidates. Of these, 74 findings predate Guide Ahead. The seven new findings
+are contextual false positives, reviewed with the EN and adjacent dialogue:
+
+- `level_act16side_01_beg.json #264`: Ezell's «ты потеряла» addresses Cecelia;
+  his own «я не нашёл и привёз» is masculine.
+- `level_act16side_01_end.json #337`: Patia's «должен/обязан» belongs to the
+  generic «каждый либери», not to the female first-person speaker.
+- `level_act16side_02_beg.json #71`: Cecelia's «кое-кто пришёл» describes the
+  male executor; her own «я с ней разговаривала» is feminine.
+- `level_act16side_03_end.json #290`: Ezell's «ты снова увидела маму» addresses
+  Cecelia, not himself.
+- `level_act16side_03_end.json #307`: the female citizen's «папа ... говорил»
+  describes her father.
+- `level_act16side_05_beg.json #203`: Cecelia's «брат монах сказал» refers to
+  Andoain, not herself.
+- `level_act16side_06_end.json #403`: Lemuen's «он ... хотел» refers to Andoain;
+  her own «я бы ... не простила» is feminine.
+
+No EN source was skipped and audit stderr is empty. Audit sex mappings were
+extended only for identities established in this event; no heuristic was
+weakened or warning suppressed. The audit is not described as an unqualified
+lint pass. `flutter test --no-pub test/ru_test.dart` passed all 15 tests.
+Manual reader/VN/fallback/offline checks were not performed: the user elected
+to finish without the previously requested device-level check.
+
+Guide Ahead release data: index **v20**, 328 overlays (310 unchanged and 18 new).
+Both index copies are byte-identical. Every generated overlay equals its
+authoring JSON and its canonical SHA-1 matches the index; the generated tree
+has no stale paths. Publication comprises the 18 authoring files, 18 generated
+files, both indices, glossary, rules, this guide and event-local audit mappings.
+Delivery requires publishing this complete set to `main`, purging the index
+and all 18 new overlays, and comparing the live CDN objects and hashes.

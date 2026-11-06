@@ -192,3 +192,18 @@ shipping. Two failure modes the eye misses:
    mismatches). Review + fix before building.
 
 
+
+
+### Guide Ahead (act16side)
+
+**Female:** Sciurus, Rosella, Feoria La Porta, Sharon / Duchess Francis,
+Elisa, Paula; the established Laterano cast keeps the sex listed above.
+**Male:** Yucatan (Sciurus's husband), Talvadore, Paolario, Ezell Pastore.
+`Quiet Woman` is Lemuen; `Wasting Man` and the early `Friar` are Andoain.
+Later `Friar` speakers are other male clergy: do not assign all their lines
+Andoain's voice. `The Pope` is Yvangelista XI. `Merry Peddler` and
+`Sarkaz Woman` are Rosella. `Notarial Hall Official` is Richele.
+`Blabbermouth Hospital Attendant` is Elisa; `Intellectual Lateran Citizen`
+is Paula. The mourner labelled `Lateran Citizen` in `03_end` is a woman
+(Cecelia explicitly calls her a lady at #320). Other generic labels and
+unlabelled narration require scene context; see the GA map in `_STYLE.md`.
