@@ -825,3 +825,47 @@ has no stale paths. Publication comprises the 18 authoring files, 18 generated
 files, both indices, glossary, rules, this guide and event-local audit mappings.
 Delivery requires publishing this complete set to `main`, purging the index
 and all 18 new overlays, and comparing the live CDN objects and hashes.
+
+### Guide Ahead — contextual revision, 2026-11-07
+
+All 18 scenes / 3140 EN–RU text pairs were reviewed again for contextual meaning,
+following the explicit semantic-review procedure in `AGENTS.md`. This revision
+corrects 27 lines in 13 scenes. It distinguishes funeral soul-guiding from
+salvation, physical roughness from verbal rudeness, disagreement from opposing
+allegiances, bargaining value from personal power, and code names from ranks.
+It also restores degrees of certainty, reactions to danger, and the imagery of
+light, while removing literal idiom renderings and awkward collocations.
+The unusual salty sunlight and the metaphorical crossing were checked and kept;
+only the unsupported foreknowledge in «заведомо» was removed from the latter.
+
+Related formulations must remain consistent: `07_beg #200` refers to remaining
+true to one's principles; `st02 #347–349` answers that ethical question, without
+the unintended association of «честная женщина» with sexual respectability.
+Fiammetta's whispered `03_beg #344` concerns being left to look after a child,
+not carrying her: the preceding complaint about tired arms is her outward excuse.
+
+Three deliberate clarifications use the supplied Chinese scenario where EN
+obscures or changes the action. They are not ordinary RU-versus-EN mismatches:
+
+- `03_beg #245`: CN `给你报个信` means warning Oren after Federico leaves;
+  EN "put in a report for you" led to an inappropriate formal report.
+- `08_beg #191`: CN `为抱薪者端上一杯热茶` offers tea to the one carrying
+  firewood for others, continuing the torch imagery; EN "functionary" loses it.
+- `st02 #349`: CN `为了高尚的人而付出努力` is making an effort for principled
+  people. EN instead speaks of respecting people who earned that description.
+  RU now preserves the CN action and its connection to Ezell's next question.
+
+Displayed IDs, names maps, markers and markup remain unchanged. The EN overlay
+paths and IDs remain the application contract; CN is supplementary evidence for
+these documented semantic choices. No source or generated file was renumbered.
+
+Revision validation: index **v21**, 328 overlays; exactly 13 changed and 315
+unchanged. Both indices are byte-identical and all generated canonical JSON
+objects and SHA-1 hashes match the authoring sources. Full ID/marker/token/tag/
+newline checks pass for all 18 Guide Ahead scenes. Repeated lines and interrupted
+speech remain consistent; each edited passage was reread with its neighbours.
+The full audit still reports the same 77 gender candidates and four older place
+candidates, with no missing EN source or stderr. The seven Guide Ahead candidates
+remain the contextual false positives documented above. No app code or format
+changed; manual reader/VN/offline checks remain unperformed under the user's
+earlier decision to finish without that check.
