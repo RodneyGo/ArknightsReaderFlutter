@@ -94,7 +94,7 @@ flags any `ru_src/*.json` that disagrees, so **never invent a new spelling ad-ho
   `Lungmen`, `Penguin Logistics`, `Blacksteel`, `PRTS`, `W`, `L.G.D.`
 - **`places_transliterate`** — the *only* exception: **`Chernobog → Чернобог`**.
 - **`terms`** — recurring lore words use the established RU form: Oripathy →
-  орипатия, Originium → оригиниум, Infected → Заражённый, Catastrophe →
+  орипатия, Originium → ориджиниум, Infected → Заражённый, Catastrophe →
   Катастрофа, Originium Arts → **Искусство** (there is **no magic** in this
   setting — Arts is always Искусство, never магия; a Caster's ability is her
   Искусство).
