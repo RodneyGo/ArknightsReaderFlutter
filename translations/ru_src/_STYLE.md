@@ -98,7 +98,7 @@ as new episodes introduce characters (characterize first — phase 2).
 |-------------|----------------------------------------------------|--------------------------------|
 | Amiya       | Soft, earnest, slightly formal; trusting           | *Ситуация ясна. Я доверяю решениям Доктора…* `01-03_beg #49` |
 | Dobermann   | Clipped command Russian; nominal constructions     | *Отступление — наш главный приоритет!* `00-04_beg #28` |
-| Kal'tsit    | Cold, precise, no filler; controlled anger         | *Чернобог… заслужил гибель!* `03-02_end #132` |
+| Kal'tsit    | Cold, precise, no filler; controlled anger         | *Так что, когда настаёт день вроде сегодняшнего, когда возможно что угодно, Rhodes Island должен быть готов действовать по обстоятельствам.* `07-02_end #214` |
 | Gummy       | Childlike, cheerful, simple; heavy interjections   | *Справлюсь. Намного легче щита.* `act10d5_st01 #101` |
 | W           | Sardonic, teasing, mock-affectionate               | *…мой дорогой кролик из Чернобога?* `04-09_beg #119` |
 | Doctor ({@nickname}) | Mostly addressed, rarely speaks; stays masculine | (addressed with Вы by operators) |
@@ -252,6 +252,9 @@ as new episodes introduce characters (characterize first — phase 2).
   **Вы** to Uncle Tung and the Rat King, **ты** with Waai Fu. Uncle Tung, Lin
   and Wei speak as old acquaintances using **ты**. Eurill and Wei retain
   businesslike **Вы**; Emperor is familiarly irreverent with everyone.
+- The frightened captive Mafioso keeps **Вы** when asking Exusiai to spare
+  him (`07_beg #64`). This is a plea for mercy after his account of the plan,
+  not a hostile taunt. Exusiai's playful answer addresses him with **ты**.
 - Yith maintains professional **Вы**, including with the sharp anonymous
   Laterano visitor (`08_end #17–23`, `10_end #58–62`). Mostima uses **Вы** to
   Yith. Her visitor uses **ты**, as she does with Mostima. In `08_end`,
@@ -299,7 +302,7 @@ The supplied archive has no extra `act21side` meta-table scenes.
 | Recurring speaker | Voice | RU anchor |
 | --- | --- | --- |
 | Texas | Laconic, practical; guarded affection and a clear wish to return home | *Я вернусь в Lungmen. Меня там ждут.* `act21side_02_beg #182` |
-| Lavinia | Principled, precise; wounded conviction without inflated rhetoric | *Но пока ты не запер меня под замок, никто не остановит мой поиск убийцы.* `03_end #220` |
+| Lavinia | Principled, precise; wounded conviction without inflated rhetoric | *Но если ты прямо сейчас меня не запрёшь, никто не помешает мне найти убийцу.* `03_end #220` |
 | Leontuzzo | Controlled young strategist; courtesy gives way to concern | *Но как ты одна остановишь дождь?* `03_end #193` |
 | Bernardo | Cultivated director and measured patriarch; theatre and power share his vocabulary | *Но увы, синьорина Сора, действительность логике не подчиняется.* `01_beg #122` |
 | Demetri | Dry, efficient, ruthless; familiar banter with Leon | *Работаете на меня — получаете деньги. Лучше работа — больше платят. Всё просто.* `01_end #483` |
@@ -869,3 +872,144 @@ candidates, with no missing EN source or stderr. The seven Guide Ahead candidate
 remain the contextual false positives documented above. No app code or format
 changed; manual reader/VN/offline checks remain unperformed under the user's
 earlier decision to finish without that check.
+
+
+### Main story — contextual review conventions, 2026-11-07
+
+- `core city` is **городское ядро**, the independently moving central part of
+  Chernobog, not a capital city. `landship` is **сухопутный корабль**, not an
+  amphibious landing vessel. **Azazel** is the clinic's proper name and remains
+  Latin, including recollections in episodes 1 and 7.
+- Amiya deliberately retains conciliatory **Вы / госпожа** toward FrostNova,
+  even before combat (`06-13_end #273`; `06-14_beg #555, #580, #628, #685`).
+  English *Miss FrostNova* and Chinese 小姐 support the courtesy. FrostNova
+  addresses Amiya with **ты**. This does not change the separate mutual **ты**
+  rule for Doctor and FrostNova.
+- Mephisto's **Вы** to Ch'en is mocking ceremony (`05-09_end #48, #207`;
+  `05-10_beg #7, #13, #303`), including *dear Madam* and the invitation to kill
+  him. His loss of composure becomes **ты** in `05-10_end #11`. Do not force
+  the courteous taunts into the same register as that outburst.
+- The old voice example `03-02_end #132` belongs to Skullshatterer, not Kal'tsit;
+  her registry row now quotes her actual speech in `07-02_end #214`.
+- Mephisto also performs mock-professional courtesy toward Dobermann
+  (`00-08_beg #78, #83`); W's pointed **Вы / госпожа** to Ch'en in
+  `03-05_end #45` is a teasing parting gift, while her direct threats use **ты**.
+- Amiya initially approaches Misha as **Вы / мисс Миша** (`02-03_end #15–63`),
+  then shows her own infection and moves to **ты** at #71. Later conversations
+  retain that personal connection. Do not apply the first meeting's distance
+  to the whole arc.
+- In `03-08_beg #79, #80, #140`, **Skullshatterer is Misha wearing the armour**;
+  feminine agreement is required despite the normally male speaker label.
+  The medic in the opening rescue is explicitly female in `01-06_beg #190`.
+  Generic `Guard` labels still require their own scene evidence.
+- Current EN calls Ch'en's unit the **Special Inspection Unit**, consistently
+  translated **Отдел специальных расследований**; older **Special Ops Division**
+  (including the typo **Divison**) denotes the same unit in these scenes.
+  New speaker aliases **Medic Operator** (`04-06_end #65`) and **L.G.D. Officer**
+  (`05-09_beg #51, #70`) are mapped alongside the archive's older labels.
+
+Explicit CN clarifications in this review include the moving core in
+`07-06_beg #119` (CN says it still operates and moves, where EN incorrectly
+says movement is impossible), and Patriot's family in `st_06-02 #240`
+(his wife died; he and his son remained together, not a son surviving his
+father's death). `st_06-02 #245` orders his unit to maintain public order,
+not discipline within its own ranks. `st_06-01 #185` rejects a predetermined
+reason for living rather than declaring life meaningless. In `st_06-03 #70`
+Ch'en risks opposing Lungmen, not reaching the afterlife; #365 concerns
+fulfilled contractual obligations, not due diligence. Detailed before/after
+records retain the source wording and context for each correction.
+
+
+Additional episode 7 register exceptions: Patriot addresses Kal'tsit with
+**Вы / Госпожа** as an old associate of Theresa (`07-16_beg #15, #27, #55,
+#72`); Kal'tsit uses **ты**. Amiya and the Doctor retain respectful **Вы** to
+Patriot while trying to reconcile and recognising his service and death
+(`07-16_end #63, #300, #315, #355`). Kal'tsit's **Вы** to the Infected Ursus
+refugee (`07-08_beg #121, #123`) is a formal inquiry, not an enemy threat.
+The `07-07_end #7` time remains **00:40**: both EN and CN explicitly say
+12:40 a.m.; the apparent conflict with an earlier 11:30 is retained as source
+ambiguity rather than silently changed to midday.
+
+### Heart of Surging Flame — contextual review exceptions, 2026-11-07
+
+Hellagur's professional assessment of Schwarz uses restrained **Вы** even
+in confrontation (`04_beg #52`). Ceylon's unusually polite **Вы** to Ifrit
+(`03_end #25, #30`) is explicitly noticed by Ifrit at #33; the child's age
+is not grounds to remove this characterisation. Skyfire addresses the newly
+met Ceylon with **Вы** (`01_end #62`, `st02 #51`).
+Ceylon retains formal **Вы** when presenting the accusation to Cronin
+(`06_end #109`, `st04 #11`). Cronin's courtesy to Herman before his dismissal
+(`st04 #62, #87–93`) gives way to hostile **ты** in the threats after #98.
+The Doctor's hostile replies to the exposed conspirator use **ты**
+(`06_end #102`, `07_beg #40`); Cronin's threat to Herman about Ceylon's death
+also uses **ты** (`07_end #94`).
+
+
+### Operational Intelligence — contextual review, 2026-11-07
+
+Mayer is female (ST06 CN 梅尔姐); **Майер** does not take masculine declension.
+Executor's **Вы** to Vermeil persists through detention (`st04 #247, #272,
+#292, #310`): he addresses the beneficiary of a will in a mechanical official
+voice, consistent with Federico's later procedural exchanges. Ifrit and the
+Doctor use **ты** in the domestic lesson (`st05 #62–66, #575–580, #608`):
+her blunt childlike familiarity is intentional, not a formal briefing.
+The medic in ST05 is a woman (#144, #607). The internal monstrous voice
+at #649–653 has no established sex; neutral phrasing avoids inventing one.
+
+Important EN/CN discrepancies are documented in the review records. In ST01,
+Hellagur is living under an assumed identity (#142), not literally underground;
+Patriot points out his continuing ties to the past (#157). The lone warrior
+is fighting Sarkaz mercenaries (#311), while hostile civilians refuse to see
+Infected as compatriots (#316). Earlier emperors also **could not** escape
+fate (#513). These corrections restore the Chinese actions and negations
+rather than preserve contradictory English wording. The lower city at #260
+is genuinely 下城区 and must not be mechanically replaced by a satellite city.
+ST02 #310 addresses Flamebringer with a title; it does not make him the planner
+of the conspiracy described in the same sentence.
+
+### Darknights Memoir and Children of Ursus — continuity
+
+In Darknights Memoir the mercenary who first carried the name W is a man;
+the woman who takes his equipment and name is the W we later follow. The
+mask Theresa discusses in `03_beg #283` is the identity W has adopted, not
+an instruction about the disguise Ines uses to pass for a Sarkaz
+(`04_beg #233`). Keep these separate even when the English images coincide.
+
+In Children of Ursus the members of the Ursus Student Self-government Group
+are schoolchildren. Keep the full official name as listed in the glossary
+(`st01 #884`, `st03 #430, #436`); ordinary references such as “our group”
+are not titles. Preserve the reveal of Valeria's name in `st03 #146`: the
+speaker is identified only as «Затравленная ученица» until she introduces
+herself. Vika's plea to Anna, «Подтяни меня, Аня» (`st02 #102, #625`), is
+a remembered line and must remain recognisable when it recurs.
+
+The four visibly corrupted speaker labels in `main_05-09_end #118, #120,
+#123, #128` change as the soldier loses the ability to speak. The glossary
+keeps a separate spelling for each stage. Use «Боец Reunion» and
+«Стадо Мефисто» for the ordinary, undistorted labels.
+
+In Il Siracusano preserve the Italian names of the two ministries and the
+food safety department listed in the glossary. When a speaker says only
+“the ministry”, “my department” or names the minister's job, translate that
+description normally (`05_end #40–46`). Blood ties and affiliation need
+not coincide: `06_beg #266–270` is a question about resemblance and
+parentage; `06_beg #466` concerns Famiglia Texas as an organisation.
+
+In Hortus and The Masses' Travels distinguish **the Lateran**, the governing
+institution, from **Laterano**, the country or destination. In HE `01_end
+#313` someone notified the authorities; in `02_beg #307` the authorities
+set conditions for travel to Laterano. English distinguishes these even
+where Chinese uses the same shorter name. The ordinary adjective “Lateran”
+before a person, custom or dish does not by itself denote the institution.
+
+Track the children's hymn in The Masses' Travels across scene boundaries,
+including the lines presented as subtitles. The shared refrain in ST01
+#467–470 returns at 09_beg #335–338. Its stones grow on people's bodies;
+they are not objects someone carries. The comparison of the Lord's love
+to a mother's is explicit in CN. Preserve the shared words and the music
+mark, while letting the interrupted verses break off where the source does.
+
+The [v22 contextual review](../reviews/ru-v22-context.md) records the coverage
+of all 328 scenes, the before/after text for each correction, and the context
+of the remaining automated warnings. The 18 Guide Ahead scenes retain their
+previously reviewed v21 text.

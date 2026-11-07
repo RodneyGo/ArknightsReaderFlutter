@@ -189,6 +189,8 @@
     "Mephisto": "Мефисто",
     "Mephisto's Guard": "Страж Мефисто",
     "Mephisto's Herd": "Стадо Мефисто",
+    "Mephisto's hERd": "стАдо МефИсто",
+    "Mephisto's HeRd": "СтаДо МефистО",
     "Mercenary": "Наёмник",
     "Meteorite": "Метеорит",
     "Misha": "Миша",
@@ -235,6 +237,8 @@
     "Reunion Blademaster": "Мастер клинка Reunion",
     "Reunion Caster": "Заклинатель Reunion",
     "Reunion Member": "Боец Reunion",
+    "ReUni N MemBr": "БоEц РеУнион",
+    "ReUMmbr? N;E? OE": "Бо;Eц? Ре?Унион",
     "Reunion Member A": "Боец Reunion A",
     "Reunion Member B": "Боец Reunion B",
     "Reunion Soldier": "Солдат Reunion",
@@ -748,7 +752,11 @@
     "Sagre": "Сагре",
     "Ratatos": "Рататос",
     "Enciodes": "Энсиодес",
-    "Vel": "Вел"
+    "Vel": "Вел",
+    "L.G.D. Officer": "Офицер L.G.D.",
+    "Mayer": "Майер",
+    "Student C": "Ученик C",
+    "Bullied Student": "Затравленная ученица"
   },
   "places_keep_latin": [
     "Rhodes Island",
@@ -845,6 +853,9 @@
     "Auto Lavaggio Danbrown",
     "Volsinii Arts Weekly",
     "Bocca di Lupo",
+    "Ministero dei Lavori Pubblici",
+    "Ministero dei Trasporti",
+    "Dipartimento di Sicurezza Alimentare",
     "L'Autorità Garante della Concorrenza e del Mercato",
     "L'Autorità",
     "Griffin Arsenal",
@@ -934,7 +945,10 @@
     "Tidal Chapel",
     "Old Vanguard of Gaul",
     "Lateran",
-    "Apostolic Knights"
+    "Apostolic Knights",
+    "Azazel",
+    "Scar Market",
+    "Ursus Student Self-government Group"
   ],
   "places_transliterate": {
     "Chernobog": "Чернобог"
@@ -1039,6 +1053,9 @@
     "Wasteland Pilot": "Пилот Пустошей",
     "Dawn Destroyer": "Разрушитель Рассвета",
     "Lateran Declaration": "Латеранская декларация",
-    "International Summit Handbook": "Справочник международного саммита"
+    "International Summit Handbook": "Справочник международного саммита",
+    "core city": "городское ядро",
+    "Special Inspection Unit": "Отдел специальных расследований",
+    "Special Ops Division": "Отдел специальных расследований"
   }
 }
