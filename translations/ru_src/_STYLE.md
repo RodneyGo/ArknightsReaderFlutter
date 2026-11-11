@@ -101,6 +101,19 @@ as new episodes introduce characters (characterize first — phase 2).
 | Kal'tsit    | Cold, precise, no filler; controlled anger         | *Так что, когда настаёт день вроде сегодняшнего, когда возможно что угодно, Rhodes Island должен быть готов действовать по обстоятельствам.* `07-02_end #214` |
 | Gummy       | Childlike, cheerful, simple; heavy interjections   | *Справлюсь. Намного легче щита.* `act10d5_st01 #101` |
 | W           | Sardonic, teasing, mock-affectionate               | *…мой дорогой кролик из Чернобога?* `04-09_beg #119` |
+| Talulah | Warm and resolute among the Infected; once possessed, her speech becomes calculated and theatrical. Keep the two voices distinct. | *Пока мы не выйдем из этой зимы, мой огонь не погаснет.* `st_08-06 #1228` |
+| Kashchey / Deathless Black Snake | Cold, grandiose political rhetoric; frames sacrifice as love and denies the victims' perspective. Masculine even when speaking through Talulah. | *Я люблю даже сановников, у которых вместо мозгов дерьмо...* `main_08-17_beg #174` |
+| Alina | Gentle, plainspoken moral clarity; challenges Talulah without preaching. | *А по-моему, ничего в этом страшного.* `main_08-01_beg #161` |
+| Ch'en | Blunt and stubborn, with a precise sense of duty; becomes more vulnerable with Talulah. | *Талула... сколько бы времени ни потребовалось, я добьюсь для неё справедливого суда.* `st_08-06 #640` |
+| Rosmontis | Short literal phrases; feelings surface slowly through action and memory. | *Если нужно, убейте меня. Я верю в Rhodes Island и отвечу за него.* `st_08-06 #223` |
+| Patriot | Severe, compressed military speech shaped by long experience. | *Ты хочешь покинуть тундру? Тебя раздавит броня Ursus.* `main_08-06_end #14` |
+| FrostNova | Spare and firm, with quiet care for the children beneath her reserve. | *Если я ему не спою, его мучают кошмары.* `st_08-06 #1245` |
+| Nine | Dry, sharp and weary; affection for Lungmen does not hide her view of its treatment of the Infected. | *Лучше уж изгнание.* `main_08-14_end #618` |
+| Crownslayer | Anger gives way to terse self-reproach and the desire to grow stronger. | *Я слаба. Мне нужно стать сильнее.* `st_08-06 #450` |
+| Pith | Direct and technical, taking pride in disciplined use of Arts. | *Я не доверяю таким заклинателям.* `st_08-05 #147` |
+| 12F | Quiet, courteous and observant, keeping a measured distance. | *Не ожидал, что Вы меня помните.* `spst_08-05 #18` |
+| Fyodor | Ceremonious, metaphorical speech that breaks into anger before he reins it back. | *Грудь у меня словно незатопленный очаг посреди зимы.* `st_08-06 #1129` |
+| Islam Witte | Controlled and pragmatic, willing to state political limits plainly to the emperor. | *Большинство презирает Заражённых.* `st_08-06 #1187` |
 | Doctor ({@nickname}) | Mostly addressed, rarely speaks; stays masculine | (addressed with Вы by operators) |
 | Ceylon | Educated and formal, earnest, stubborn; becomes direct when defending her choices | *Я не тепличный цветок и не маленькая несмышлёная принцесса!* `act3d0_06_beg #110` |
 | Schwarz | Laconic, disciplined; respectful distance masks attachment to Ceylon | *Госпожа, Вы моя подруга. Всегда ею были.* `act3d0_06_beg #129` |
