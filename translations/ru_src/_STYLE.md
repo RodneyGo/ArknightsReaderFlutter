@@ -1026,3 +1026,28 @@ The [v22 contextual review](../reviews/ru-v22-context.md) records the coverage
 of all 328 scenes, the before/after text for each correction, and the context
 of the remaining automated warnings. The 18 Guide Ahead scenes retain their
 previously reviewed v21 text.
+
+### A Walk in the Dust — voices and context
+
+Kal'tsit is controlled and exact even while threatening an opponent. Her
+warning to the Emperor's Blade about his breaking mask (`08_end #71–72`)
+is clinical, while her farewell to Heidi (`08_end #584–603`) is quieter and
+more personal. She and the Emperor's Blade address each other as **ты**;
+his accusations retain their severity without a sudden shift to formal
+address. Kal'tsit addresses the Doctor as **Вы** (`st02 #259–268`).
+
+Elliot begins as a frightened, stubborn student and gradually becomes the
+calculating Sand Soldier. His short exchange with Old Isin (`st02 #47–69`)
+must retain both their affection and his growing distance. He calls Kal'tsit
+**Вы** when young (`08_end #441–447`), then **ты** as Passenger (`st02
+#168–181`); she addresses him as **ты**. Old Isin refers to himself in
+the third person (`st02 #85–124`), but speaks directly to Elliot as **ты**.
+Heidi and Lillia address Kal'tsit as **Вы** in the past; Lillia's final plea
+switches to **ты** (`08_end #454–463`) as the conversation turns personal.
+
+Count Vincent uses formal, courteous speech even while knowingly sheltering
+Thomson's allies (`08_end #540–554`). The Riverblade captain is abrasive
+and profane (`01_end #313–338`); do not soften his swearing. The Emperor's
+Blade's «Владение» is a dangerous residue of the demon, not ordinary fog
+(`08_beg #340–346`, `08_end #314–315`). The place name Valley of the Setting
+Sun stays Latin, like other proper places in the glossary.
