@@ -1075,3 +1075,39 @@ and uses feminine agreement, as in `act9d0_03_beg #148–160`.
 label “Priestess” in The Masses' Travels denotes a clerical role, **Жрица**.
 Preserve the video titles and system markers literally where they are inline
 tags (`st06 #456, #458`).
+
+### Episode 9 — Stormwatch (main_9)
+
+Outcast speaks directly, warmly, and sometimes roughly. Her restraint about
+the revolver in `09-16_end #251` contrasts with her final judgment in
+`09-17_end #368–415`; do not soften the accusations, or make her sound like a
+ceremonial judge. Horn gives clipped orders under fire (`09-17_beg #253–257`)
+and remains formally polite with Colonel Hamilton even as they clash. Bagpipe
+is informal with squadmates, plain-spoken with strangers, and addresses Horn
+as **Вы** while calling her «командир» (`09-17_end #15–22, #151–166`). Her
+country accent is conveyed by conversational Russian, without fabricated
+dialect spelling. Triangle is a woman (`09-11_end #112` explicitly says “her”);
+Snare is also a woman (`09-07_beg #492`). Oboe and Cello are men. Track their
+agreement in the tower fight (`09-17_beg #192–334`).
+
+Janie / Jane Willow becomes Saileach (Сайлех) in `st_09-03 #134–158`.
+She addresses Outcast as **Вы** while Outcast uses **ты**; the two women do not
+share prior knowledge when they first meet. In `09-16_end #355`, Bagpipe calls
+Outcast an ordinary “lass” because she does not know the Rhodes Island nickname
+«Лэсс»; that nickname is used by Outcast's colleagues. Janie and Saoirse speak
+as close friends using **ты**. Saoirse addresses the apparent Leader formally
+in `st_09-02 #18–124`. Mandragora uses **ты** and blunt insults toward
+enemies and colleagues; Harmonie sounds poised and deliberately cutting
+(`09-17_beg #75–101`, `st_09-02 #166–218`).
+
+The “Severely Infected” woman is Reed / Loughshinny, a female Draco, and the
+apparent Leader in `st_09-02` is not the same person as the real Leader who
+arrives later. Mandragora's unseen stone kills Saoirse before the apparent
+Leader's fire catches (`st_09-02 #172–173`); preserve that timing. Reed's
+“No” while unconscious in `09-16_end #443–449` is a nightmare, not a reply
+to Bagpipe. `09-06_end #137` EN “Lighter...” means “Полегче...” in the
+Chinese scene, an instruction about painful handling, not a request for fire.
+The Doctor is male and uses **Вы** with Siege in `st_09-03 #329–374`; Siege
+addresses him as **Вы**. The Doctor and Amiya retain their familiar **ты**
+in `st_09-04 #1131–1146`. The Reunion soldier who confronts Talulah in
+`st_09-04 #296–302` is male, as Nine's `#318` says “him.”
