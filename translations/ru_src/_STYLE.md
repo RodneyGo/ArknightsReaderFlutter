@@ -1051,3 +1051,27 @@ and profane (`01_end #313–338`); do not soften his swearing. The Emperor's
 Blade's «Владение» is a dangerous residue of the demon, not ordinary fog
 (`08_beg #340–346`, `08_end #314–315`). The place name Valley of the Setting
 Sun stays Latin, like other proper places in the glossary.
+
+### Vigilo — voices and context
+
+The six `act8mini` scenes shift between dreams, memories and the present.
+Keep repeated thoughts connected across those shifts: the cruelty of hope
+in `st01 #83–85` returns in Cannot's speech at `st01 #856–858`.
+Cannot (Кэннот) speaks like a theatrical merchant and addresses the Doctor
+formally. PRTS stays precise and mechanical; Closure is warm and colloquial,
+even when she jokes about Kal'tsit (`st06 #206–278`). Earthspirit is dry and
+practical, while Eyjafjalla discusses research with deliberate precision.
+The Sarkaz boiler worker's banter with the Doctor is familiar, not a formal
+briefing. Theresa speaks with calm authority and personal warmth; the Doctor
+uses intimate **ты** with her in `st04 #109–110` but formal **Вы** while
+addressing her as Her Majesty in `st05 #376–383`. Kal'tsit and the staff use **Вы** to the Doctor;
+the Doctor and Amiya use **ты** to each other.
+
+The unnamed “he” in `st03 #87–89` is intentionally left unidentified. In
+`st04 #109`, the Sarkaz follow their own convictions; the English “her” is
+inconsistent with this context. “Small Cautus” in `st05` is the young Amiya
+and uses feminine agreement, as in `act9d0_03_beg #148–160`.
+“Priestess” in `st06 #405–409` is a personal name, **Пристесс**. The speaker
+label “Priestess” in The Masses' Travels denotes a clerical role, **Жрица**.
+Preserve the video titles and system markers literally where they are inline
+tags (`st06 #456, #458`).
